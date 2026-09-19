@@ -167,6 +167,8 @@ export function useUpdater() {
       setUpdateError(null);
       const update = await inFlightCheck;
 
+      useAppStore.setState({ updateCheckedAt: Date.now(), updateNotes: update?.body ?? null });
+
       replacePendingUpdate(update);
       if (update) {
         setUpdateVersion(update.version);
@@ -191,6 +193,7 @@ export function useUpdater() {
       }
     } catch (err) {
       console.error("[updater] Check failed:", err);
+      useAppStore.setState({ updateCheckedAt: null });
       if (silent && !useAppStore.getState().updateRequired) setUpdateStatus("idle");
       else {
         setUpdateError(

@@ -13,6 +13,7 @@ import { useDictationPreparation } from "@/hooks/useDictationPreparation.hook";
 import { useHistory } from "@/hooks/useHistory.hook";
 import { useTheme } from "@/hooks/useTheme.hook";
 import { useUpdater, useUpdaterAutoCheck } from "@/hooks/useUpdater.hook";
+import { useUpdateAcknowledgment } from "@/hooks/useUpdateAcknowledgment.hook";
 import { useTraySync } from "@/hooks/useTraySync.hook";
 import { useAppStore } from "@/store/app.store";
 import { checkMicrophonePermission } from "@/services/permissions.service";
@@ -21,6 +22,7 @@ import { WindowToolbar } from "@/components/layout/WindowToolbar.component";
 import { StatusBar } from "@/components/layout/StatusBar.component";
 import { ConfirmResetDialogue } from "@/components/shared/ConfirmReset.dialogue";
 import { UpdateRequiredDialogue } from "@/components/shared/UpdateRequired.dialogue";
+import { UpdateAcknowledgmentDialogue } from "@/components/shared/UpdateAcknowledgment.dialogue";
 
 import { ToastContainer } from "@/components/shared/ToastContainer.component";
 import { HistoryPage } from "@/pages/History.page";
@@ -87,6 +89,7 @@ export default function App() {
     };
   }, []);
   useUpdaterAutoCheck();
+  useUpdateAcknowledgment();
   useTraySync(saveSttMode, saveTranscriptionLanguage);
   const { checkForUpdate } = useUpdater();
 
@@ -236,6 +239,7 @@ export default function App() {
         onCancel={() => setShowResetConfirm(false)}
       />
       <UpdateRequiredDialogue />
+      <UpdateAcknowledgmentDialogue paused={showResetConfirm} />
     </div>
   );
 }

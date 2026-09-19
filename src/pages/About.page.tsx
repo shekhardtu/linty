@@ -8,6 +8,7 @@ import { SectionCard } from "@/components/shared/SettingsLayout.component";
 import { cn } from "@/lib/utils";
 import { PageLayout } from "@/components/shared/PageLayout.component";
 import { BackgroundArtwork } from "@/components/shared/BackgroundArtwork.component";
+import { installedReleaseNotes, ReleaseNotes, releaseUrl } from "@/components/shared/ReleaseNotes.component";
 
 export function AboutPage() {
   const [appVersion, setAppVersion] = useState("");
@@ -15,6 +16,8 @@ export function AboutPage() {
   const updateVersion = useAppStore((s) => s.updateVersion);
   const updateProgress = useAppStore((s) => s.updateProgress);
   const updateError = useAppStore((s) => s.updateError);
+  const updateNotes = useAppStore((s) => s.updateNotes);
+  const updateCheckedAt = useAppStore((s) => s.updateCheckedAt);
   const { checkForUpdate, downloadAndInstall } = useUpdater();
 
   useEffect(() => {
@@ -39,6 +42,9 @@ export function AboutPage() {
             <span>A little more flow.</span>
           </p>
           <small>Version {appVersion || "…"}</small>
+          {updateStatus === "idle" && updateCheckedAt !== null && (
+            <p className="installed-update-status" role="status">You’re up to date.</p>
+          )}
           <BackgroundArtwork motif="contour" />
         </header>
 
@@ -64,6 +70,10 @@ export function AboutPage() {
                 <Download size={12} />
                 Install
               </button>
+            </div>
+            <div className="available-release-notes">
+              <h2>What’s new in v{updateVersion}</h2>
+              <ReleaseNotes notes={updateNotes} />
             </div>
           </SectionCard>
         )}
@@ -110,6 +120,18 @@ export function AboutPage() {
             </div>
           </SectionCard>
         )}
+
+        <SectionCard>
+          <section className="about-release-notes" aria-labelledby="installed-release-title">
+            <h2 id="installed-release-title">What’s new in this version</h2>
+            <ReleaseNotes notes={installedReleaseNotes(appVersion)} />
+            <button className="standard-button" onClick={() => {
+              void open(releaseUrl(appVersion)).catch(() => useAppStore.getState().addToast({
+                type: "error", message: "Could not open the release notes. Please try again.",
+              }));
+            }}>View release notes</button>
+          </section>
+        </SectionCard>
 
         {/* Action buttons */}
         <SectionCard>

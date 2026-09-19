@@ -11,7 +11,7 @@
     "tauri": "tauri",
     "build:mac": "bash scripts/build-mac.sh",
     "build:mac:universal": "tauri build --target universal-apple-darwin --bundles dmg app --features local-stt,parakeet && mkdir -p release && cp -f src-tauri/target/release/bundle/dmg/*.dmg release/",
-    "test": "node --experimental-strip-types --test tests/usage.test.mjs tests/history-audio.test.mjs tests/languages.test.mjs tests/corrections.test.mjs tests/payoff.test.mjs tests/force-update.test.mjs tests/reformat.test.mjs tests/settings-save.test.mjs tests/dictation-trigger.test.mjs tests/dictation-evaluation.test.mjs tests/website-demo.test.mjs tests/website-platform.test.mjs tests/website-product.test.mjs tests/release-publish.test.mjs tests/release-version.test.mjs",
+    "test": "node --experimental-strip-types --test tests/usage.test.mjs tests/history-audio.test.mjs tests/languages.test.mjs tests/corrections.test.mjs tests/payoff.test.mjs tests/force-update.test.mjs tests/reformat.test.mjs tests/settings-save.test.mjs tests/dictation-trigger.test.mjs tests/dictation-evaluation.test.mjs tests/website-demo.test.mjs tests/website-platform.test.mjs tests/website-product.test.mjs tests/release-publish.test.mjs tests/release-version.test.mjs tests/update-acknowledgment.test.mjs tests/release-notes.test.mjs",
     "test:ui": "node tests/ui.smoke.mjs",
     "test:motion": "node tests/ui.motion.mjs",
     "test:usability": "node tests/ui.usability.mjs",
@@ -24,7 +24,9 @@
     "test:recovery": "node tests/ui.recovery.mjs",
     "test:onboarding": "node tests/ui.onboarding-models.mjs",
     "test:cleanup": "node tests/ui.cleanup-warmup.mjs",
-    "test:security": "node tests/ui.security.mjs"
+    "test:security": "node tests/ui.security.mjs",
+    "release:check": "node scripts/release-notes.mjs",
+    "test:updates": "node tests/ui.updates.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "~2.10.1",

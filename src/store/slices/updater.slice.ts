@@ -1,4 +1,5 @@
 import type { StateCreator } from "zustand";
+import type { UpdateNotice } from "@/lib/update-acknowledgment";
 
 /**
  * `waiting`: a required update is downloaded and installs once dictation has
@@ -14,6 +15,11 @@ export type UpdateStatus =
   | "error";
 
 export interface UpdaterSlice {
+  installedVersion: string | null;
+  updateNotice: UpdateNotice | null;
+  updateNotes: string | null;
+  /** Set only after a successful check, so idle/offline never implies latest. */
+  updateCheckedAt: number | null;
   updateStatus: UpdateStatus;
   updateVersion: string | null;
   updateCurrentVersion: string | null;
@@ -30,6 +36,10 @@ export interface UpdaterSlice {
 }
 
 export const createUpdaterSlice: StateCreator<UpdaterSlice> = (set) => ({
+  installedVersion: null,
+  updateNotice: null,
+  updateNotes: null,
+  updateCheckedAt: null,
   updateStatus: "idle",
   updateVersion: null,
   updateCurrentVersion: null,

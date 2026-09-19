@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { RefreshCw } from "lucide-react";
 import { useAppStore } from "@/store/app.store";
 import { useUpdater } from "@/hooks/useUpdater.hook";
+import { ReleaseNotes } from "./ReleaseNotes.component";
 
 /**
  * Blocking screen for a release marked required (latest.json
@@ -15,6 +16,7 @@ export function UpdateRequiredDialogue() {
   const error = useAppStore((s) => s.updateError);
   const current = useAppStore((s) => s.updateCurrentVersion);
   const target = useAppStore((s) => s.updateVersion);
+  const notes = useAppStore((s) => s.updateNotes);
   const { checkForUpdate } = useUpdater();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const open = updateRequired && status !== "idle" && status !== "available";
@@ -46,6 +48,7 @@ export function UpdateRequiredDialogue() {
       {current && target && (
         <p className="update-versions">From version {current} to {target}</p>
       )}
+      {notes && <section className="installed-release-notes" aria-label="What's new"><ReleaseNotes notes={notes} /></section>}
 
       <div className="update-step" role="status" aria-live="polite">
         {status === "checking" && <span>Checking for the update…</span>}

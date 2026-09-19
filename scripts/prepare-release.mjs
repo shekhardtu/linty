@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
+import { checkReleaseNotes } from './release-notes.mjs';
 
 // A release gets its own version commit/tag; CI never pushes around main's
 // required checks. Include existing tags so retries cannot reuse a version.
@@ -16,6 +17,7 @@ export function nextVersion(current, tags) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const pkg = JSON.parse(await readFile('package.json', 'utf8'));
   const tags = execFileSync('git', ['tag', '--list'], { encoding: 'utf8' }).trim().split('\n');
+  await checkReleaseNotes(tags);
   const version = nextVersion(pkg.version, tags);
   for (const file of ['package.json', 'src-tauri/tauri.conf.json']) {
     const data = JSON.parse(await readFile(file, 'utf8'));

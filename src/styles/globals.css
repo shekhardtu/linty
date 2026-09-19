@@ -478,7 +478,7 @@ kbd { border: 1px solid var(--color-border); border-bottom-width: 2px; border-ra
 .confirmation-dialog p { font-size: 13px; line-height: 1.6; color: var(--color-text-secondary); margin-top: 8px; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
 /* Required update: blocking, but calm. The accent, not the error colour, marks it. */
-.update-required-dialog { outline: none; }
+.update-required-dialog { outline: none; max-height: calc(100dvh - 48px); overflow-y: auto; }
 .update-required-dialog .dialog-icon { color: var(--color-accent); }
 .update-required-dialog .update-versions { font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
 .update-step { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; font-size: 13px; color: var(--color-text-primary); }
@@ -488,6 +488,20 @@ kbd { border: 1px solid var(--color-border); border-bottom-width: 2px; border-ra
 .update-progress::-webkit-progress-value { background: var(--color-accent); border-radius: 3px; }
 .update-progress::-moz-progress-bar { background: var(--color-accent); }
 .update-required-dialog .update-error { color: var(--color-error); }
+.update-acknowledgment-dialog { width: min(480px, calc(100vw - 48px)); max-height: calc(100dvh - 48px); overflow-y: auto; }
+.update-acknowledgment-dialog .dialog-icon { color: var(--color-accent); }
+.update-acknowledgment-dialog .installed-update-status,
+.about-identity .installed-update-status { color: var(--color-accent); font-size: 12px; }
+.installed-release-notes { margin-top: 20px; }
+.installed-release-notes h3,
+.about-release-notes h2,
+.available-release-notes h2 { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
+.release-highlights { list-style: disc; padding-left: 18px; margin-top: 10px; display: grid; gap: 10px; font-size: 13px; line-height: 1.6; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.about-release-notes { padding: 20px; }
+.about-release-notes > button { margin-top: 16px; }
+.available-release-notes { padding: 0 16px 16px; }
+.update-acknowledgment-dialog .update-acknowledgment-error { color: var(--color-error); }
+.update-acknowledgment-dialog .dialog-actions { flex-wrap: wrap; }
 .app-loading { display: flex; align-items: center; justify-content: center; gap: 12px; height: 100%; color: var(--color-text-secondary); }
 .loading-mark { width: 16px; height: 16px; border: 2px solid var(--color-border); border-top-color: var(--color-accent); border-radius: 50%; animation: spin 1s linear infinite; }
 

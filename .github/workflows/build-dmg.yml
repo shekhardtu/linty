@@ -223,7 +223,7 @@ jobs:
 
           jq -n \
             --arg version "v${VERSION}" \
-            --arg notes "Linty v${VERSION}" \
+            --rawfile notes RELEASE_NOTES.md \
             --arg pub_date "$PUB_DATE" \
             --arg signature "$SIGNATURE" \
             --arg url "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/${TAR_GZ_NAME}" \
@@ -245,6 +245,7 @@ jobs:
             src-tauri/target/release/bundle/macos/*.app.tar.gz
             src-tauri/target/release/bundle/macos/*.app.tar.gz.sig
             latest.json
+            RELEASE_NOTES.md
           if-no-files-found: error
 
       - name: Tag the exact built source
@@ -262,7 +263,7 @@ jobs:
           tag_name: v${{ steps.version.outputs.version }}
           target_commitish: ${{ steps.version.outputs.sha }}
           name: Linty v${{ steps.version.outputs.version }}
-          generate_release_notes: true
+          body_path: RELEASE_NOTES.md
           draft: true
 
       - name: Upload assets and publish release
