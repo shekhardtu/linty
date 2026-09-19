@@ -55,6 +55,9 @@ jobs:
   native-tests:
     name: macOS native tests
     runs-on: macos-14
+    env:
+      CARGO_INCREMENTAL: '1'
+      LINTY_PARAKEET_LIB_DIR: ${{ github.workspace }}/src-tauri/swift/.build/ci-prebuilt
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -68,15 +71,33 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - uses: swatinem/rust-cache@v2
+      - name: Restore or build Swift bridge
+        id: swift-bridge
+        uses: ./.github/actions/swift-bridge
+      - name: Identify Rust compiler
+        id: rust-compiler
+        run: echo "hash=$(rustc -vV | shasum -a 256 | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+      - name: Restore incremental native build
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          workspaces: src-tauri
-          shared-key: macos-native-tests
+          # Keep workspace objects and incremental state. rust-cache's default
+          # cleanup discards these and disables incremental compilation.
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            src-tauri/target/debug
+            src-tauri/target/.rustc_info.json
+            src-tauri/swift/.build/ci-tests
+          key: native-incremental-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-compiler.outputs.hash }}-${{ steps.swift-bridge.outputs.toolchain-hash }}-${{ hashFiles('src-tauri/Cargo.lock', 'src-tauri/Cargo.toml') }}-${{ hashFiles('src-tauri/src/**', 'src-tauri/tests/**', 'src-tauri/build.rs', 'src-tauri/tauri.conf.json', 'src-tauri/capabilities/**', 'src-tauri/permissions/**', 'src-tauri/icons/**', 'src-tauri/licenses/**', 'src-tauri/swift/Package.*', 'src-tauri/swift/Sources/**', 'src-tauri/swift/Tests/**', 'src/**', 'public/**', 'package.json', 'yarn.lock', 'RELEASE_NOTES.md', 'vite.config.*', '.github/workflows/checks.yml', '.github/actions/swift-bridge/action.yml') }}
+          restore-keys: |
+            native-incremental-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-compiler.outputs.hash }}-${{ steps.swift-bridge.outputs.toolchain-hash }}-${{ hashFiles('src-tauri/Cargo.lock', 'src-tauri/Cargo.toml') }}-
+            native-incremental-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-compiler.outputs.hash }}-${{ steps.swift-bridge.outputs.toolchain-hash }}-
       - run: cargo fmt --check --manifest-path src-tauri/Cargo.toml
       - run: cargo test --locked --manifest-path src-tauri/Cargo.toml --features local-stt,parakeet
       - name: Build native application with production assets
         run: node node_modules/@tauri-apps/cli/tauri.js build --debug --no-bundle --features local-stt,parakeet
-      - run: swift test --package-path src-tauri/swift --disable-automatic-resolution
+      - run: swift test --package-path src-tauri/swift --scratch-path src-tauri/swift/.build/ci-tests --disable-automatic-resolution
       - run: python3 tests/supervisor.test.py
       - run: python3 scripts/check-rust-advisories.py
 

@@ -1,10 +1,10 @@
 {
   "inputs": {
-    "yarn.lock": "ba600d730d710b7bc2453c8fc0fbfa4a0218c170c687246a77cfed8aad49ecc4",
-    "src-tauri/Cargo.lock": "cf39be8cce844014f824c44085fb534b345cc3d01cbed63a31fa1431064ff92a",
+    "yarn.lock": "05473835de06304afb017fd2d71988ef0fdcf6e76463b50344c4e80b98c71eeb",
+    "src-tauri/Cargo.lock": "1a8dbb6508221c3ef9f1e1fd60648d9c9d7c478415347e552f2e52bb87280e8d",
     "src-tauri/swift/Package.resolved": "51ca7f28c7e3ec9a6078527ab7a67f6ab6517c21a8d3f6ee2f260941cb682e12"
   },
-  "notices_sha256": "46dd9439090e92bd048deebeb974c8211018462cf46feb104b65c4fd4daf926a",
+  "notices_sha256": "864250d13d7616eba3149c2ecc6f1f713e11ce3452842322de2fc7e0aa7f4d57",
   "components": [
     {
       "ecosystem": "Cargo",
@@ -1172,6 +1172,19 @@
     },
     {
       "ecosystem": "Cargo",
+      "name": "cssparser",
+      "version": "0.36.0",
+      "license": "MPL-2.0",
+      "repository": "https://github.com/servo/rust-cssparser",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/cssparser/0.36.0/source/LICENSE",
+          "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
       "name": "cssparser-macros",
       "version": "0.6.1",
       "license": "MPL-2.0",
@@ -1186,16 +1199,33 @@
     {
       "ecosystem": "Cargo",
       "name": "ctor",
-      "version": "0.2.9",
+      "version": "0.8.0",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/mmastrac/rust-ctor",
       "notices": [
         {
-          "source": "https://docs.rs/crate/ctor/0.2.9/source/LICENSE-APACHE",
+          "source": "https://docs.rs/crate/ctor/0.8.0/source/LICENSE-APACHE",
           "sha256": "a8ad31b1c3f40dca5a84119351b8fa8ddc868edd77fad8a8ebf6d8f2d16fa4ae"
         },
         {
-          "source": "https://docs.rs/crate/ctor/0.2.9/source/LICENSE-MIT",
+          "source": "https://docs.rs/crate/ctor/0.8.0/source/LICENSE-MIT",
+          "sha256": "fd80a26fbb3f644af1fa994134446702932968519797227e07a1368dea80f0bc"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
+      "name": "ctor-proc-macro",
+      "version": "0.0.7",
+      "license": "Apache-2.0 OR MIT",
+      "repository": "https://github.com/mmastrac/rust-ctor",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/ctor-proc-macro/0.0.7/source/LICENSE-APACHE",
+          "sha256": "a8ad31b1c3f40dca5a84119351b8fa8ddc868edd77fad8a8ebf6d8f2d16fa4ae"
+        },
+        {
+          "source": "https://docs.rs/crate/ctor-proc-macro/0.0.7/source/LICENSE-MIT",
           "sha256": "fd80a26fbb3f644af1fa994134446702932968519797227e07a1368dea80f0bc"
         }
       ]
@@ -1446,6 +1476,32 @@
     },
     {
       "ecosystem": "Cargo",
+      "name": "derive_more",
+      "version": "2.1.1",
+      "license": "MIT",
+      "repository": "https://github.com/JelteF/derive_more",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/derive_more/2.1.1/source/LICENSE",
+          "sha256": "8a35369f3ca263b3c62fbb5032947e53b6bfebc6c8a4d1bb982de1c069f6fba5"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
+      "name": "derive_more-impl",
+      "version": "2.1.1",
+      "license": "MIT",
+      "repository": "https://github.com/JelteF/derive_more",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/derive_more-impl/2.1.1/source/LICENSE",
+          "sha256": "8a35369f3ca263b3c62fbb5032947e53b6bfebc6c8a4d1bb982de1c069f6fba5"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
       "name": "digest",
       "version": "0.10.7",
       "license": "MIT OR Apache-2.0",
@@ -1527,6 +1583,19 @@
     },
     {
       "ecosystem": "Cargo",
+      "name": "dom_query",
+      "version": "0.27.0",
+      "license": "MIT",
+      "repository": "https://github.com/niklak/dom_query",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/dom_query/0.27.0/source/LICENSE",
+          "sha256": "ac481b3d81aa8fddeaba3625cf2d40a4425e02a1e60b743be3825d6a9923664f"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
       "name": "dpi",
       "version": "0.1.2",
       "license": "Apache-2.0 AND MIT",
@@ -1569,6 +1638,40 @@
         {
           "source": "https://docs.rs/crate/dtoa-short/0.3.5/source/LICENSE",
           "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
+      "name": "dtor",
+      "version": "0.3.0",
+      "license": "Apache-2.0 OR MIT",
+      "repository": "https://github.com/mmastrac/rust-ctor",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/dtor/0.3.0/source/LICENSE-APACHE",
+          "sha256": "a8ad31b1c3f40dca5a84119351b8fa8ddc868edd77fad8a8ebf6d8f2d16fa4ae"
+        },
+        {
+          "source": "https://docs.rs/crate/dtor/0.3.0/source/LICENSE-MIT",
+          "sha256": "fd80a26fbb3f644af1fa994134446702932968519797227e07a1368dea80f0bc"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
+      "name": "dtor-proc-macro",
+      "version": "0.0.6",
+      "license": "Apache-2.0 OR MIT",
+      "repository": "https://github.com/mmastrac/rust-ctor",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/dtor-proc-macro/0.0.6/source/LICENSE-APACHE",
+          "sha256": "a8ad31b1c3f40dca5a84119351b8fa8ddc868edd77fad8a8ebf6d8f2d16fa4ae"
+        },
+        {
+          "source": "https://docs.rs/crate/dtor-proc-macro/0.0.6/source/LICENSE-MIT",
+          "sha256": "fd80a26fbb3f644af1fa994134446702932968519797227e07a1368dea80f0bc"
         }
       ]
     },
@@ -2737,6 +2840,23 @@
     },
     {
       "ecosystem": "Cargo",
+      "name": "html5ever",
+      "version": "0.38.0",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/servo/html5ever",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/html5ever/0.38.0/source/LICENSE-APACHE",
+          "sha256": "143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4"
+        },
+        {
+          "source": "https://docs.rs/crate/html5ever/0.38.0/source/LICENSE-MIT",
+          "sha256": "86dd7f026f916daf7511e39951ad8ea8cf55a8db67ae64060dacf829761c18f3"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
       "name": "http",
       "version": "1.4.0",
       "license": "MIT OR Apache-2.0",
@@ -3510,6 +3630,23 @@
     },
     {
       "ecosystem": "Cargo",
+      "name": "markup5ever",
+      "version": "0.38.0",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/servo/html5ever",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/markup5ever/0.38.0/source/LICENSE-APACHE",
+          "sha256": "143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4"
+        },
+        {
+          "source": "https://docs.rs/crate/markup5ever/0.38.0/source/LICENSE-MIT",
+          "sha256": "86dd7f026f916daf7511e39951ad8ea8cf55a8db67ae64060dacf829761c18f3"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
       "name": "match_token",
       "version": "0.1.0",
       "license": "MIT OR Apache-2.0",
@@ -3749,20 +3886,20 @@
     {
       "ecosystem": "Cargo",
       "name": "muda",
-      "version": "0.17.1",
+      "version": "0.19.3",
       "license": "Apache-2.0 OR MIT",
-      "repository": "https://github.com/amrbashir/muda",
+      "repository": "https://github.com/tauri-apps/muda",
       "notices": [
         {
-          "source": "https://docs.rs/crate/muda/0.17.1/source/LICENSE-APACHE",
+          "source": "https://docs.rs/crate/muda/0.19.3/source/LICENSE-APACHE",
           "sha256": "143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4"
         },
         {
-          "source": "https://docs.rs/crate/muda/0.17.1/source/LICENSE-MIT",
+          "source": "https://docs.rs/crate/muda/0.19.3/source/LICENSE-MIT",
           "sha256": "2ab5537b8c0cb1d475e2145b6a7994b04e7c71e6e5bd836f7f9c47c221a5ad9a"
         },
         {
-          "source": "https://docs.rs/crate/muda/0.17.1/source/LICENSE.spdx",
+          "source": "https://docs.rs/crate/muda/0.19.3/source/LICENSE.spdx",
           "sha256": "135bd40d7e81207369801d42a130c337371322df59687bf986fb8216352d71b6"
         }
       ]
@@ -4439,6 +4576,19 @@
     {
       "ecosystem": "Cargo",
       "name": "phf",
+      "version": "0.13.1",
+      "license": "MIT",
+      "repository": "https://github.com/rust-phf/rust-phf",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/phf/0.13.1/source/LICENSE",
+          "sha256": "0ab4d106b6faac07fb6a051815fd1b4d862d730895e2d7d7358c2f13565e7a38"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
+      "name": "phf",
       "version": "0.8.0",
       "license": "MIT",
       "repository": "https://github.com/sfackler/rust-phf",
@@ -4458,6 +4608,19 @@
       "notices": [
         {
           "source": "https://docs.rs/crate/phf_codegen/0.11.3/source/LICENSE",
+          "sha256": "0ab4d106b6faac07fb6a051815fd1b4d862d730895e2d7d7358c2f13565e7a38"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
+      "name": "phf_codegen",
+      "version": "0.13.1",
+      "license": "MIT",
+      "repository": "https://github.com/rust-phf/rust-phf",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/phf_codegen/0.13.1/source/LICENSE",
           "sha256": "0ab4d106b6faac07fb6a051815fd1b4d862d730895e2d7d7358c2f13565e7a38"
         }
       ]
@@ -4504,6 +4667,19 @@
     {
       "ecosystem": "Cargo",
       "name": "phf_generator",
+      "version": "0.13.1",
+      "license": "MIT",
+      "repository": "https://github.com/rust-phf/rust-phf",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/phf_generator/0.13.1/source/LICENSE",
+          "sha256": "0ab4d106b6faac07fb6a051815fd1b4d862d730895e2d7d7358c2f13565e7a38"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
+      "name": "phf_generator",
       "version": "0.8.0",
       "license": "MIT",
       "repository": "https://github.com/sfackler/rust-phf",
@@ -4530,12 +4706,12 @@
     {
       "ecosystem": "Cargo",
       "name": "phf_macros",
-      "version": "0.11.3",
+      "version": "0.13.1",
       "license": "MIT",
       "repository": "https://github.com/rust-phf/rust-phf",
       "notices": [
         {
-          "source": "https://docs.rs/crate/phf_macros/0.11.3/source/LICENSE",
+          "source": "https://docs.rs/crate/phf_macros/0.13.1/source/LICENSE",
           "sha256": "0ab4d106b6faac07fb6a051815fd1b4d862d730895e2d7d7358c2f13565e7a38"
         }
       ]
@@ -4562,6 +4738,19 @@
       "notices": [
         {
           "source": "https://docs.rs/crate/phf_shared/0.11.3/source/LICENSE",
+          "sha256": "0ab4d106b6faac07fb6a051815fd1b4d862d730895e2d7d7358c2f13565e7a38"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
+      "name": "phf_shared",
+      "version": "0.13.1",
+      "license": "MIT",
+      "repository": "https://github.com/rust-phf/rust-phf",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/phf_shared/0.13.1/source/LICENSE",
           "sha256": "0ab4d106b6faac07fb6a051815fd1b4d862d730895e2d7d7358c2f13565e7a38"
         }
       ]
@@ -5724,6 +5913,19 @@
     },
     {
       "ecosystem": "Cargo",
+      "name": "selectors",
+      "version": "0.36.1",
+      "license": "MPL-2.0",
+      "repository": "https://github.com/servo/stylo",
+      "notices": [
+        {
+          "source": "registry+https://github.com/rust-lang/crates.io-index (Cargo metadata; upstream omits license file)",
+          "sha256": "2ca05a04f8ba23522b765366a429883550fd12f1e6c7a809dfa55905b7d4dfdd"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
       "name": "semver",
       "version": "1.0.27",
       "license": "MIT OR Apache-2.0",
@@ -6013,6 +6215,23 @@
     },
     {
       "ecosystem": "Cargo",
+      "name": "servo_arc",
+      "version": "0.4.3",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/servo/stylo",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/servo_arc/0.4.3/source/LICENSE-APACHE",
+          "sha256": "143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4"
+        },
+        {
+          "source": "https://docs.rs/crate/servo_arc/0.4.3/source/LICENSE-MIT",
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
       "name": "sha2",
       "version": "0.10.9",
       "license": "MIT OR Apache-2.0",
@@ -6257,6 +6476,23 @@
     },
     {
       "ecosystem": "Cargo",
+      "name": "string_cache",
+      "version": "0.9.0",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/servo/string-cache",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/string_cache/0.9.0/source/LICENSE-APACHE",
+          "sha256": "143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4"
+        },
+        {
+          "source": "https://docs.rs/crate/string_cache/0.9.0/source/LICENSE-MIT",
+          "sha256": "62065228e42caebca7e7d7db1204cbb867033de5982ca4009928915e4095f3a3"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
       "name": "string_cache_codegen",
       "version": "0.5.4",
       "license": "MIT OR Apache-2.0",
@@ -6268,6 +6504,23 @@
         },
         {
           "source": "https://docs.rs/crate/string_cache_codegen/0.5.4/source/LICENSE-MIT",
+          "sha256": "62065228e42caebca7e7d7db1204cbb867033de5982ca4009928915e4095f3a3"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
+      "name": "string_cache_codegen",
+      "version": "0.6.1",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/servo/string-cache",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/string_cache_codegen/0.6.1/source/LICENSE-APACHE",
+          "sha256": "143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4"
+        },
+        {
+          "source": "https://docs.rs/crate/string_cache_codegen/0.6.1/source/LICENSE-MIT",
           "sha256": "62065228e42caebca7e7d7db1204cbb867033de5982ca4009928915e4095f3a3"
         }
       ]
@@ -6442,16 +6695,16 @@
     {
       "ecosystem": "Cargo",
       "name": "tao",
-      "version": "0.34.6",
+      "version": "0.35.3",
       "license": "Apache-2.0",
       "repository": "https://github.com/tauri-apps/tao",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tao/0.34.6/source/LICENSE",
+          "source": "https://docs.rs/crate/tao/0.35.3/source/LICENSE",
           "sha256": "a8ad31b1c3f40dca5a84119351b8fa8ddc868edd77fad8a8ebf6d8f2d16fa4ae"
         },
         {
-          "source": "https://docs.rs/crate/tao/0.34.6/source/LICENSE.spdx",
+          "source": "https://docs.rs/crate/tao/0.35.3/source/LICENSE.spdx",
           "sha256": "02b6448337b757772d90e5f31caaa0f9e6afaad2221c01771d0a3deaa4d4196c"
         }
       ]
@@ -6476,16 +6729,16 @@
     {
       "ecosystem": "Cargo",
       "name": "tauri",
-      "version": "2.10.3",
+      "version": "2.11.1",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/tauri-apps/tauri",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tauri/2.10.3/source/LICENSE_APACHE-2.0",
+          "source": "https://docs.rs/crate/tauri/2.11.1/source/LICENSE_APACHE-2.0",
           "sha256": "bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec"
         },
         {
-          "source": "https://docs.rs/crate/tauri/2.10.3/source/LICENSE_MIT",
+          "source": "https://docs.rs/crate/tauri/2.11.1/source/LICENSE_MIT",
           "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d"
         }
       ]
@@ -6493,16 +6746,16 @@
     {
       "ecosystem": "Cargo",
       "name": "tauri-build",
-      "version": "2.5.6",
+      "version": "2.6.3",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/tauri-apps/tauri",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tauri-build/2.5.6/source/LICENSE_APACHE-2.0",
+          "source": "https://docs.rs/crate/tauri-build/2.6.3/source/LICENSE_APACHE-2.0",
           "sha256": "bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec"
         },
         {
-          "source": "https://docs.rs/crate/tauri-build/2.5.6/source/LICENSE_MIT",
+          "source": "https://docs.rs/crate/tauri-build/2.6.3/source/LICENSE_MIT",
           "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d"
         }
       ]
@@ -6510,16 +6763,16 @@
     {
       "ecosystem": "Cargo",
       "name": "tauri-codegen",
-      "version": "2.5.5",
+      "version": "2.6.3",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/tauri-apps/tauri",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tauri-codegen/2.5.5/source/LICENSE_APACHE-2.0",
+          "source": "https://docs.rs/crate/tauri-codegen/2.6.3/source/LICENSE_APACHE-2.0",
           "sha256": "bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec"
         },
         {
-          "source": "https://docs.rs/crate/tauri-codegen/2.5.5/source/LICENSE_MIT",
+          "source": "https://docs.rs/crate/tauri-codegen/2.6.3/source/LICENSE_MIT",
           "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d"
         }
       ]
@@ -6527,16 +6780,16 @@
     {
       "ecosystem": "Cargo",
       "name": "tauri-macros",
-      "version": "2.5.5",
+      "version": "2.6.3",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/tauri-apps/tauri",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tauri-macros/2.5.5/source/LICENSE_APACHE-2.0",
+          "source": "https://docs.rs/crate/tauri-macros/2.6.3/source/LICENSE_APACHE-2.0",
           "sha256": "bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec"
         },
         {
-          "source": "https://docs.rs/crate/tauri-macros/2.5.5/source/LICENSE_MIT",
+          "source": "https://docs.rs/crate/tauri-macros/2.6.3/source/LICENSE_MIT",
           "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d"
         }
       ]
@@ -6792,16 +7045,16 @@
     {
       "ecosystem": "Cargo",
       "name": "tauri-runtime",
-      "version": "2.10.1",
+      "version": "2.11.3",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/tauri-apps/tauri",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tauri-runtime/2.10.1/source/LICENSE_APACHE-2.0",
+          "source": "https://docs.rs/crate/tauri-runtime/2.11.3/source/LICENSE_APACHE-2.0",
           "sha256": "bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec"
         },
         {
-          "source": "https://docs.rs/crate/tauri-runtime/2.10.1/source/LICENSE_MIT",
+          "source": "https://docs.rs/crate/tauri-runtime/2.11.3/source/LICENSE_MIT",
           "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d"
         }
       ]
@@ -6809,16 +7062,16 @@
     {
       "ecosystem": "Cargo",
       "name": "tauri-runtime-wry",
-      "version": "2.10.1",
+      "version": "2.11.4",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/tauri-apps/tauri",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tauri-runtime-wry/2.10.1/source/LICENSE_APACHE-2.0",
+          "source": "https://docs.rs/crate/tauri-runtime-wry/2.11.4/source/LICENSE_APACHE-2.0",
           "sha256": "bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec"
         },
         {
-          "source": "https://docs.rs/crate/tauri-runtime-wry/2.10.1/source/LICENSE_MIT",
+          "source": "https://docs.rs/crate/tauri-runtime-wry/2.11.4/source/LICENSE_MIT",
           "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d"
         }
       ]
@@ -6826,16 +7079,16 @@
     {
       "ecosystem": "Cargo",
       "name": "tauri-utils",
-      "version": "2.8.3",
+      "version": "2.9.3",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/tauri-apps/tauri",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tauri-utils/2.8.3/source/LICENSE_APACHE-2.0",
+          "source": "https://docs.rs/crate/tauri-utils/2.9.3/source/LICENSE_APACHE-2.0",
           "sha256": "bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec"
         },
         {
-          "source": "https://docs.rs/crate/tauri-utils/2.8.3/source/LICENSE_MIT",
+          "source": "https://docs.rs/crate/tauri-utils/2.9.3/source/LICENSE_MIT",
           "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d"
         }
       ]
@@ -6883,6 +7136,23 @@
         },
         {
           "source": "https://docs.rs/crate/tendril/0.4.3/source/LICENSE-MIT",
+          "sha256": "60a7062291b01ba068f300612cdbdc20382ac1d4934f07bcdd7167c15299f309"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
+      "name": "tendril",
+      "version": "0.5.1",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/servo/html5ever",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/tendril/0.5.1/source/LICENSE-APACHE",
+          "sha256": "143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4"
+        },
+        {
+          "source": "https://docs.rs/crate/tendril/0.5.1/source/LICENSE-MIT",
           "sha256": "60a7062291b01ba068f300612cdbdc20382ac1d4934f07bcdd7167c15299f309"
         }
       ]
@@ -7339,20 +7609,20 @@
     {
       "ecosystem": "Cargo",
       "name": "tray-icon",
-      "version": "0.21.3",
+      "version": "0.23.1",
       "license": "MIT OR Apache-2.0",
       "repository": "https://github.com/tauri-apps/tray-icon",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tray-icon/0.21.3/source/LICENSE-APACHE",
+          "source": "https://docs.rs/crate/tray-icon/0.23.1/source/LICENSE-APACHE",
           "sha256": "143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4"
         },
         {
-          "source": "https://docs.rs/crate/tray-icon/0.21.3/source/LICENSE-MIT",
+          "source": "https://docs.rs/crate/tray-icon/0.23.1/source/LICENSE-MIT",
           "sha256": "2ab5537b8c0cb1d475e2145b6a7994b04e7c71e6e5bd836f7f9c47c221a5ad9a"
         },
         {
-          "source": "https://docs.rs/crate/tray-icon/0.21.3/source/LICENSE.spdx",
+          "source": "https://docs.rs/crate/tray-icon/0.23.1/source/LICENSE.spdx",
           "sha256": "44181d1db740d9841dbe6d7fa1963a23067f335567127fc15a9d050476af71a6"
         }
       ]
@@ -7825,6 +8095,23 @@
     },
     {
       "ecosystem": "Cargo",
+      "name": "web_atoms",
+      "version": "0.2.3",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/servo/html5ever",
+      "notices": [
+        {
+          "source": "https://docs.rs/crate/web_atoms/0.2.3/source/LICENSE-APACHE",
+          "sha256": "143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4"
+        },
+        {
+          "source": "https://docs.rs/crate/web_atoms/0.2.3/source/LICENSE-MIT",
+          "sha256": "86dd7f026f916daf7511e39951ad8ea8cf55a8db67ae64060dacf829761c18f3"
+        }
+      ]
+    },
+    {
+      "ecosystem": "Cargo",
       "name": "weezl",
       "version": "0.1.12",
       "license": "MIT OR Apache-2.0",
@@ -7929,24 +8216,24 @@
     {
       "ecosystem": "Cargo",
       "name": "wry",
-      "version": "0.54.3",
+      "version": "0.55.1",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/tauri-apps/wry",
       "notices": [
         {
-          "source": "https://docs.rs/crate/wry/0.54.3/source/.license_template",
+          "source": "https://docs.rs/crate/wry/0.55.1/source/.license_template",
           "sha256": "7ddeb3a305cd0d39a9876440922bd2ba8672fa0bf1613b7d5fef168868dc12df"
         },
         {
-          "source": "https://docs.rs/crate/wry/0.54.3/source/LICENSE-APACHE",
+          "source": "https://docs.rs/crate/wry/0.55.1/source/LICENSE-APACHE",
           "sha256": "143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4"
         },
         {
-          "source": "https://docs.rs/crate/wry/0.54.3/source/LICENSE-MIT",
+          "source": "https://docs.rs/crate/wry/0.55.1/source/LICENSE-MIT",
           "sha256": "ef88893533af22ffbb68ceef0724ba1389518df26165a34f3c99ad30b884df4f"
         },
         {
-          "source": "https://docs.rs/crate/wry/0.54.3/source/LICENSE.spdx",
+          "source": "https://docs.rs/crate/wry/0.55.1/source/LICENSE.spdx",
           "sha256": "f73041468536d0b5fd1a6610fa3f317e3dc6cf9a0c0591a5529d6556a0d8a2c3"
         }
       ]
@@ -8245,26 +8532,6 @@
         {
           "source": "https://github.com/FluidInference/FluidAudio.git@56607d90b97de7d95a731200563bf49aa5beef20/ThirdPartyLicenses/vbx-LICENSE.md",
           "sha256": "7ce3d3c8708d2647644a6ba9ba05b8f5d2b7dd6750464972bf29aae1dd57eceb"
-        }
-      ]
-    },
-    {
-      "ecosystem": "npm",
-      "name": "@tauri-apps/api",
-      "version": "2.10.1",
-      "license": "Apache-2.0 OR MIT",
-      "repository": {
-        "type": "git",
-        "url": "git+https://github.com/tauri-apps/tauri.git"
-      },
-      "notices": [
-        {
-          "source": "npm:@tauri-apps/api@2.10.1/LICENSE_APACHE-2.0",
-          "sha256": "bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec"
-        },
-        {
-          "source": "npm:@tauri-apps/api@2.10.1/LICENSE_MIT",
-          "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d"
         }
       ]
     },

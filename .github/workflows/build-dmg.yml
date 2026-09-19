@@ -57,47 +57,9 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Identify Swift toolchain
-        id: swift-toolchain
-        shell: bash
-        run: |
-          TOOLCHAIN_HASH=$({ xcodebuild -version; xcrun swift --version; xcrun --show-sdk-version; } | shasum -a 256 | cut -d ' ' -f 1)
-          echo "hash=$TOOLCHAIN_HASH" >> "$GITHUB_OUTPUT"
-
-      # Cache the finished static library: restoring SwiftPM's build directory
-      # can still trigger a full rebuild after a fresh checkout. Only exact
-      # source/dependency/toolchain/recipe matches may reuse this archive.
-      - name: Swift bridge cache
-        id: swift-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0 — Node 24
-        with:
-          path: ${{ env.LINTY_PARAKEET_LIB_DIR }}/libLintyParakeet.a
-          key: swift-archive-v1-${{ runner.os }}-${{ runner.arch }}-aarch64-apple-darwin-${{ steps.swift-toolchain.outputs.hash }}-${{ hashFiles('src-tauri/swift/Package.swift', 'src-tauri/swift/Package.resolved', 'src-tauri/swift/Sources/**', 'src-tauri/build.rs', '.github/workflows/build-dmg.yml') }}
-
-      - name: Build Swift bridge on cache miss
-        if: steps.swift-cache.outputs.cache-hit != 'true'
-        run: |
-          swift build -c release --product LintyParakeet \
-            --package-path src-tauri/swift --scratch-path "$RUNNER_TEMP/linty-swift-build" \
-            --disable-automatic-resolution
-          SWIFT_BIN=$(swift build -c release --show-bin-path \
-            --package-path src-tauri/swift --scratch-path "$RUNNER_TEMP/linty-swift-build")
-          mkdir -p "$LINTY_PARAKEET_LIB_DIR"
-          cp "$SWIFT_BIN/libLintyParakeet.a" "$LINTY_PARAKEET_LIB_DIR/"
-
-      - name: Validate Swift bridge archive
-        run: |
-          test -s "$LINTY_PARAKEET_LIB_DIR/libLintyParakeet.a"
-          xcrun lipo "$LINTY_PARAKEET_LIB_DIR/libLintyParakeet.a" -verify_arch arm64
-
-      # Save as soon as compilation succeeds, even if a later network upload
-      # or notarization fails. A subsequent run can still reuse this work.
-      - name: Save Swift bridge cache
-        if: steps.swift-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0 — Node 24
-        with:
-          path: ${{ env.LINTY_PARAKEET_LIB_DIR }}/libLintyParakeet.a
-          key: ${{ steps.swift-cache.outputs.cache-primary-key }}
+      # Native checks use the same exact archive key and build recipe.
+      - name: Restore or build Swift bridge
+        uses: ./.github/actions/swift-bridge
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable

@@ -28,15 +28,6 @@
     "reason": "rand 0.7 is used by phf_generator 0.8 in the selectors build dependency. No application StdRng/custom-logger reentrancy path; the runtime rand 0.8 was updated. Revisit when Tauri removes the old build dependency."
   },
   {
-    "name": "tauri",
-    "version": "2.10.3",
-    "ids": [
-      "GHSA-7gmj-67g7-phm9"
-    ],
-    "expires": "2026-12-31",
-    "reason": "GHSA-7gmj-67g7-phm9 affects Windows/Android-specific origin checking; this app ships only macOS. Re-evaluate before supporting another platform."
-  },
-  {
     "name": "unic-char-property",
     "version": "0.9.0",
     "ids": [

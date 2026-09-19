@@ -1,0 +1,47 @@
+name: Cached Swift speech bridge
+description: Reuse the compiled bridge across native checks and release builds.
+outputs:
+  toolchain-hash:
+    description: Xcode, Swift, and SDK fingerprint
+    value: ${{ steps.toolchain.outputs.hash }}
+  cache-hit:
+    description: Whether the exact compiled archive was restored
+    value: ${{ steps.archive.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    - name: Identify Swift toolchain
+      id: toolchain
+      shell: bash
+      run: |
+        TOOLCHAIN_HASH=$({ xcodebuild -version; xcrun swift --version; xcrun --show-sdk-version; } | shasum -a 256 | cut -d ' ' -f 1)
+        echo "hash=$TOOLCHAIN_HASH" >> "$GITHUB_OUTPUT"
+    - name: Restore compiled Swift bridge
+      id: archive
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ env.LINTY_PARAKEET_LIB_DIR }}/libLintyParakeet.a
+        # No fallback keys: a compiled archive must match every build input.
+        key: swift-archive-v2-${{ runner.os }}-${{ runner.arch }}-aarch64-apple-darwin-${{ steps.toolchain.outputs.hash }}-${{ hashFiles('src-tauri/swift/Package.swift', 'src-tauri/swift/Package.resolved', 'src-tauri/swift/Sources/**', 'src-tauri/build.rs', '.github/actions/swift-bridge/action.yml') }}
+    - name: Build Swift bridge on cache miss
+      if: steps.archive.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        swift build -c release --product LintyParakeet \
+          --package-path src-tauri/swift --scratch-path "$RUNNER_TEMP/linty-swift-build" \
+          --disable-automatic-resolution
+        SWIFT_BIN=$(swift build -c release --show-bin-path \
+          --package-path src-tauri/swift --scratch-path "$RUNNER_TEMP/linty-swift-build")
+        mkdir -p "$LINTY_PARAKEET_LIB_DIR"
+        cp "$SWIFT_BIN/libLintyParakeet.a" "$LINTY_PARAKEET_LIB_DIR/"
+    - name: Validate Swift bridge archive
+      shell: bash
+      run: |
+        test -s "$LINTY_PARAKEET_LIB_DIR/libLintyParakeet.a"
+        xcrun lipo "$LINTY_PARAKEET_LIB_DIR/libLintyParakeet.a" -verify_arch arm64
+    - name: Save compiled Swift bridge
+      if: steps.archive.outputs.cache-hit != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ env.LINTY_PARAKEET_LIB_DIR }}/libLintyParakeet.a
+        key: ${{ steps.archive.outputs.cache-primary-key }}
