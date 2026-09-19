@@ -90,6 +90,7 @@ export const fixture = ({
       selectedModelFilename: "ggml-large-v3-turbo-q5_0.bin",
       triggerKey: "fn",
       correctionEnabled: false,
+      updateHistory: { lastRunVersion: "0.0.25", notice: null },
     },
     2: { transcripts },
     3: { corrections },

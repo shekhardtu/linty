@@ -42,6 +42,8 @@ async function getStore() {
   return storeInstance;
 }
 
+export { getStore as getSettingsStore };
+
 /** Persist first, and only report success once the write reaches disk. */
 export function saveSetting<K extends keyof SettingsSlice>(key: K, value: SettingsSlice[K]) {
   return saveSettingsChange(key, async () => {

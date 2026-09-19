@@ -134,6 +134,8 @@ cargo check --features local-stt,parakeet
 
 Built with **Tauri 2 + Rust + React**, [whisper.cpp](https://github.com/ggml-org/whisper.cpp) through whisper-rs, and [FluidAudio](https://github.com/FluidInference/FluidAudio). See [Development setup](docs/DEV-SETUP.md) for release signing and architecture. Third-party engines and models retain their own licenses. The app bundles [dependency notices](src-tauri/licenses/THIRD_PARTY_NOTICES.txt) and [model attribution](src-tauri/licenses/MODELS.md).
 
+Each release includes customer-facing improvements in `RELEASE_NOTES.md`, shared by the app, updater feed, and GitHub release. See the [release runbook](docs/runbooks/releases.md) before merging a release change.
+
 ## Build with me
 
 I'm [Hari Shekhar](https://github.com/shekhardtu), and I'm building Linty around one principle: **privacy first**. If you care about useful, local software, come build with me. Let's make dictation better and explore what else we can create together.

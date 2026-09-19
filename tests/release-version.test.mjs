@@ -17,6 +17,7 @@ test('release preparation changes only the app version in all four manifests', a
   const directory = await mkdtemp(join(tmpdir(), 'linty-release-test-'));
   try {
     await mkdir(join(directory, 'src-tauri'));
+    await writeFile(join(directory, 'RELEASE_NOTES.md'), '- See what improved after Linty updates and restarts.\n');
     await writeFile(join(directory, 'package.json'), '{"name":"linty","version":"0.0.52"}\n');
     await writeFile(join(directory, 'src-tauri/tauri.conf.json'), '{"version":"0.0.52"}\n');
     await writeFile(join(directory, 'src-tauri/Cargo.toml'), '[package]\nname = "linty"\nversion = "0.0.52"\n');
