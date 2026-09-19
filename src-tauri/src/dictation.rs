@@ -291,10 +291,15 @@ fn terminal(app: &tauri::AppHandle, session: &Session, result: &Result<Outcome, 
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
         tokio::time::sleep(Duration::from_secs(8)).await;
-        if app.state::<Coordinator>().get(generation).is_ok() {
-            #[cfg(target_os = "macos")]
-            crate::capsule::hide_capsule(app, None);
-        }
+        let handle = app.clone();
+        // NSPanel ordering must run on AppKit's main thread. Check ownership
+        // there too, so a queued timer cannot hide a newer session's panel.
+        let _ = app.run_on_main_thread(move || {
+            if handle.state::<Coordinator>().get(generation).is_ok() {
+                #[cfg(target_os = "macos")]
+                crate::capsule::hide_capsule(handle, None);
+            }
+        });
     });
 }
 fn millis(start: Instant) -> f64 {

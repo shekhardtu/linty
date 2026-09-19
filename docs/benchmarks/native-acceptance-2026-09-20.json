@@ -1,0 +1,154 @@
+{
+  "date": "2026-09-20",
+  "candidateVersion": "0.0.54-rc.2",
+  "platform": "macOS 26.5, Apple M3 Pro",
+  "launch": "Finder",
+  "signature": "Developer ID; codesign --verify --deep --strict passed; not notarized",
+  "archiveSha256": "451cafe89a004f160e3977f9db9b1a7d4e4c63f1e788f14beb3015d668b585a5",
+  "input": "macOS Samantha synthetic speech played through speakers and captured by the built-in microphone",
+  "phrase": "The silver bicycle is beside the blue garden gate. Please bring seven yellow notebooks tomorrow.",
+  "engine": "Parakeet TDT v3 with S1 cleanup enabled",
+  "trials": [
+    {
+      "trigger": "system-check",
+      "target": "com.apple.TextEdit",
+      "initialText": "Acceptance start: ",
+      "finalText": "Acceptance start: The silver bicycle is beside the blue garden gate. Please bring seven yellow notebooks tomorrow.",
+      "richClipboardRestored": true,
+      "historyRecords": 1,
+      "delivery": {
+        "commandPosted": true,
+        "commandPostedMs": 106.438167,
+        "insertionObservedMs": 126.90554200000001,
+        "reason": null,
+        "status": "verified"
+      },
+      "stopCommandToInsertionMs": 925.2301249999999,
+      "survivedTerminalTimer": true
+    },
+    {
+      "trigger": "synthetic-fn-hold",
+      "target": "com.apple.TextEdit",
+      "initialText": "Acceptance start: ",
+      "finalText": "Acceptance start: The silver bicycle is beside the blue garden gate. Please bring seven yellow notebooks tomorrow.",
+      "richClipboardRestored": true,
+      "historyRecords": 1,
+      "delivery": {
+        "commandPosted": true,
+        "commandPostedMs": 75.511,
+        "insertionObservedMs": 78.89525,
+        "reason": null,
+        "status": "verified"
+      },
+      "stopCommandToInsertionMs": 834.2271660000001,
+      "survivedTerminalTimer": true
+    },
+    {
+      "trigger": "synthetic-fn-hold",
+      "target": "com.google.Chrome",
+      "trial": "browser-manual-focus",
+      "historyRecords": 1,
+      "richClipboardRestored": true,
+      "delivery": {
+        "commandPosted": true,
+        "commandPostedMs": 80.109042,
+        "insertionObservedMs": 83.245833,
+        "reason": null,
+        "status": "verified"
+      },
+      "stopCommandToInsertionMs": 843.0535830000001,
+      "survivedTerminalTimer": true
+    },
+    {
+      "trigger": "synthetic-fn-hold",
+      "target": "com.google.Chrome",
+      "trial": "browser-window",
+      "historyRecords": 1,
+      "richClipboardRestored": true,
+      "delivery": {
+        "commandPosted": true,
+        "commandPostedMs": 101.851834,
+        "insertionObservedMs": 102.11179200000001,
+        "reason": null,
+        "status": "verified"
+      },
+      "stopCommandToInsertionMs": 871.6952080000001,
+      "survivedTerminalTimer": true
+    },
+    {
+      "trigger": "synthetic-fn-hold",
+      "target": "dev.zed.Zed",
+      "trial": "zed",
+      "historyRecords": 1,
+      "richClipboardRestored": true,
+      "delivery": {
+        "commandPosted": true,
+        "commandPostedMs": 83.914333,
+        "insertionObservedMs": null,
+        "reason": "destination_not_readable",
+        "status": "unverified"
+      },
+      "stopCommandToInsertionMs": null,
+      "survivedTerminalTimer": true
+    }
+  ],
+  "remaining": [
+    "Signed/notarized public release artifact validation",
+    "No exhaustive live stress coverage of focus-change races, sleep/wake or webview reload; logical cancellation and failure paths covered by pipeline tests"
+  ],
+  "browserIndependentCheck": {
+    "exactSyntheticInsertionCount": 2,
+    "fieldDescriptionMatches": true,
+    "nativeAXRead": true,
+    "role": "AXTextArea",
+    "target": "com.google.Chrome",
+    "note": "Native AX field contains the initial prefix plus exactly two fixture insertions after two successful trials. Browser-tool DOM/screenshot readouts did not reflect native text; they are not used as acceptance evidence."
+  },
+  "editorIndependentCheck": {
+    "savedTestFileMatchesWithOptionalFinalNewline": true,
+    "editorAddedFinalNewline": true,
+    "insertionCount": 1
+  },
+  "new-copy": {
+    "result": {
+      "finalText": "Acceptance start: The silver bicycle is beside the blue garden gate. Please bring seven yellow notebooks tomorrow.",
+      "finishedAt": 1789853903485,
+      "focusDuringProcessing": [
+        "com.apple.TextEdit"
+      ],
+      "initialText": "Acceptance start: ",
+      "inserted": true,
+      "mode": "new-copy",
+      "newCopyMade": true,
+      "newCopyPreserved": true,
+      "richClipboardRestored": false,
+      "startedAt": 1789853876978,
+      "target": "com.apple.TextEdit"
+    },
+    "historyRecords": 1
+  },
+  "interrupted": {
+    "result": {
+      "candidateRunning": false,
+      "finalText": "Acceptance start: ",
+      "finishedAt": 1789853990452,
+      "focusDuringProcessing": [
+        "com.apple.TextEdit"
+      ],
+      "initialText": "Acceptance start: ",
+      "inserted": false,
+      "mode": "interrupted",
+      "newCopyMade": false,
+      "newCopyPreserved": false,
+      "richClipboardRestored": true,
+      "startedAt": 1789853963709,
+      "target": "com.apple.TextEdit"
+    },
+    "historyRecords": 0
+  },
+  "originalAppRestored": {
+    "version": "0.0.52",
+    "signatureVerified": true
+  },
+  "testHarnessCaveat": "The first harness did not restore the clipboard contents preceding testing. Later runs restored their pre-run clipboard; no private contents are recorded here."
+}

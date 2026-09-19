@@ -68,3 +68,7 @@ Automated sequencing and UI tests establish those implementation behaviors. They
 - Competitor pins: Handy measured v0.9.7 (`05e0aedd2906f0d82722735f930465950c476b90`); Pindrop `fe518a88bcf88259cd49bcf36e07c851289112f4`; VoiceInk source review `173cbb2b3aa0a18ab4035aa1bc9dc9fc215e88b6`.
 
 This 3.5-minute English read-speech sample does not establish behavior on spontaneous dictation, Indian accents, code-switching, noise, long live sessions, Bluetooth, memory pressure or other hardware.
+
+## Packaged acceptance follow-up — 2026-09-20
+
+The Finder-launched release candidate was subsequently checked with real microphone capture and TextEdit, Chrome and Zed destinations. Testing found and fixed a native panel-hide crash. See the [native acceptance report](../releases/v0.0.54-native-acceptance.md) for delivery and clipboard evidence. The panel-threading fix does not change the speech/cleanup models or the corpus comparison above; these native trials are not a new performance benchmark.
