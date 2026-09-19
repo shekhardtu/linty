@@ -20,7 +20,16 @@ export interface TranscriptRecord {
   audioSampleCount?: number;
   /** Present only when this dictation has an opt-in, locally saved recording. */
   audio?: { format: "wav"; sampleRate: number; channels: number; bitsPerSample: number; bytes: number };
-  deliveryStatus?: "pasted" | "failed";
+  /** Legacy pasted means command posted, not verified insertion. */
+  deliveryStatus?: "pasted" | "pending" | "verified" | "unverified" | "failed" | "skipped";
+  attemptedText?: string;
+  delivery?: { status: string; commandPosted: boolean; commandPostedMs: number | null; insertionObservedMs: number | null; reason: string | null };
+  textValidation?: { status: "unchanged" | "accepted" | "fallback"; reasons: string[] };
+  dictionaryValidation?: string[];
+  /** Native stop request to observed insertion; absent when unverified. */
+  releaseToInsertionMs?: number | null;
+  audioStopTimeMs?: number;
+  preparationTimeMs?: number;
   cloudRefinementStatus?: "disabled" | "applied" | "unchanged" | "fallback" | "superseded-by-s1";
   originalWordCount?: number;
   engine: "cloud" | "local";

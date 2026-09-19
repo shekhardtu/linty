@@ -2,7 +2,6 @@ import { useEffect, useCallback, useState } from "react";
 import { useAppStore } from "@/store/app.store";
 import {
   initializeHistory,
-  saveTranscript,
   removeTranscript,
   restoreTranscript,
   clearHistory,
@@ -132,7 +131,6 @@ export function useHistory(paginated = false) {
     selectedTranscriptId,
     setSearchQuery,
     setSelectedTranscriptId,
-    saveTranscript,
     deleteTranscript,
     clearAll: clearHistory,
   };

@@ -458,30 +458,30 @@ try {
   }
   // A disconnected input must not leave the recording/hotkey state locked.
   await page.evaluate(() => {
-    window.__QA__.failures.start_recording = 'Selected microphone is unavailable';
+    window.__QA__.failures.start_dictation = 'Selected microphone is unavailable';
     window.__QA__.emit('fnkey-pressed');
   });
   await page.getByText('Selected microphone is unavailable', {exact:true}).first().waitFor();
   assert.equal(await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().isRecording), false);
   await page.evaluate(async () => {
-    delete window.__QA__.failures.start_recording;
+    delete window.__QA__.failures.start_dictation;
     (await import('/src/store/app.store.ts')).useAppStore.getState().resetTranscription();
     window.__QA__.calls = [];
     window.__QA__.originalMicInvoke = window.__TAURI_INTERNALS__.invoke;
     window.__TAURI_INTERNALS__.invoke = (command, args) => {
-      if (command === 'start_recording') return new Promise(resolve => { window.__QA__.finishMicStart = resolve; });
+      if (command === 'start_dictation') return new Promise(resolve => { window.__QA__.finishMicStart = resolve; });
       return window.__QA__.originalMicInvoke(command, args);
     };
     window.__QA__.emit('fnkey-pressed');
   });
   await page.waitForFunction(() => Boolean(window.__QA__.finishMicStart));
   await page.evaluate(() => window.__QA__.emit('fnkey-released'));
-  assert.equal(await page.evaluate(() => window.__QA__.calls.includes('stop_recording')), false, 'Quick release waits for microphone startup');
+  assert.equal(await page.evaluate(() => window.__QA__.calls.includes('stop_dictation')), false, 'Quick release waits for microphone startup');
   await page.evaluate(() => window.__QA__.finishMicStart());
   const recordingStore = await page.evaluateHandle(async () => (await import('/src/store/app.store.ts')).useAppStore);
   await page.waitForFunction(store => {
     const state = store.getState();
-    return window.__QA__.calls.includes('stop_recording') && !state.isRecording && state.status === 'idle';
+    return window.__QA__.calls.includes('stop_dictation') && !state.isRecording && state.status === 'idle';
   }, recordingStore);
   await page.evaluate(() => { window.__TAURI_INTERNALS__.invoke = window.__QA__.originalMicInvoke; });
 
@@ -622,7 +622,7 @@ try {
   await recovery.locator('.history-detail').getByLabel('Delete transcript',{exact:true}).click();
   await recovery.getByRole('button',{name:'Undo',exact:true}).waitFor();
   await recovery.evaluate(async () => {
-    const { saveTranscript } = await import('/src/services/history.service.ts');
+    const { saveTranscript } = window.__QA__;
     await saveTranscript({ ...window.__QA__.stores[2].transcripts[0], transcriptId:'qa-new', timestamp:Date.now(), finalText:'A newer dictation must be preserved.' });
     window.__QA__.failures['history_restore'] = 'Disk unavailable';
   });
@@ -637,7 +637,7 @@ try {
   assert.equal(await recovery.evaluate(() => new Set(window.__QA__.stores[2].transcripts.map(record => record.transcriptId)).size), 19);
   // Sparse saved history can span many years; all-time bars must still fit the column.
   await recovery.evaluate(async () => {
-    const { saveTranscript } = await import('/src/services/history.service.ts');
+    const { saveTranscript } = window.__QA__;
     const date = new Date(); date.setFullYear(date.getFullYear() - 10);
     await saveTranscript({ ...window.__QA__.stores[2].transcripts[0], transcriptId:'qa-older', timestamp:date.getTime(), finalText:'An older saved dictation.' });
   });
@@ -812,7 +812,7 @@ try {
   await forced.clock.runFor(31_000);
   await forced.waitForFunction(() => window.__QA__.finishUpdateRecheck);
   await forced.evaluate(() => window.__QA__.emit('fnkey-pressed'));
-  await forced.waitForFunction(() => window.__QA__.calls.includes('start_recording'));
+  await forced.waitForFunction(() => window.__QA__.calls.includes('start_dictation'));
   await forced.evaluate(() => window.__QA__.finishUpdateRecheck());
   await forced.clock.runFor(1_000);
   assert.ok(!(await forced.evaluate(() => window.__QA__.calls)).includes('plugin:updater|install'), 'dictation during the recheck postpones installation');
@@ -822,7 +822,7 @@ try {
   const installCalls = await forced.evaluate(() => window.__QA__.calls);
   await forced.evaluate(() => { window.__QA__.calls.length = 0; window.__QA__.emit('fnkey-pressed'); });
   await forced.clock.runFor(1_000);
-  assert.ok(!(await forced.evaluate(() => window.__QA__.calls)).includes('start_recording'), 'installation blocks new recordings');
+  assert.ok(!(await forced.evaluate(() => window.__QA__.calls)).includes('start_dictation'), 'installation blocks new recordings');
   assert.ok(installCalls.indexOf('plugin:updater|check') < installCalls.indexOf('plugin:updater|install'), 'the release is checked again before installing');
   await forcedContext.close();
 
@@ -862,7 +862,7 @@ try {
   await optional.getByRole('button', {name:/Update$/}).click();
   await optional.waitForFunction(() => window.__QA__.finishOptionalDownload);
   await optional.evaluate(() => window.__QA__.emit('fnkey-pressed'));
-  await optional.waitForFunction(() => window.__QA__.calls.includes('start_recording'));
+  await optional.waitForFunction(() => window.__QA__.calls.includes('start_dictation'));
   await optional.evaluate(() => window.__QA__.finishOptionalDownload());
   await optional.waitForFunction(() => window.__QA__.calls.includes('plugin:updater|download'));
   assert.ok(!(await optional.evaluate(() => window.__QA__.calls)).includes('plugin:updater|install'), 'manual updates also preserve dictation');

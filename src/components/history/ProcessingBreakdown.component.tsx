@@ -1,11 +1,11 @@
 import { reformatStatusLabel } from "@/lib/reformat.util";
 import type { TranscriptRecord } from "@/types/transcript.types";
 
-function measured(value: number | undefined): value is number {
+function measured(value: number | null | undefined): value is number {
   return value != null && Number.isFinite(value) && value >= 0;
 }
 
-export function formatProcessingTime(value: number | undefined): string {
+export function formatProcessingTime(value: number | null | undefined): string {
   if (!measured(value)) return "Not measured";
   return value < 1000
     ? `${Math.round(value).toLocaleString()} ms`
@@ -30,14 +30,17 @@ export function ProcessingBreakdown({ transcript }: { transcript: TranscriptReco
     <section className="processing-breakdown" aria-label="Processing time">
       <h3>Processing time</h3>
       <dl className="processing-stages">
+        {measured(transcript.audioStopTimeMs) && <div><dt>Finishing recording</dt><dd>{formatProcessingTime(transcript.audioStopTimeMs)}</dd></div>}
+        {measured(transcript.preparationTimeMs) && <div><dt>Waiting for models</dt><dd>{formatProcessingTime(transcript.preparationTimeMs)}</dd></div>}
         {stages.map(({ label, time }) => (
           <div key={label}><dt>{label}</dt><dd>{formatProcessingTime(time)}</dd></div>
         ))}
         {measured(transcript.pasteTimeMs) && (
-          <div><dt>Pasting</dt><dd>{formatProcessingTime(transcript.pasteTimeMs)}</dd></div>
+          <div><dt>Delivery</dt><dd>{formatProcessingTime(transcript.pasteTimeMs)}</dd></div>
         )}
       </dl>
-      <p className="processing-note">The total also includes time between stages.</p>
+      {measured(transcript.releaseToInsertionMs) && <p className="processing-note">Stop request to confirmed insertion: {formatProcessingTime(transcript.releaseToInsertionMs)}</p>}
+      <p className="processing-note">The total also includes time between stages. New dictations include finishing the recording and checking delivery.</p>
       {metrics && (
         <div className="processing-model">
           <h3>S1-mini by Superwhisper</h3>

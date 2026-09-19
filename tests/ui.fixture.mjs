@@ -432,6 +432,11 @@ export const fixture = ({
   let id = 0;
   window.__QA__ = {
     stores,
+    // Simulate a native archive write without a production UI write command.
+    saveTranscript: async (record) => {
+      await window.__TAURI_INTERNALS__.invoke("history_save", { record });
+      await (await import(new URL('/src/services/history.service.ts', window.location.href).href)).refreshHistory();
+    },
     secureGroqKey: "",
     history,
     calls: [],
@@ -495,8 +500,9 @@ export const fixture = ({
       if (command.startsWith("history_"))
         return structuredClone(historyCommand(command, structuredClone(args)));
       if (command === "get_audio_inputs") return structuredClone(window.__QA__.audioInputs);
-      if (command === "start_recording") return 1;
-      if (command === "stop_recording") return { sample_count: 0, duration_secs: 0 };
+      if (command === "start_dictation") { window.__QA__.dictationOptions = structuredClone(args.options); return 1; }
+      if (command === "dictation_result") return window.__QA__.dictationOutcome ?? { record: null, warnings: [], recognized: [], corrected: [] };
+      if (command === "stop_dictation") return { sample_count: 0, duration_secs: 0 };
       if (command === "set_audio_input") {
         window.__QA__.audioInputs.selected = args.name;
         stores[1].audioInputName = args.name;

@@ -4,7 +4,8 @@ import { useAppStore } from "@/store/app.store";
 import type { ApplicationIdentity } from "@/types/transcript.types";
 import { beginDictation, currentDictation, finishEmptyDictation, GROQ_SETUP_ERROR, isRecoveringDictation, ownsDictation, recoverDictation } from "@/services/dictation-recovery.service";
 import type { DictationSession } from "@/lib/dictation-session";
-import { prepareDictation } from "@/services/dictation-preparation.service";
+import { dictationOptions } from "@/services/dictation-options.service";
+import { initializeDictionary } from "@/services/dictionary.service";
 
 export interface StopResult {
   sample_count: number;
@@ -28,6 +29,7 @@ export function useRecording() {
     const session = beginDictation();
     const promise = (async () => {
       try {
+        await initializeDictionary();
         const settings = useAppStore.getState();
         if (!settings.settingsLoaded) throw new Error("Settings are still loading. Please try again.");
         if (settings.sttMode === "cloud" && !settings.groqApiKey.trim()) throw new Error(GROQ_SETUP_ERROR);
@@ -37,14 +39,14 @@ export function useRecording() {
             return invoke("emit_capsule_state", { state: "preparing" });
           }
         }).catch(() => {});
-        const generation = await session.run(() => invoke<number>("start_recording", { trackApplication: settings.settingsLoaded && settings.trackApplicationUsage }), 10_000, "Microphone did not start. Check your input and try again.");
+        const generation = await session.run(() => invoke<number>("start_dictation", { options: dictationOptions() }), 10_000, "Microphone did not start. Check your input and try again.");
         useAppStore.getState().setRecordingGeneration(generation);
         startedAt = Date.now();
         useAppStore.getState().setIsRecording(true);
         useAppStore.getState().setStatus("recording");
         // Capture never waits for model loading. Transcription shares this work
         // if it is still pending, or retries a failed preparation after stop.
-        void prepareDictation().catch((error) => console.warn("[dictation] Background preparation failed:", error));
+        // The native session starts its own preparation while recording.
         return true;
       } catch (error) {
         if (!session.cancelled) await recoverDictation(error instanceof Error ? error.message : String(error), session);
@@ -62,7 +64,7 @@ export function useRecording() {
     if (starting?.session === session && !(await starting.promise)) return empty;
     if (session.cancelled) return empty;
     try {
-      const result = await session.run(() => invoke<StopResult>("stop_recording"), 5000, "Microphone did not stop. Please try again.");
+      const result = await session.run(() => invoke<StopResult>("stop_dictation", { generation: useAppStore.getState().recordingGeneration, discard: options?.deferEmpty ?? false }), 5000, "Microphone did not stop. Please try again.");
       useAppStore.getState().setIsRecording(false);
       useAppStore.getState().setHandsFree(false);
       useAppStore.getState().setQuietSeconds(0);

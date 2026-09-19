@@ -80,6 +80,7 @@ Keep the app identifier and updater signing identity stable across repository mo
 ## Architecture and operational notes
 
 - React and Zustand manage the UI; Rust handles audio, transcription, storage, and macOS integration through Tauri.
+- The [native dictation pipeline](DICTATION-PIPELINE.md) owns capture, preservation checks, archive writes and one delivery attempt per session.
 - `src-tauri/swift/` provides the Parakeet bridge; Whisper uses whisper-rs.
 - Microphone access captures speech. Accessibility access supports key monitoring and paste. Use System Check to diagnose missing permissions.
 - Do not set `LSUIElement=true` in Info.plist: it can interfere with permission prompts. Hardened Runtime uses `com.apple.security.device.audio-input`.

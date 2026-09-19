@@ -1,3 +1,4 @@
+import { deliveryLabel } from "@/lib/delivery-status";
 import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, X } from "lucide-react";
@@ -98,6 +99,8 @@ export function TranscriptInfoDialogue({ transcript, onClose, showEditHistory = 
         <div><dt>Model</dt><dd>{transcript.modelName}</dd></div>
         <div><dt>Audio length</dt><dd>{formatDuration(transcript.durationSeconds)}</dd></div>
         <div><dt>Words</dt><dd>{transcript.wordCount.toLocaleString()}</dd></div>
+        <div><dt>Delivery</dt><dd>{deliveryLabel(transcript.deliveryStatus)}</dd></div>
+        {transcript.textValidation?.status === "fallback" && <div><dt>Text preservation</dt><dd>Original kept — cleanup changed protected details</dd></div>}
         <div><dt>Total processing</dt><dd>{formatProcessingTime(transcript.processingTimeMs)}</dd></div>
       </dl>
       <ProcessingBreakdown transcript={transcript} />

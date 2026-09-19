@@ -10,6 +10,8 @@ mod clipboard;
 #[allow(deprecated)]
 mod corrections;
 mod credentials;
+mod delivery;
+mod dictation;
 #[cfg(target_os = "macos")]
 mod fnkey;
 mod history;
@@ -25,6 +27,7 @@ mod pcm_wav;
 mod permissions;
 pub mod reformat;
 mod state;
+pub mod text_validation;
 pub mod transcribe;
 mod tray;
 pub mod vocabulary;
@@ -39,8 +42,8 @@ use tauri::{
 };
 
 /// Lightweight result from stop_recording — samples stay in Rust.
-#[derive(serde::Serialize)]
-struct StopResult {
+#[derive(Clone, serde::Serialize)]
+pub struct StopResult {
     sample_count: usize,
     duration_secs: f64,
     recording_generation: u64,
@@ -241,7 +244,6 @@ pub fn warm_up_whisper(ctx: &whisper_rs::WhisperContext) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
 async fn start_recording(
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
@@ -340,7 +342,12 @@ async fn start_recording(
 /// Abandon the old capture worker. Generation checks prevent a late startup or
 /// old CoreAudio callback from modifying the next recording's buffer.
 #[tauri::command]
-async fn recover_recording(state: tauri::State<'_, AppState>) -> Result<(), String> {
+async fn recover_recording(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    app.state::<dictation::Coordinator>().cancel();
+    app.state::<reformat::ReformatState>().cancel();
     let mut rec = state.recording.lock().map_err(|e| e.to_string())?;
     state.audio_generation.fetch_add(1, Ordering::SeqCst);
     if let Some(tx) = state.audio_tx.lock().map_err(|e| e.to_string())?.take() {
@@ -357,7 +364,6 @@ async fn recover_recording(state: tauri::State<'_, AppState>) -> Result<(), Stri
     Ok(())
 }
 
-#[tauri::command]
 async fn stop_recording(
     _app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
@@ -422,13 +428,13 @@ async fn stop_recording(
 
 /// Transcribe audio samples held in Rust state via local whisper model.
 /// Samples never cross IPC — read directly from RecordingState.
-#[tauri::command]
 async fn transcribe_buffer(
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
     prompt: Option<String>,
     language: Option<String>,
     vocabulary: Option<Vec<vocabulary::VocabTerm>>,
+    filename: Option<String>,
 ) -> Result<transcribe::Transcription, String> {
     // Dictionary terms are used by Parakeet only; whisper gets them via `prompt`.
     let _ = &vocabulary;
@@ -441,7 +447,29 @@ async fn transcribe_buffer(
 
         // Resolve the engine BEFORE taking samples — if the model can't be
         // loaded, we fail early and leave samples intact for a retry.
-        let engine = resolve_local_engine(&app, &state).await?;
+        let engine = if let Some(filename) = filename {
+            let _guard = state.local_model_load_lock.lock().await;
+            let selected = state
+                .local_model_filename
+                .lock()
+                .map_err(|e| e.to_string())?
+                .clone();
+            if selected.as_ref() == Some(&filename) {
+                match resident_local_engine(&state)? {
+                    Some(engine) => engine,
+                    None => load_local_engine(&app, &state, &filename).await?,
+                }
+            } else {
+                let engine = load_local_engine(&app, &state, &filename).await?;
+                *state
+                    .local_model_filename
+                    .lock()
+                    .map_err(|e| e.to_string())? = Some(filename);
+                engine
+            }
+        } else {
+            resolve_local_engine(&app, &state).await?
+        };
         if state.audio_generation.load(Ordering::SeqCst) != generation {
             return Err("Transcription was cancelled".into());
         }
@@ -511,14 +539,13 @@ async fn transcribe_buffer(
     }
     #[cfg(not(feature = "local-stt"))]
     {
-        let _ = (app, state, prompt, language);
+        let _ = (app, state, prompt, language, filename);
         Err("Local STT not available — rebuild with `local-stt` feature".into())
     }
 }
 
 /// Transcribe audio samples held in Rust state via Groq cloud API.
 /// Samples never cross IPC — read directly from RecordingState.
-#[tauri::command]
 async fn transcribe_buffer_cloud(
     state: tauri::State<'_, AppState>,
     api_key: String,
@@ -538,45 +565,6 @@ async fn transcribe_buffer_cloud(
     );
 
     transcribe::transcribe_cloud(&samples, &api_key, prompt.as_deref(), language.as_deref()).await
-}
-
-// Stays async so the pre-paste and inter-key delays never block event
-// processing; only the TIS keyboard-layout lookup hops to the main thread
-// inside simulate_paste (main-thread-only on macOS 26). CGEvent posting is
-// thread-safe and stays on the worker.
-#[tauri::command(async)]
-fn paste_text(
-    app: tauri::AppHandle,
-    state: tauri::State<'_, AppState>,
-    observe: Option<bool>,
-    transcript_id: Option<String>,
-) -> Result<(), String> {
-    #[cfg(target_os = "macos")]
-    let capture = corrections::prepare_paste(&app, observe.unwrap_or(false));
-    let result = paste::simulate_paste(&app);
-    #[cfg(target_os = "macos")]
-    {
-        let pasted = state
-            .last_pasted_text
-            .lock()
-            .ok()
-            .and_then(|mut g| g.take());
-        let insertion = if result.is_ok() && observe.unwrap_or(false) {
-            transcript_id.zip(pasted)
-        } else {
-            None
-        };
-        corrections::complete_paste(capture, insertion);
-    }
-    #[cfg(not(target_os = "macos"))]
-    let _ = (&state, observe, transcript_id);
-    // Time-based restore (not read-triggered): clipboard managers reading the
-    // pasteboard on change must not cause a restore that beats the target
-    // app's Cmd+V read. Scheduled even on paste failure so the user's
-    // original clipboard always comes back.
-    #[cfg(target_os = "macos")]
-    clipboard::schedule_restore(clipboard::RESTORE_DELAY_MS);
-    result
 }
 
 #[tauri::command]
@@ -671,51 +659,6 @@ fn force_reinit_fn_key_monitor(app: tauri::AppHandle) {
     #[cfg(not(target_os = "macos"))]
     {
         let _ = app;
-    }
-}
-
-// ── Clipboard preservation commands (macOS: NSPasteboard, other: stub) ──
-
-// NSPasteboard is thread-safe (XPC-backed; cmd_restore already runs off-main
-// in the data-provider callback). Run these off the main thread — snapshotting
-// a large clipboard (screenshots, files) can take seconds and must not beachball.
-#[tauri::command(async)]
-fn snapshot_clipboard() -> Result<(), String> {
-    #[cfg(target_os = "macos")]
-    {
-        clipboard::cmd_snapshot()
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        Ok(())
-    }
-}
-
-#[tauri::command(async)]
-fn restore_clipboard() -> Result<(), String> {
-    #[cfg(target_os = "macos")]
-    {
-        clipboard::cmd_restore()
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        Ok(())
-    }
-}
-
-#[tauri::command(async)]
-fn write_transient_text(state: tauri::State<'_, AppState>, text: String) -> Result<(), String> {
-    if let Ok(mut last) = state.last_pasted_text.lock() {
-        *last = Some(text.clone());
-    }
-    #[cfg(target_os = "macos")]
-    {
-        clipboard::cmd_write_transient(&text)
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        let _ = text;
-        Ok(())
     }
 }
 
@@ -1193,7 +1136,15 @@ async fn prepare_dictation(
 async fn prepare_installed_cleanup(app: &tauri::AppHandle, required: bool) -> Result<(), String> {
     let status = reformat::s1_model_status(app.clone(), app.state())?;
     if status.downloaded {
-        reformat::prepare_s1_model(app.clone(), app.state()).await
+        let result = reformat::prepare_s1_model(app.clone(), app.state()).await;
+        if required {
+            result
+        } else {
+            if result.is_err() {
+                log::warn!("[dictation] Optional cleanup preparation failed");
+            }
+            Ok(())
+        }
     } else if required {
         Err("Download S1-mini in Text cleanup settings before using AI autocorrection.".into())
     } else {
@@ -1529,6 +1480,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_nspanel::init())
         .manage(AppState::new())
+        .manage(dictation::Coordinator::default())
         .manage(audio_input::AudioInputState::default())
         .manage(history::HistoryState::default())
         .manage(reformat::ReformatState::default())
@@ -1651,16 +1603,17 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            dictation::start_dictation,
+            dictation::stop_dictation,
+            dictation::dictation_result,
             reformat::s1_model_status,
             reformat::download_s1_model,
             reformat::prepare_s1_model,
             reformat::unload_s1_model,
             reformat::cancel_reformatting,
-            reformat::reformat_transcript,
             history::history_snapshot,
             history::history_query,
             history::history_get,
-            history::history_save,
             history::history_patch,
             history::history_delete,
             history::history_restore,
@@ -1676,22 +1629,13 @@ pub fn run() {
             history::history_audio,
             history::history_delete_audio,
             history::history_export_audio,
-            history::history_discard_pending_audio,
-            start_recording,
             credentials::get_groq_api_key,
             credentials::set_groq_api_key,
             credentials::remove_groq_api_key,
             audio_input::get_audio_inputs,
             audio_input::set_audio_input,
-            stop_recording,
             recover_recording,
-            transcribe_buffer,
-            transcribe_buffer_cloud,
-            paste_text,
             stop_correction_watch,
-            snapshot_clipboard,
-            restore_clipboard,
-            write_transient_text,
             check_accessibility,
             request_accessibility,
             reinit_fn_key_monitor,

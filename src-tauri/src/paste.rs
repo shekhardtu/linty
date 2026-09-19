@@ -100,7 +100,10 @@ mod imp {
     /// stalled run loop surfaces as a paste error instead of a hung worker task.
     const MAIN_THREAD_TIMEOUT: Duration = Duration::from_secs(2);
 
-    pub fn simulate_paste(app: &AppHandle) -> Result<(), String> {
+    pub fn simulate_paste_checked(
+        app: &AppHandle,
+        check: &dyn Fn() -> Result<(), String>,
+    ) -> Result<(), String> {
         log::debug!("[paste] Simulating Cmd+V via CGEvent...");
 
         // CGEventPost silently drops keyboard events from untrusted processes,
@@ -138,6 +141,7 @@ mod imp {
         ];
         // SAFETY: post_chord owns every CF object it creates and releases each on all
         // paths; CGEvent creation/posting is thread-safe, so no main-thread hop needed.
+        check()?;
         unsafe { post_chord(&chord) }.map_err(|e| {
             log::error!("[paste] Posting Cmd+V failed: {}", e);
             e
@@ -262,12 +266,18 @@ mod imp {
 mod imp {
     use tauri::AppHandle;
 
-    pub fn simulate_paste(_app: &AppHandle) -> Result<(), String> {
+    pub fn simulate_paste_checked(
+        _app: &AppHandle,
+        _check: &dyn Fn() -> Result<(), String>,
+    ) -> Result<(), String> {
         Err("Paste simulation is only supported on macOS".into())
     }
 }
 
-/// Simulate a Cmd+V keystroke to paste from the clipboard into the focused app.
-pub fn simulate_paste(app: &AppHandle) -> Result<(), String> {
-    imp::simulate_paste(app)
+#[cfg(target_os = "macos")]
+pub fn simulate_paste_checked(
+    app: &AppHandle,
+    check: &dyn Fn() -> Result<(), String>,
+) -> Result<(), String> {
+    imp::simulate_paste_checked(app, check)
 }

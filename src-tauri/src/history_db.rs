@@ -471,6 +471,42 @@ impl HistoryDb {
         let mut record = self.get(id)?.ok_or("Transcription no longer exists")?;
         // History editing changes text only; dictated word count and timing remain accurate.
         record["finalText"] = json!(required_str(patch, "finalText")?);
+        record["userEdited"] = json!(true);
+        let tx = self.conn.transaction()?;
+        put_transcript(&tx, &record, true)?;
+        bump(&tx)?;
+        tx.commit()?;
+        Ok(())
+    }
+    pub(crate) fn update_pipeline(&mut self, id: &str, patch: &Value) -> Result<()> {
+        let mut record = self.get(id)?.ok_or("Transcription no longer exists")?;
+        for key in [
+            "finalText",
+            "reformattedText",
+            "pastedText",
+            "attemptedText",
+            "wordCount",
+            "corrected",
+            "releaseToInsertionMs",
+            "deliveryStatus",
+            "delivery",
+            "processingTimeMs",
+            "pasteTimeMs",
+            "reformatTimeMs",
+            "correctionTimeMs",
+            "cloudRefinementStatus",
+            "reformatting",
+            "textValidation",
+            "dictionaryValidation",
+            "dictionaryApplied",
+        ] {
+            if key == "finalText" && record["userEdited"] == true {
+                continue;
+            }
+            if let Some(value) = patch.get(key) {
+                record[key] = value.clone();
+            }
+        }
         let tx = self.conn.transaction()?;
         put_transcript(&tx, &record, true)?;
         bump(&tx)?;
@@ -1151,6 +1187,29 @@ mod tests {
         assert_eq!(db.retention().unwrap(), 30);
         db.prune(now + 31 * 86_400_000).unwrap();
         assert_eq!(db.snapshot().unwrap()["total"], 0);
+    }
+    #[test]
+    fn pipeline_updates_never_resurrect_deleted_text_or_overwrite_user_edits() {
+        let dir = Temp::new();
+        let mut db = HistoryDb::open(&dir.0).unwrap();
+        let mut original = record(1, 100);
+        original["deliveryStatus"] = json!("pending");
+        db.save(&original, 100).unwrap();
+        db.patch("t-00001", &json!({"finalText":"My manual edit"}))
+            .unwrap();
+        let mut completion = original.clone();
+        completion["finalText"] = json!("Automatic output");
+        completion["rawText"] = json!("Must not overwrite original");
+        completion["deliveryStatus"] = json!("verified");
+        completion["pastedText"] = json!("Automatic output");
+        db.update_pipeline("t-00001", &completion).unwrap();
+        let saved = db.get("t-00001").unwrap().unwrap();
+        assert_eq!(saved["finalText"], "My manual edit");
+        assert_eq!(saved["rawText"], original["rawText"]);
+        assert_eq!(saved["pastedText"], "Automatic output");
+        db.delete("t-00001").unwrap();
+        assert!(db.update_pipeline("t-00001", &completion).is_err());
+        assert!(db.get("t-00001").unwrap().is_none());
     }
     #[test]
     fn payoff_summary_uses_only_complete_timing_and_counts_distinct_days() {

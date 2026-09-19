@@ -46,7 +46,12 @@ function setupTranscripts({ original, edited }) {
   );
   const unchanged = qa.stores[2].transcripts[2];
   unchanged.pastedText = unchanged.rawText = unchanged.finalText;
+  Object.assign(unchanged, {deliveryStatus:'verified', releaseToInsertionMs:1350, audioStopTimeMs:100, preparationTimeMs:20});
   qa.stores[2].transcripts[3].cloudRefinementStatus = 'applied';
+  Object.assign(qa.stores[2].transcripts[3], {
+    deliveryStatus:'unverified', attemptedText:qa.stores[2].transcripts[3].finalText,
+    textValidation:{status:'fallback',reasons:['numbers_changed']},
+  });
 }
 
 try {
@@ -114,6 +119,11 @@ try {
   await page.locator('[data-transcript-id="qa-2"]').click();
   assert.equal(await pane.locator('.reading-title').innerText(),'Transcript');
   assert.equal(await pane.locator('.correction-panel').count(),0);
+  await openDetails();
+  assert.match(await dialog.innerText(),/Insertion confirmed/);
+  assert.match(await dialog.innerText(),/Stop request to confirmed insertion: 1.35 s/);
+  assert.match(await dialog.innerText(),/Confirmed inserted text/);
+  await page.keyboard.press('Escape');
 
   // All distinct text stages, formatting notes and detailed measurements survive the move.
   await page.locator('[data-transcript-id="qa-1"]').click();
@@ -171,10 +181,19 @@ try {
   // Older records with no paste snapshot keep their original and refinement note.
   await page.locator('[data-transcript-id="qa-3"]').click();
   await openDetails();
-  assert.equal(await dialog.locator('.text-version-content').count(),1);
+  assert.equal(await dialog.locator('.text-version-content').count(),2);
   await dialog.getByText('Automatic changes',{exact:true}).click();
   assert.match(await dialog.innerText(),/Automatically refined this transcription/);
   assert.equal(await dialog.getByText('Pasted text',{exact:true}).count(),0);
+  assert.match(await dialog.innerText(),/Paste sent — insertion unconfirmed/);
+  assert.match(await dialog.innerText(),/Original kept — cleanup changed protected details/);
+  assert.equal(await dialog.getByText('Text sent for pasting',{exact:true}).count(),1);
+  assert.doesNotMatch(await dialog.innerText(),/Stop request to confirmed insertion/);
+  for (const theme of ['light','dark']) {
+    await page.evaluate(async theme => (await import('/src/store/app.store.ts')).useAppStore.getState().setTheme(theme),theme);
+    await audit();
+    await page.screenshot({path:`${output}/delivery-unconfirmed-${theme}.png`});
+  }
   assert.deepEqual(errors,[]);
   console.log(`Transcript view and Details passed (${engine.name()}).`);
 } finally {

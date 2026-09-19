@@ -69,8 +69,6 @@ export async function getTranscript(id: string) {
   await initializeHistory();
   return invoke<TranscriptRecord | null>("history_get", { id });
 }
-export const saveTranscript = (record: TranscriptRecord, recordingGeneration?: number) =>
-  mutateHistory<void>("history_save", { record, recordingGeneration: recordingGeneration ?? null });
 export const updateTranscript = (
   id: string,
   patch: Partial<TranscriptRecord>,

@@ -126,6 +126,24 @@ enum TextCapability {
     Value,
 }
 
+pub(crate) fn frontmost_pid(app: &tauri::AppHandle) -> Option<i32> {
+    let (send, receive) = std::sync::mpsc::sync_channel(1);
+    app.run_on_main_thread(move || {
+        let pid = pool(|| unsafe {
+            let workspace: id = msg_send![class!(NSWorkspace), sharedWorkspace];
+            let front: id = msg_send![workspace, frontmostApplication];
+            if front.is_null() {
+                None
+            } else {
+                Some(msg_send![front, processIdentifier])
+            }
+        });
+        let _ = send.send(pid);
+    })
+    .ok()?;
+    receive.recv_timeout(Duration::from_secs(1)).ok()?
+}
+
 pub struct Target {
     capability: TextCapability,
     pub before: String,
@@ -151,23 +169,7 @@ impl Target {
     }
     /// Called before Cmd+V, so delayed reads cannot attach to another field.
     pub fn focused(app: &tauri::AppHandle) -> Option<Self> {
-        // NSWorkspace activation state is maintained by the main event loop.
-        // Fetch only the PID there; all potentially slow AX reads stay off it.
-        let (send, receive) = std::sync::mpsc::sync_channel(1);
-        app.run_on_main_thread(move || {
-            let pid = pool(|| unsafe {
-                let workspace: id = msg_send![class!(NSWorkspace), sharedWorkspace];
-                let front: id = msg_send![workspace, frontmostApplication];
-                if front.is_null() {
-                    None
-                } else {
-                    Some(msg_send![front, processIdentifier])
-                }
-            });
-            let _ = send.send(pid);
-        })
-        .ok()?;
-        Self::for_pid(receive.recv_timeout(Duration::from_secs(1)).ok()??)
+        Self::for_pid(frontmost_pid(app)?)
     }
     fn for_pid(pid: i32) -> Option<Self> {
         pool(|| unsafe {
@@ -457,7 +459,7 @@ impl InputMonitor {
             state,
         })
     }
-    pub fn snapshot(&self) -> InputState {
+    pub(super) fn snapshot(&self) -> InputState {
         self.state.lock().map(|s| s.clone()).unwrap_or_default()
     }
 }

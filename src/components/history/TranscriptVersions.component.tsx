@@ -6,7 +6,8 @@ export function TranscriptVersions({ transcript }: { transcript: TranscriptRecor
   const snapshots = [
     { label: "Original transcription", text: transcript.rawText },
     { label: "Reformatted by S1-mini", text: transcript.reformattedText },
-    { label: "Pasted text", text: transcript.pastedText },
+    { label: transcript.deliveryStatus === "verified" ? "Confirmed inserted text" : "Pasted text", text: transcript.pastedText },
+    { label: "Text sent for pasting", text: transcript.pastedText == null ? transcript.attemptedText : undefined },
   ];
   const versions: { labels: string[]; text: string }[] = [];
   for (const { label, text } of snapshots) {

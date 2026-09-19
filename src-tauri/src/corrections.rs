@@ -1,6 +1,6 @@
 //! Native correction capture: one retained field, one editing session, one final
 //! batch. Unsupported or uncertain captures are discarded without prompting.
-mod accessibility;
+pub(crate) mod accessibility;
 mod diff;
 mod session;
 
@@ -67,8 +67,7 @@ pub fn start(app: tauri::AppHandle) {
 
 /// Pause observation BEFORE posting Cmd+V. The controller never interprets
 /// Linty's next insertion as a user correction, even when AX reads are slow.
-pub fn prepare_paste(app: &tauri::AppHandle, observe: bool) -> Option<u64> {
-    let target = observe.then(|| Target::focused(app)).flatten();
+pub(crate) fn prepare_target(target: Option<Target>) -> Option<u64> {
     let id = NEXT_PASTE.fetch_add(1, Ordering::Relaxed);
     let (send, receive) = mpsc::sync_channel(1);
     SENDER.get()?.send(Command::Begin(id, target, send)).ok()?;

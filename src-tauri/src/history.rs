@@ -488,3 +488,17 @@ pub async fn history_export(app: tauri::AppHandle) -> Result<Option<Value>, Stri
     })
     .await
 }
+
+/// Update only an existing dictation. Deletion/retention always wins over a late worker.
+pub(crate) async fn update_pipeline(
+    app: tauri::AppHandle,
+    id: String,
+    record: Value,
+) -> Result<(), String> {
+    worker(app, move |app| {
+        access(&app, &app.state::<HistoryState>(), |db| {
+            db.update_pipeline(&id, &record)
+        })
+    })
+    .await
+}

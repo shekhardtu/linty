@@ -28,14 +28,20 @@ try {
       if(command==='plugin:global-shortcut|unregister') for(const shortcut of args.shortcuts) delete window.__QA__.handlers[shortcut];
       if(command==='emit_capsule_state') window.__QA__.capsule.push(args);
       if(command==='history_save') window.__QA__.savedAudioGeneration=args.recordingGeneration;
-      if(command==='start_recording') {
+      if(command==='start_dictation') {
         window.__QA__.calls.push(command);
         if(window.__QA__.delayStart) return new Promise(resolve=>{window.__QA__.resolveStart=()=>resolve(++window.__QA__.generation);});
         return Promise.resolve(++window.__QA__.generation);
       }
-      if(command==='stop_recording' && window.__QA__.hasAudio) {window.__QA__.calls.push(command);return Promise.resolve({sample_count:32000,duration_secs:2,recording_generation:window.__QA__.generation});}
-      if(command==='transcribe_buffer') {window.__QA__.calls.push(command);return Promise.resolve({text:'Private words stay out of the pill.',vocabulary_applied:[]});}
-      if(command==='paste_text' && window.__QA__.failPaste) {window.__QA__.calls.push(command);return Promise.reject(new Error('Synthetic paste failure'));}
+      if(command==='stop_dictation' && window.__QA__.hasAudio) {window.__QA__.calls.push(command);return Promise.resolve({sample_count:32000,duration_secs:2,recording_generation:window.__QA__.generation});}
+      if(command==='dictation_result') {
+        window.__QA__.calls.push(command);
+        const failed=window.__QA__.failPaste;
+        const record={transcriptId:'native-'+args.generation,rawText:'Private words stay out of the pill.',finalText:'Private words stay out of the pill.',deliveryStatus:failed?'failed':'verified',timestamp:Date.now(),durationSeconds:2,processingTimeMs:100,wordCount:8,engine:'local',modelName:'Fixture',corrected:false};
+        window.__QA__.capsule.push(failed?{state:'error',error:'Paste failed · copy from History'}:{state:'done'});
+        window.__QA__.savedAudioGeneration=args.generation;
+        return original('history_save',{record,recordingGeneration:args.generation}).then(()=>({record,warnings:[],recognized:[],corrected:[]}));
+      }
       return original(command,args);
     };
     document.hasFocus=()=>false;
@@ -60,17 +66,17 @@ try {
     const source=trigger==='Control+Option+Space'?trigger:'modifier';
     if(source!=='modifier') await page.waitForFunction(source=>!!window.__QA__.handlers[source],source);
     else await page.clock.runFor(10);
-    const starts=await count('start_recording'), stops=await count('stop_recording');
+    const starts=await count('start_dictation'), stops=await count('stop_dictation');
     await double(source); await status('recording'); await page.clock.runFor(500);
     assert.equal((await get()).handsFree,true,`${trigger} latches`);
-    assert.equal(await count('start_recording'),starts+1);
-    assert.equal(await count('stop_recording'),stops);
+    assert.equal(await count('start_dictation'),starts+1);
+    assert.equal(await count('stop_dictation'),stops);
     await single(source); await status('idle');
-    assert.equal(await count('stop_recording'),stops+1);
+    assert.equal(await count('stop_dictation'),stops+1);
     await single(source);
     await page.clock.runFor(100);
-    assert.equal(await count('start_recording'),starts+1,`${trigger}: an extra tap cannot reopen an empty recording`);
-    assert.equal(await count('stop_recording'),stops+1);
+    assert.equal(await count('start_dictation'),starts+1,`${trigger}: an extra tap cannot reopen an empty recording`);
+    assert.equal(await count('stop_dictation'),stops+1);
     await page.clock.runFor(401);
   }
   // Alternate shortcut has the same gestures, and latching survives slow startup.
@@ -78,7 +84,7 @@ try {
   const alternate='CommandOrControl+Shift+Space';
   await page.waitForFunction(key=>!!window.__QA__.handlers[key],alternate);
   // Single-press finishing also works while the microphone is still opening.
-  let starts=await count('start_recording'), stops=await count('stop_recording');
+  let starts=await count('start_dictation'), stops=await count('stop_dictation');
   await page.evaluate(()=>{window.__QA__.delayStart=true;});
   await double('modifier');
   await page.waitForFunction(()=>!!window.__QA__.resolveStart);
@@ -87,8 +93,8 @@ try {
   await status('idle');
   await single('modifier');
   await page.clock.runFor(100);
-  assert.equal(await count('start_recording'),starts+1,'Stopping during startup and tapping again cannot reopen the microphone');
-  assert.equal(await count('stop_recording'),stops+1,'The pending microphone closes once it opens');
+  assert.equal(await count('start_dictation'),starts+1,'Stopping during startup and tapping again cannot reopen the microphone');
+  assert.equal(await count('stop_dictation'),stops+1,'The pending microphone closes once it opens');
   await page.clock.runFor(401);
   await page.evaluate(()=>{window.__QA__.delayStart=true;});
   await double(alternate);
@@ -101,13 +107,13 @@ try {
   assert.equal((await get()).quiet,20);
   await page.evaluate(generation=>window.__QA__.emit('recording-quiet',{generation,quiet_seconds:0}),generation);
   assert.equal((await get()).quiet,0,'Input clears the warning');
-  let inferences=await count('transcribe_buffer');
+  let inferences=await count('dictation_result');
   await page.evaluate(()=>{window.__QA__.capsule=[];});
   await page.evaluate(generation=>window.__QA__.emit('recording-auto-stopped',{generation,quiet_seconds:30,heard_input:false}),generation);
   await status('idle');
   await page.waitForFunction(()=>window.__QA__.capsule.at(-1)?.state==='quiet-stop');
   assert.equal(await page.evaluate(()=>window.__QA__.capsule.some(s=>s.state==='idle')),false,'Empty auto-stop never hides the pill between listening and its notice');
-  assert.equal(await count('transcribe_buffer'),inferences,'An empty auto-stop does not run inference');
+  assert.equal(await count('dictation_result'),inferences,'An empty auto-stop does not run inference');
   assert.ok(await count('recover_recording')>0,'Empty audio is freed');
   await page.evaluate(()=>{window.__QA__.hasAudio=true;});
   await double('modifier'); await status('recording');
@@ -119,10 +125,9 @@ try {
     window.__QA__.emit('fnkey-released');
   },newer);
   await status('done');
-  assert.equal(await count('transcribe_buffer'),inferences+1,'Input is transcribed once on auto-stop');
-  assert.equal(await count('paste_text'),1);
+  assert.equal(await count('dictation_result'),inferences+1,'Input is transcribed once on auto-stop');
+  assert.equal(await count('dictation_result'),1);
   assert.equal(await page.evaluate(()=>window.__QA__.savedAudioGeneration),newer,'History receives the exact native recording generation');
-  assert.ok(await count('history_discard_pending_audio')>0,'Completed processing releases pending audio');
   const done=await page.evaluate(()=>window.__QA__.capsule.findLast(s=>s.state==='done'));
   assert.deepEqual(done,{state:'done'},'The success payload never contains transcript text');
   await page.evaluate(()=>{window.__QA__.hasAudio=false;});
@@ -131,22 +136,22 @@ try {
   await status('idle');
   assert.equal((await get()).handsFree,false,'Changing the configured trigger finishes the old capture');
   await page.evaluate(()=>{window.__QA__.hasAudio=true;});
-  starts=await count('start_recording');
-  const pastes=await count('paste_text');
+  starts=await count('start_dictation');
+  const pastes=await count('dictation_result');
   await double('Control+Option+Space'); await status('recording');
   await single('Control+Option+Space'); await status('done');
-  assert.equal(await count('paste_text'),pastes+1,'One press wraps up and delivers the recording');
+  assert.equal(await count('dictation_result'),pastes+1,'One press wraps up and delivers the recording');
   await single('Control+Option+Space');
   await page.clock.runFor(100);
-  assert.equal(await count('start_recording'),starts+1,'Even a fast successful result cannot turn an extra tap into a new recording');
-  assert.equal(await count('paste_text'),pastes+1);
+  assert.equal(await count('start_dictation'),starts+1,'Even a fast successful result cannot turn an extra tap into a new recording');
+  assert.equal(await count('dictation_result'),pastes+1);
   await page.clock.runFor(401);
   await page.evaluate(()=>{window.__QA__.hasAudio=true;window.__QA__.failPaste=true;window.__QA__.capsule=[];});
   await double('Control+Option+Space'); await status('recording');
   await single('Control+Option+Space'); await status('done');
   await page.waitForFunction(()=>window.__QA__.capsule.at(-1)?.state==='error');
   assert.equal(await page.evaluate(()=>window.__QA__.capsule.some(s=>s.state==='done')),false,'A failed paste must never show a success checkmark');
-  assert.equal(await page.evaluate(()=>window.__QA__.capsule.at(-1).error),'Paste failed · open Linty');
+  assert.equal(await page.evaluate(()=>window.__QA__.capsule.at(-1).error),'Paste failed · copy from History');
 
   await mkdir('artifacts/dictation-pill',{recursive:true});
   // The in-app microphone test uses native input history, just like the pill.

@@ -131,7 +131,7 @@ try {
   assert.equal(await page.evaluate(() => window.__QA__.stores[2].transcripts.length), 18);
   assert.equal(await page.evaluate(() => window.__QA__.stores[2].transcripts.filter(t => t.audio).length), 0);
   await page.evaluate(async () => {
-    const { saveTranscript } = await import('/src/services/history.service.ts');
+    const { saveTranscript } = window.__QA__;
     await saveTranscript({ ...window.__QA__.stores[2].transcripts[2], audio: {format:'wav',sampleRate:16000,channels:1,bitsPerSample:16,bytes:70*1024*1024} });
   });
   const readsBeforeLarge = await page.evaluate(() => window.__QA__.calls.filter(c => c === 'history_audio').length);
@@ -146,7 +146,7 @@ try {
   // A committed deletion must release playback and text caches even if every
   // subsequent refresh fails. The archive remains the authority after retry.
   await page.evaluate(async () => {
-    const { saveTranscript } = await import('/src/services/history.service.ts');
+    const { saveTranscript } = window.__QA__;
     await saveTranscript({ ...window.__QA__.stores[2].transcripts.find(t => t.transcriptId === 'qa-2'),
       audio: {format:'wav',sampleRate:16000,channels:1,bitsPerSample:16,bytes:16044} });
   });
@@ -168,7 +168,8 @@ try {
   await page.evaluate(async () => {
     delete window.__QA__.failures.history_snapshot;
     delete window.__QA__.failures.history_query;
-    const { refreshHistory, saveTranscript, setHistoryRetention } = await import('/src/services/history.service.ts');
+    const { refreshHistory, setHistoryRetention } = await import('/src/services/history.service.ts');
+    const { saveTranscript } = window.__QA__;
     await refreshHistory();
     await saveTranscript({ ...window.__QA__.stores[2].transcripts.find(t => t.transcriptId === 'qa-3'),
       audio: {format:'wav',sampleRate:16000,channels:1,bitsPerSample:16,bytes:16044} });

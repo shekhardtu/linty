@@ -166,26 +166,26 @@ try {
   await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().setGroqApiKey(''));
   await clearCalls(); await press(); await waitStatus('error'); await waitRecovery();
   assert.match((await lastCapsule()).error, /Groq API key/);
-  assert.equal(await page.evaluate(() => window.__QA__.calls.includes('start_recording')), false);
+  assert.equal(await page.evaluate(() => window.__QA__.calls.includes('start_dictation')), false);
   await local.click();
   await page.waitForFunction(store => store.getState().sttMode === 'local', store);
 
   // A failed startup explains the failure in the capsule; an empty recording
   // on the very next attempt ends idle, without an orphan transcribing event.
-  await page.evaluate(() => { window.__QA__.failures.start_recording = 'Microphone unavailable'; });
+  await page.evaluate(() => { window.__QA__.failures.start_dictation = 'Microphone unavailable'; });
   await press(); await waitStatus('error'); await waitRecovery();
   assert.equal((await lastCapsule()).error, 'Microphone unavailable');
-  await page.evaluate(() => { delete window.__QA__.failures.start_recording; });
+  await page.evaluate(() => { delete window.__QA__.failures.start_dictation; });
   await clearCalls(); await press(); await waitStatus('recording'); await release(); await waitStatus('idle');
   assert.equal((await lastCapsule()).state, 'idle');
   assert.equal(await page.evaluate(() => window.__QA__.capsule.some(s => s.state === 'transcribing')), false);
 
   // Quick release waits for startup and does not flash listening afterwards.
-  await page.evaluate(() => { window.__QA__.deferred.start_recording = null; });
-  await press(); await page.waitForFunction(() => window.__QA__.deferred.start_recording?.resolve);
+  await page.evaluate(() => { window.__QA__.deferred.start_dictation = null; });
+  await press(); await page.waitForFunction(() => window.__QA__.deferred.start_dictation?.resolve);
   await clearCalls(); await release();
-  assert.equal(await page.evaluate(() => window.__QA__.calls.includes('stop_recording')), false);
-  await page.evaluate(() => { window.__QA__.deferred.start_recording.resolve(); delete window.__QA__.deferred.start_recording; });
+  assert.equal(await page.evaluate(() => window.__QA__.calls.includes('stop_dictation')), false);
+  await page.evaluate(() => { window.__QA__.deferred.start_dictation.resolve(); delete window.__QA__.deferred.start_dictation; });
   await waitStatus('idle');
   assert.equal((await lastCapsule()).state, 'idle');
 
@@ -209,49 +209,50 @@ try {
   // Dead IPC and inference have deadlines. A late native completion must not
   // resurrect recording, paste old text, or alter a newer successful dictation.
   await page.clock.install();
-  await page.evaluate(() => { window.__QA__.deferred.start_recording = null; });
-  await press(); await page.waitForFunction(() => window.__QA__.deferred.start_recording?.resolve);
+  await page.evaluate(() => { window.__QA__.deferred.start_dictation = null; });
+  await press(); await page.waitForFunction(() => window.__QA__.deferred.start_dictation?.resolve);
   await page.clock.runFor(10001); await waitStatus('error'); await waitRecovery();
   assert.match((await lastCapsule()).error, /Microphone did not start/);
-  await page.evaluate(() => { window.__QA__.deferred.start_recording.resolve(); delete window.__QA__.deferred.start_recording; });
+  await page.evaluate(() => { window.__QA__.deferred.start_dictation.resolve(); delete window.__QA__.deferred.start_dictation; });
   assert.equal((await state()).isRecording, false);
 
   await press(); await waitStatus('recording');
-  await page.evaluate(() => { window.__QA__.deferred.stop_recording = null; });
-  await release(); await page.waitForFunction(() => window.__QA__.deferred.stop_recording?.resolve);
+  await page.evaluate(() => { window.__QA__.deferred.stop_dictation = null; });
+  await release(); await page.waitForFunction(() => window.__QA__.deferred.stop_dictation?.resolve);
   await page.clock.runFor(5001); await waitStatus('error'); await waitRecovery();
   assert.match((await lastCapsule()).error, /Microphone did not stop/);
-  await page.evaluate(() => { window.__QA__.deferred.stop_recording.resolve({sample_count:32000,duration_secs:2}); delete window.__QA__.deferred.stop_recording; });
+  await page.evaluate(() => { window.__QA__.deferred.stop_dictation.resolve({sample_count:32000,duration_secs:2,recording_generation:1}); delete window.__QA__.deferred.stop_dictation; });
   assert.equal((await state()).status,'error');
 
   await page.evaluate(() => {
-    window.__QA__.answers.stop_recording = {sample_count:32000,duration_secs:2};
-    window.__QA__.answers.is_local_stt_available = false;
+    window.__QA__.answers.stop_dictation = {sample_count:32000,duration_secs:2,recording_generation:1};
+    window.__QA__.failures.dictation_result = 'Local transcription is unavailable in this build.';
   });
   await press(); await waitStatus('recording'); await release(); await waitStatus('error'); await waitRecovery();
   assert.match((await lastCapsule()).error,/Local transcription is unavailable/);
-  await page.evaluate(() => { delete window.__QA__.answers.is_local_stt_available; });
+  await page.evaluate(() => { delete window.__QA__.failures.dictation_result; });
 
   await page.evaluate(() => {
-    window.__QA__.answers.stop_recording = {sample_count:32000,duration_secs:2};
-    window.__QA__.deferred.transcribe_buffer = null;
+    window.__QA__.answers.stop_dictation = {sample_count:32000,duration_secs:2,recording_generation:1};
+    window.__QA__.deferred.dictation_result = null;
   });
   await press(); await waitStatus('recording'); await release();
-  await page.waitForFunction(() => window.__QA__.deferred.transcribe_buffer?.resolve);
-  await page.clock.runFor(60001); await waitStatus('error'); await waitRecovery();
-  assert.match((await lastCapsule()).error, /Transcription timed out/);
+  await page.waitForFunction(() => window.__QA__.deferred.dictation_result?.resolve);
+  await page.clock.runFor(510001); await waitStatus('error'); await waitRecovery();
+  assert.match((await lastCapsule()).error, /Dictation did not finish/);
   await page.evaluate(() => {
-    window.__QA__.lateResult = window.__QA__.deferred.transcribe_buffer.resolve;
-    delete window.__QA__.deferred.transcribe_buffer;
-    window.__QA__.answers.transcribe_buffer = {text:'Recovered dictation.',vocabularyApplied:[]};
+    window.__QA__.lateResult = window.__QA__.deferred.dictation_result.resolve;
+    delete window.__QA__.deferred.dictation_result;
+    window.__QA__.answers.dictation_result = {record:{transcriptId:'recovered',rawText:'Recovered dictation.',finalText:'Recovered dictation.',deliveryStatus:'verified'},warnings:[],recognized:[],corrected:[]};
   });
   await clearCalls(); await press(); await waitStatus('recording'); await release(); await waitStatus('done');
   assert.equal((await state()).finalText, 'Recovered dictation.');
-  const pasteCount = await page.evaluate(() => window.__QA__.calls.filter(c => c === 'paste_text').length);
-  await page.evaluate(() => window.__QA__.lateResult({text:'Stale result must not paste',vocabularyApplied:[]}));
+  const pasteCount = await page.evaluate(() => window.__QA__.calls.filter(c => c === 'dictation_result').length);
+  await page.evaluate(() => window.__QA__.lateResult({record:{rawText:'Stale result',finalText:'Stale result'},warnings:[],recognized:[],corrected:[]}));
   assert.equal((await state()).finalText, 'Recovered dictation.');
-  assert.equal(await page.evaluate(() => window.__QA__.calls.filter(c => c === 'paste_text').length), pasteCount);
+  assert.equal(await page.evaluate(() => window.__QA__.calls.filter(c => c === 'dictation_result').length), pasteCount);
   assert.equal(pasteCount,1);
+  assert.equal(await page.evaluate(() => window.__QA__.calls.includes('paste_text')),false,'UI never posts paste commands');
 
   // Actual capsule renders the explanation, then clears itself.
   const capsule = await browser.newPage({viewport:{width:380,height:52},reducedMotion:'reduce'});

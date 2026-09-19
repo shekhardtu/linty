@@ -133,7 +133,7 @@ pub struct Metrics {
     pub changed: bool,
 }
 impl Metrics {
-    fn new(text: &str, language: &str, options: Options) -> Self {
+    pub(crate) fn new(text: &str, language: &str, options: Options) -> Self {
         Self {
             schema_version: 1,
             model_id: MODEL_ID,
@@ -385,7 +385,7 @@ fn chunks<'a>(
 /// Split on ordinary speech punctuation, not arbitrary nonletters: digits,
 /// symbols, quotes, and unknown words must keep the empty-output safeguard.
 /// Uppercase UM/UH may be initials, so only normal sentence casing is accepted.
-fn is_filler_only(input: &str) -> bool {
+pub(crate) fn is_filler_only(input: &str) -> bool {
     let mut found = false;
     for word in input
         .split(|c: char| c.is_whitespace() || ",.!?…—–-".contains(c))
@@ -400,21 +400,8 @@ fn is_filler_only(input: &str) -> bool {
 }
 
 fn validate_output(input: &str, output: &str) -> anyhow::Result<()> {
-    if output.trim().is_empty() {
-        anyhow::ensure!(is_filler_only(input), "empty_output");
-        return Ok(());
-    }
-    anyhow::ensure!(
-        !["<|", "<think>", "</think>"]
-            .iter()
-            .any(|s| output.contains(s)),
-        "invalid_output"
-    );
-    // Conservative sanity bounds, not a semantic accuracy guarantee.
-    let before = input.split_whitespace().count();
-    let after = output.split_whitespace().count();
-    anyhow::ensure!(after <= before * 2 + 20, "excessive_expansion");
-    anyhow::ensure!(before < 20 || after * 4 >= before, "excessive_deletion");
+    let result = crate::text_validation::validate(input, output);
+    anyhow::ensure!(result.status != "fallback", "{}", result.reasons.join(","));
     Ok(())
 }
 
