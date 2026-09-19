@@ -1,8 +1,9 @@
 import { useEffect, useCallback } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { check, type DownloadEvent, type Update } from "@tauri-apps/plugin-updater";
+import { type DownloadEvent, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { useAppStore } from "@/store/app.store";
+import { checkForAppUpdate } from "@/services/updater.service";
 import {
   isDictationBusy,
   isUpdateRequired,
@@ -15,10 +16,11 @@ const CHECK_DELAY_MS = 5_000;
 /// Short enough that a required update reaches running copies within the
 /// hour it is published.
 const CHECK_INTERVAL_MS = 15 * 60 * 1_000;
-/// The updater plugin has no timeout of its own: a stalled connection to the
-/// release feed would leave "Check for updates" spinning forever.
-const CHECK_TIMEOUT_MS = 30_000;
+/// A UI guard for an unresponsive native command. Native networking has its
+/// own connection, read and overall check timeouts.
 const CHECK_GUARD_MS = 40_000;
+const RETRY_DELAY_MS = 60_000;
+const MAX_RETRY_DELAY_MS = 5 * 60_000;
 /// A required update installs only after dictation has been quiet this long,
 /// so a restart never interrupts someone mid-sentence.
 const QUIET_BEFORE_INSTALL_MS = 30_000;
@@ -49,7 +51,7 @@ function checkWithTimeout() {
   const guard = new Promise<never>((_, reject) => {
     guardTimer = setTimeout(() => reject(new UpdateCheckTimeout()), CHECK_GUARD_MS);
   });
-  return Promise.race([check({ timeout: CHECK_TIMEOUT_MS }), guard]).finally(() => {
+  return Promise.race([checkForAppUpdate(), guard]).finally(() => {
     clearTimeout(guardTimer);
     inFlightCheck = null;
   });
@@ -72,7 +74,7 @@ function required(update: Update) {
 async function stillRequired(update: Update) {
   let latest: Update | null;
   try {
-    latest = await check({ timeout: CHECK_TIMEOUT_MS });
+    latest = await checkForAppUpdate();
   } catch {
     return true;
   }
@@ -196,15 +198,14 @@ export function useUpdater() {
     } catch (err) {
       console.error("[updater] Check failed:", err);
       useAppStore.setState({ updateCheckedAt: null });
-      if (silent && !useAppStore.getState().updateRequired) setUpdateStatus("idle");
-      else {
-        setUpdateError(
-          err instanceof UpdateCheckTimeout
-            ? "The update server did not respond. Check your connection and try again."
-            : "Could not check for updates. Check your connection and try again.",
-        );
-        setUpdateStatus("error");
-      }
+      // Background failures stay visible in About and the sidebar. Keeping
+      // this out of the toast stream avoids interrupting dictation.
+      setUpdateError(
+        err instanceof UpdateCheckTimeout
+          ? "The update server did not respond. Check your connection and try again."
+          : "Could not check for updates. Check your connection and try again.",
+      );
+      setUpdateStatus("error");
     }
   }, [setUpdateStatus, setUpdateVersion, setUpdateCurrentVersion, setUpdateRequired, setUpdateError, addToast]);
 
@@ -243,7 +244,8 @@ export function useUpdater() {
 }
 
 /**
- * Auto-check 5 s after launch, every 15 minutes, and when the Mac wakes.
+ * Auto-check at launch, every 15 minutes and on wake. Failed checks retry
+ * after 1, 2, 4, then 5 minutes until a check succeeds.
  * Call this ONCE in App.tsx — not in every component that uses useUpdater().
  */
 export function useUpdaterAutoCheck() {
@@ -253,6 +255,19 @@ export function useUpdaterAutoCheck() {
     if (autoCheckActive) return;
     autoCheckActive = true;
 
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    let retryDelay = RETRY_DELAY_MS;
+    const unsubscribe = useAppStore.subscribe((state, previous) => {
+      if (state.updateStatus === previous.updateStatus) return;
+      clearTimeout(retryTimer);
+      if (state.updateStatus === "error") {
+        retryTimer = setTimeout(() => { void checkForUpdate(true); }, retryDelay);
+        retryDelay = Math.min(retryDelay * 2, MAX_RETRY_DELAY_MS);
+      } else if (state.updateStatus === "idle" || state.updateStatus === "available") {
+        retryDelay = RETRY_DELAY_MS;
+      }
+    });
+
     const timeout = setTimeout(() => checkForUpdate(true), CHECK_DELAY_MS);
     const interval = setInterval(() => checkForUpdate(true), CHECK_INTERVAL_MS);
     const unlistenWake = listen("system-wake", () => {
@@ -261,6 +276,8 @@ export function useUpdaterAutoCheck() {
     return () => {
       clearTimeout(timeout);
       clearInterval(interval);
+      clearTimeout(retryTimer);
+      unsubscribe();
       void unlistenWake.then((unlisten) => unlisten());
       autoCheckActive = false;
     };

@@ -22,7 +22,7 @@ tauri-plugin-single-instance = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-shell = "2"
 tauri-plugin-store = "2"
-tauri-plugin-updater = "2"
+tauri-plugin-updater = "~2.10.0" # configure_client follows the plugin's HTTP client API
 tauri-plugin-process = "2"
 tauri-plugin-log = "2"   # local-only rotating log file (src/logging.rs)
 serde = { version = "1", features = ["derive"] }

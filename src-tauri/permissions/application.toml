@@ -3,6 +3,7 @@
 identifier = "main-commands"
 description = "Manage dictation, models, credentials, and local history from the main window."
 commands.allow = [
+    "check_for_update",
     "start_dictation",
     "stop_dictation",
     "dictation_result",

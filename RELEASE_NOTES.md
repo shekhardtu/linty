@@ -1,5 +1,5 @@
 ## What's new
 
-- See a confirmation after Linty updates and restarts, with a summary of what improved.
-- Read what changed before installing an update, and revisit this version's improvements in About.
-- Check your update status in About, with a clear confirmation when you're using the latest version.
+- Updates can try another download address when a connection stalls, helping automatic and required updates reach your Mac reliably.
+- Failed background update checks now show a clear retry option in About and the sidebar, and Linty retries automatically.
+- Stalled downloads now time out so you can retry instead of waiting indefinitely.
