@@ -24,9 +24,10 @@ try {
   await mkdir(output, { recursive: true });
   browser = await engine.launch({ headless: true });
 
-  const launch = async ({ previous = '0.0.1', running = version, theme = 'light', onboarding = false, offer = null, offline = false } = {}) => {
+  const launch = async ({ previous = '0.0.1', running = version, theme = 'light', onboarding = false, offer = null, offline = false, clock = false } = {}) => {
     const context = await browser.newContext({ viewport: { width: 1080, height: 760 } });
     const page = await context.newPage();
+    if (clock) await page.clock.install();
     page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(fixture, { empty: true, theme, onboarding, update: offer });
     await page.addInitScript(({ previous, running, offer, offline }) => {
@@ -35,7 +36,7 @@ try {
       qa.stores[1].updateHistory = saved ? JSON.parse(saved) : previous ? { lastRunVersion: previous, notice: null } : null;
       const currentVersion = sessionStorage.getItem('qa-running-version') ?? running;
       if (currentVersion !== running) qa.setUpdate(null);
-      if (offline) qa.failures['plugin:updater|check'] = 'Offline';
+      if (offline) qa.failures['check_for_update'] = 'Offline';
       const invoke = window.__TAURI_INTERNALS__.invoke;
       window.__TAURI_INTERNALS__.invoke = async (command, args) => {
         if (command === 'plugin:app|version') return currentVersion;
@@ -64,9 +65,9 @@ try {
     assert.match(await dialog.innerText(), new RegExp(`Version ${version.replaceAll('.', '\\.')} is installed`));
     assert.ok(await dialog.getByText(firstHighlight, { exact: true }).isVisible());
     await check(page);
-    await page.waitForFunction(() => window.__QA__.calls.includes('plugin:updater|check'));
+    await page.waitForFunction(() => window.__QA__.calls.includes('check_for_update'));
     assert.equal(await dialog.getByText('You’re up to date.', { exact: true }).count(), 0, 'offline is not proof of latest');
-    await page.evaluate(() => { delete window.__QA__.failures['plugin:updater|check']; });
+    await page.evaluate(() => { delete window.__QA__.failures['check_for_update']; });
     await check(page);
     await dialog.getByText('You’re up to date.', { exact: true }).waitFor();
     await page.screenshot({ path: `${output}/updated-${theme}.png`, animations: 'disabled' });
@@ -158,6 +159,25 @@ try {
   await about(revoked);
   assert.equal(await revoked.getByText('You’re up to date.', { exact: true }).count(), 0, 'About must also avoid false confirmation');
   await revoked.close();
+
+  const retrying = await launch({ previous: version, offline: true, clock: true });
+  await retrying.getByRole('heading', { name: 'Your dictation', exact: true }).waitFor();
+  await about(retrying);
+  await retrying.clock.fastForward(6_000);
+  await retrying.getByText('Could not check for updates. Check your connection and try again.', { exact: true }).waitFor();
+  await retrying.getByRole('button', { name: 'Retry update', exact: true }).waitFor();
+  assert.equal(await retrying.getByText('You’re up to date.', { exact: true }).count(), 0);
+  const checkCount = await retrying.evaluate(() => window.__QA__.calls.filter(command => command === 'check_for_update').length);
+  await retrying.clock.fastForward(60_000);
+  await retrying.waitForFunction(async count => {
+    const state = (await import('/src/store/app.store.ts')).useAppStore.getState();
+    return state.updateStatus === 'error' && window.__QA__.calls.filter(command => command === 'check_for_update').length === count + 1;
+  }, checkCount);
+  await retrying.evaluate(() => { delete window.__QA__.failures.check_for_update; });
+  await retrying.clock.fastForward(120_000);
+  await retrying.getByText('You’re up to date.', { exact: true }).waitFor();
+  assert.equal(await retrying.getByRole('button', { name: 'Retry update', exact: true }).count(), 0, 'automatic recovery clears the retry state');
+  await retrying.close();
   assert.deepEqual(errors, []);
   console.log('Update feedback passed: both themes, accessibility, minimum window, offline status, durable acknowledgment, fresh/legacy installs, release notes, failed install and optional/required update relaunch.');
 } finally {

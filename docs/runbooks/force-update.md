@@ -8,7 +8,15 @@ How to make every copy of Linty below a version install the latest release. Ever
 - If that file has `minimum_version` and the app is below it, the release is required. The app shows a screen that cannot be dismissed and downloads the update. It installs 30 seconds after the last dictation, then restarts. Dictation keeps working until then.
 - Without `minimum_version`, updates stay optional, as before.
 - The field is not signed. It cannot make a copy install anything except the latest release, which the updater verifies with the release key. The worst a wrong value can do is require the latest release.
-- Builds from before this change ignore the field. They still offer the update as optional.
+- Builds before v0.0.40 ignore the field. They still offer the update as optional.
+
+## When an existing copy cannot find an update
+
+The requirement takes effect only after the installed app reads `latest.json`. It cannot repair an unreachable update connection remotely.
+
+Versions through v0.0.55 can spend the entire check timeout connecting to one unreachable GitHub release CDN address. Background failures can also leave no visible error. Newer builds bound connection attempts, try other resolved addresses sooner, show failed checks, and retry automatically.
+
+If an older copy remains stuck, download the latest signed DMG from [GitHub Releases](https://github.com/shekhardtu/linty/releases/latest), quit Linty after dictation finishes, replace the app, and reopen it. Keep the app's existing data and settings; do not use Reset All Data. This one-time installation gives the copy the repaired updater. Working older connections can receive the same release through the normal required-update flow.
 
 ## Require an update
 

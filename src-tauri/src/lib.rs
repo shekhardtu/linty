@@ -30,6 +30,7 @@ mod state;
 pub mod text_validation;
 pub mod transcribe;
 mod tray;
+mod updater;
 pub mod vocabulary;
 mod watchdog;
 
@@ -1603,6 +1604,7 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            updater::check_for_update,
             dictation::start_dictation,
             dictation::stop_dictation,
             dictation::dictation_result,

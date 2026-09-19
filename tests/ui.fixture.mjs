@@ -542,7 +542,7 @@ export const fixture = ({
         return;
       }
       if (command === "get_theme") return stores[1].theme;
-      if (command === "plugin:updater|check") return update;
+      if (command === "check_for_update") return update;
       if (command === "plugin:updater|download") return 11;
       if (command === "plugin:updater|install") return null;
       if (command === "plugin:process|restart") return null;

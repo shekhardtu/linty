@@ -487,11 +487,11 @@ try {
 
   // Expose recoverable failures from the same commands used by the desktop app.
   await page.getByRole('button', {name:'About',exact:true}).click();
-  await page.evaluate(() => { window.__QA__.failures['plugin:updater|check'] = 'Offline'; });
+  await page.evaluate(() => { window.__QA__.failures['check_for_update'] = 'Offline'; });
   await page.getByRole('button', {name:'Check for updates',exact:true}).click();
   await page.getByText('Could not check for updates. Check your connection and try again.').waitFor();
   await audit('update-error');
-  await page.evaluate(() => { delete window.__QA__.failures['plugin:updater|check']; });
+  await page.evaluate(() => { delete window.__QA__.failures['check_for_update']; });
   await page.getByRole('button', {name:'Retry',exact:true}).click();
   await page.getByText('You’re using the latest version of Linty.').waitFor();
   // Dictionary page: accept a suggestion, add a word by hand, pause one, and see the learning switches.
@@ -803,7 +803,7 @@ try {
   await forced.evaluate(() => {
     const invoke = window.__TAURI_INTERNALS__.invoke;
     window.__TAURI_INTERNALS__.invoke = async (command, args) => {
-      if (command === 'plugin:updater|check') {
+      if (command === 'check_for_update') {
         await new Promise(resolve => { window.__QA__.finishUpdateRecheck = resolve; });
       }
       return invoke(command, args);
@@ -823,7 +823,7 @@ try {
   await forced.evaluate(() => { window.__QA__.calls.length = 0; window.__QA__.emit('fnkey-pressed'); });
   await forced.clock.runFor(1_000);
   assert.ok(!(await forced.evaluate(() => window.__QA__.calls)).includes('start_dictation'), 'installation blocks new recordings');
-  assert.ok(installCalls.indexOf('plugin:updater|check') < installCalls.indexOf('plugin:updater|install'), 'the release is checked again before installing');
+  assert.ok(installCalls.indexOf('check_for_update') < installCalls.indexOf('plugin:updater|install'), 'the release is checked again before installing');
   await forcedContext.close();
 
   const clearedContext = await browser.newContext({ viewport:{width:1080,height:760}, reducedMotion:'reduce' });
