@@ -1,11 +1,10 @@
 name: Checks
 
 on:
+  # Main pushes already run this entire workflow through build-dmg.yml.
+  # Keep one required suite per PR and one per release source.
   workflow_call:
   pull_request:
-  push:
-    branches:
-      - main
 
 concurrency:
   group: checks-${{ github.workflow }}-${{ github.ref }}

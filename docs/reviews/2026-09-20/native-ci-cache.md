@@ -6,4 +6,4 @@ The revised checks preserve Rust workspace outputs and incremental state, Cargo 
 
 Native checks and release builds share one composite action for the compiled Swift release bridge. That archive has an exact key covering its source, dependency lock, architecture, toolchain, and build recipe, with no fallback. Both Rust build modes link the same verified archive. Swift tests use a separate cached directory so restoring their incremental state cannot overwrite the release archive.
 
-All existing native, production-build, Swift, supervisor, and advisory checks still execute. A first run seeds the new caches; a repeat of the native job measures the warm-cache result.
+All existing native, production-build, Swift, supervisor, and advisory checks still execute. Main pushes invoke the suite through the release workflow, instead of also starting a duplicate standalone Checks run. A first run seeds the new caches; a repeat of the native job measures the warm-cache result.
