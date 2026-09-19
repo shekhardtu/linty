@@ -139,6 +139,25 @@ try {
     await notice(page).getByText(`Version ${version} is installed.`, { exact: true }).waitFor();
     await page.close();
   }
+
+  // Revoking a required update leaves the app idle on its older version.
+  // Idle alone must not turn a successful check that found an update into
+  // confirmation that the installed version is the latest.
+  const revocableOffer = { rid: 9, currentVersion: '0.0.2', version, body: notes, rawJson: { version, minimum_version: version } };
+  const revoked = await launch({ previous: '0.0.1', running: '0.0.2', offer: revocableOffer });
+  await notice(revoked).waitFor();
+  await revoked.clock.install();
+  await check(revoked);
+  await revoked.waitForFunction(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().updateStatus === 'waiting');
+  await revoked.evaluate(offer => window.__QA__.setUpdate({ ...offer, rawJson: { version: offer.version } }), revocableOffer);
+  await revoked.clock.fastForward(31_000);
+  await notice(revoked).waitFor();
+  assert.equal(await notice(revoked).getByText('You’re up to date.', { exact: true }).count(), 0, 'revoking a required update does not make the installed version current');
+  assert.equal(await revoked.evaluate(() => window.__QA__.calls.includes('plugin:updater|install')), false);
+  await notice(revoked).getByRole('button', { name: 'Got it' }).click();
+  await about(revoked);
+  assert.equal(await revoked.getByText('You’re up to date.', { exact: true }).count(), 0, 'About must also avoid false confirmation');
+  await revoked.close();
   assert.deepEqual(errors, []);
   console.log('Update feedback passed: both themes, accessibility, minimum window, offline status, durable acknowledgment, fresh/legacy installs, release notes, failed install and optional/required update relaunch.');
 } finally {

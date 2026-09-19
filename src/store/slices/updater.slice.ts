@@ -18,7 +18,7 @@ export interface UpdaterSlice {
   installedVersion: string | null;
   updateNotice: UpdateNotice | null;
   updateNotes: string | null;
-  /** Set only after a successful check, so idle/offline never implies latest. */
+  /** Last successful check with no newer release; cleared on an offer or failure. */
   updateCheckedAt: number | null;
   updateStatus: UpdateStatus;
   updateVersion: string | null;

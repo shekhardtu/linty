@@ -167,7 +167,9 @@ export function useUpdater() {
       setUpdateError(null);
       const update = await inFlightCheck;
 
-      useAppStore.setState({ updateCheckedAt: Date.now(), updateNotes: update?.body ?? null });
+      // An offered update can return to idle if its requirement is revoked.
+      // Only a check with no newer release confirms this copy is current.
+      useAppStore.setState({ updateCheckedAt: update ? null : Date.now(), updateNotes: update?.body ?? null });
 
       replacePendingUpdate(update);
       if (update) {
