@@ -1,8 +1,8 @@
 name: Checks
 
 on:
-  # Main pushes already run this entire workflow through build-dmg.yml.
-  # Keep one required suite per PR and one per release source.
+  # Releases reuse a successful PR suite when its tested tree matches main.
+  # workflow_call provides full validation when that cannot be verified.
   workflow_call:
   pull_request:
 
@@ -151,3 +151,16 @@ jobs:
           RESULTS: ${{ toJSON(needs) }}
         run: |
           echo "$RESULTS" | jq -e 'all(.[]; .result == "success")'
+      - name: Record the commit that passed all checks
+        if: github.event_name == 'pull_request'
+        env:
+          CHECKED_COMMIT: ${{ github.sha }}
+        run: printf '%s\n' "$CHECKED_COMMIT" > "$RUNNER_TEMP/checked-commit.txt"
+      - name: Save checked source for release validation
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: checked-source-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/checked-commit.txt
+          retention-days: 7
+          if-no-files-found: error

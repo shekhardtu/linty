@@ -57,11 +57,11 @@ This is a local test build, not a notarized public release. For permission, reco
 
 ## Signed releases
 
-The maintainer's `scripts/build-mac.sh` builds both engines, signs the app, and notarizes the app and DMG when notarization credentials are configured. Supply secrets through your local secure environment; no particular dotfile is required by the project.
+Use the `deploy` skill or `yarn release:local --publish` from clean local `main` for an official release. The command synchronizes and pushes main, builds in an isolated worktree, validates locally, signs/notarizes, and publishes directly to GitHub Releases. See [local releases](runbooks/local-releases.md) for prerequisites and retry instructions. `scripts/build-mac.sh` remains a packaging helper; official publication requires the local release command's mandatory validation and notarization. Supply secrets through your local secure environment; no particular dotfile is required by the project.
 
 Required release environment variables are `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD` (an app-specific password), `APPLE_TEAM_ID`, `TAURI_SIGNING_PRIVATE_KEY`, and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. The Developer ID Application certificate and private key must be available to codesign through Keychain. Never commit these values or certificate exports.
 
-The [Build macOS DMG workflow](../.github/workflows/build-dmg.yml) runs on pushes to `main` or manual dispatch. It bumps the patch version, builds both local engines, signs and notarizes, and publishes the installer, signed updater archive, and `latest.json`. `[skip ci]` skips the push-triggered build.
+The [Build macOS DMG workflow](../.github/workflows/build-dmg.yml) is currently disabled in GitHub. It can be re-enabled with `gh workflow enable build-dmg.yml --repo shekhardtu/linty`; when enabled it runs on pushes to `main` or manual dispatch. It bumps the patch version, builds both local engines, signs and notarizes, and publishes the installer, signed updater archive, and `latest.json`. `[skip ci]` skips the push-triggered build. PR checks remain enabled independently of release publishing.
 
 Configure these as **repository-level Actions secrets**, so release configuration stays attached to the repository if ownership changes:
 
