@@ -1,6 +1,6 @@
 ## What's new
 
-- Language and cleanup now share one Dictation settings page, with readiness and a shortcut to try dictation together.
-- Selecting English automatically enables and prepares on-device text cleanup, including its one-time download if needed. You can still choose Keep as spoken for English.
-- Selecting Auto-detect or another language turns cleanup off and hides its controls. Auto-detect shows your list of up to three spoken languages in the same space.
-- Memory settings and speech model details are tucked under Advanced. Language setup failures keep your confirmed settings and can be retried.
+- Read the privacy notice and license information offline during setup, in Privacy & storage, or in About. Matching notices are included in the website source and on GitHub.
+- See clearer explanations of local storage, downloads, updates, website hosting, and what resetting app data deletes.
+- Use a larger live waveform in Microphone Test and keep your last three results readable and copyable. Transcripts are also available in History.
+- Dictating while Linty is focused opens a dedicated recording view and returns to your previous screen after ten seconds. Choose Stay here to keep reviewing, or Back now to return sooner.

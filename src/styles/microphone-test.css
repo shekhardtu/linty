@@ -1,0 +1,130 @@
+.microphone-test { --voice-art-mint: #a0dfcf; --voice-art-ink: #26534c; --voice-art-peach: #e9ad86; --voice-art-paper: #fff8e9; margin-top: 28px; min-width: 0; }
+.microphone-test-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px; }
+.microphone-test-heading h2 { font-size: 14px; font-weight: 600; }
+.microphone-test-heading p { margin-top: 3px; font-size: 12px; color: var(--color-text-secondary); }
+.microphone-test-device { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; margin-top: 12px; padding: 5px 9px; border: 1px solid var(--color-border-subtle); border-radius: 20px; background: var(--color-bg-elevated); font-size: 11px; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.microphone-test-device svg { flex-shrink: 0; }
+.microphone-test-recorder { position: relative; padding: 20px; border: 1px solid var(--color-border-subtle); border-radius: 18px; background: linear-gradient(125deg, var(--color-artwork-wash), transparent 65%), var(--color-bg-elevated); box-shadow: 0 8px 30px color-mix(in srgb, var(--color-shadow) 8%, transparent); }
+.microphone-test[data-recording="true"] .microphone-test-recorder { border-color: color-mix(in srgb, var(--color-accent) 65%, var(--color-border-subtle)); box-shadow: 0 0 0 4px var(--color-accent-glow), 0 12px 36px color-mix(in srgb, var(--color-shadow) 10%, transparent); }
+.microphone-test-recorder-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.microphone-test-phase { display: inline-flex; align-items: center; gap: 6px; border-radius: 20px; padding: 4px 9px; background: var(--color-accent-glow-strong); font-size: 10px; font-weight: 550; color: var(--color-accent); }
+.microphone-test-phase > span { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.microphone-test[data-phase="attention"] .microphone-test-phase { background: var(--color-warning-glow); color: var(--color-warning); }
+.microphone-test-step { color: var(--color-text-muted); font-size: 10px; letter-spacing: .04em; }
+.microphone-test-step > span { margin: 0 7px; color: var(--color-border); }
+.microphone-test-controls { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.microphone-test-status { min-width: 0; }
+.microphone-test-status h3 { display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 550; }
+.microphone-test-status h3 svg { color: var(--color-success); flex-shrink: 0; }
+.microphone-test-status p { margin-top: 5px; font-size: 12px; line-height: 1.6; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.microphone-test-toggle { flex-shrink: 0; min-height: 38px; min-width: 154px; border-radius: 10px; }
+.microphone-test-signal { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--color-border-subtle); }
+.microphone-test-waveform { width: 100%; height: 40px; gap: 3px; }
+.microphone-test-placeholder { display: flex; align-items: center; justify-content: center; gap: 14px; height: 40px; color: var(--color-text-muted); font-size: 12px; }
+.microphone-test-baseline { height: 1px; background: var(--color-border); flex: 1; }
+.microphone-test-signal-caption { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; min-height: 20px; margin-top: 10px; color: var(--color-text-muted); font-size: 11px; }
+.microphone-test-signal-caption time { flex-shrink: 0; font-size: 12px; color: var(--color-text-primary); font-variant-numeric: tabular-nums; }
+.microphone-test-history { margin-top: 22px; }
+.microphone-test-history-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.microphone-test-history-heading h3 { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
+.microphone-test-section-number { display: inline-grid; place-items: center; width: 24px; height: 24px; border: 1px solid var(--color-border-subtle); border-radius: 8px; color: var(--color-text-muted); font-size: 10px; font-weight: 450; }
+.microphone-test-history-heading > span { font-size: 11px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.microphone-test-history-note { font-size: 11px; color: var(--color-text-muted); margin-top: 4px; }
+.microphone-test-history ol { list-style: none; padding: 0; margin-top: 12px; }
+.microphone-test-transcript { padding: 14px 16px; margin-top: 8px; border: 1px solid var(--color-border-subtle); border-radius: 12px; background: var(--color-bg-elevated); }
+.microphone-test-transcript:first-child { border-left: 3px solid var(--color-accent); padding-left: 14px; background: linear-gradient(110deg, var(--color-accent-glow), transparent 60%), var(--color-bg-elevated); }
+.microphone-test-transcript-heading, .microphone-test-transcript-heading > div { display: flex; align-items: center; gap: 10px; }
+.microphone-test-transcript-heading { justify-content: space-between; margin-bottom: 8px; }
+.microphone-test-transcript-heading span { color: var(--color-text-secondary); font-size: 11px; font-weight: 550; }
+.microphone-test-transcript-heading time { color: var(--color-text-muted); font-size: 11px; }
+.microphone-test-copy { font-size: 11px; min-width: 70px; min-height: 30px; padding: 3px 8px; box-shadow: none; }
+.microphone-test-transcript > p { font-size: 13px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text; }
+.microphone-test-empty { display: flex; align-items: center; gap: 16px; margin-top: 12px; padding: 16px 20px; border: 1px dashed var(--color-border); border-radius: 14px; background: var(--color-artwork-wash); font-size: 12px; color: var(--color-text-secondary); }
+.microphone-test-empty h4 { margin-bottom: 4px; color: var(--color-text-primary); font-weight: 500; }
+.transcript-illustration { width: 68px; height: 58px; flex-shrink: 0; }
+.microphone-test .microphone-test-error { color: var(--color-error); }
+.recording-focus { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; border: 0; padding: 0; background: radial-gradient(ellipse at 80% 12%, var(--color-accent-glow), transparent 55%), var(--color-bg); color: var(--color-text-primary); overflow-y: auto; outline: none; container: page / inline-size; }
+.recording-focus[open] { display: flex; flex-direction: column; }
+.recording-focus::backdrop { background: var(--color-bg); }
+.recording-focus-toolbar { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 32px 16px 86px; min-height: 64px; border-bottom: 1px solid var(--color-border-subtle); background: var(--color-bg); }
+.recording-focus-toolbar > span { color: var(--color-text-muted); font-size: 12px; }
+.recording-focus-content { flex: 1; min-height: 0; overflow-y: auto; width: min(100%, 1040px); padding: 28px 40px 48px; margin: 0 auto; }
+.recording-focus .microphone-test { margin-top: 0; }
+.recording-focus .microphone-test-heading { margin-bottom: 24px; min-height: 184px; }
+.recording-focus .microphone-test-heading h2 { font-size: clamp(30px, 4vw, 42px); line-height: 1.07; font-weight: 500; letter-spacing: -.045em; }
+.recording-focus .microphone-test-heading h2 > span { color: var(--color-accent); }
+.microphone-test-eyebrow { display: block; margin-bottom: 13px; font-size: 10px; font-weight: 500; color: var(--color-text-muted); letter-spacing: .035em; }
+.recording-focus .microphone-test-heading p { margin-top: 8px; font-size: 13px; }
+.recording-focus .microphone-test-recorder { padding: 24px; }
+.recording-focus .microphone-test-signal { margin-top: 28px; padding-top: 24px; }
+.recording-focus .microphone-test-waveform, .recording-focus .microphone-test-placeholder { height: 64px; }
+.recording-focus .microphone-test-history { margin-top: 28px; }
+.voice-illustration { display: block; width: 156px; height: 96px; flex-shrink: 0; overflow: visible; pointer-events: none; }
+.recording-focus .voice-illustration { width: min(37%, 340px); height: auto; margin-right: 22px; }
+.voice-art-wash { fill: color-mix(in srgb, var(--color-accent) 13%, transparent); }
+.voice-art-peach-wash { fill: color-mix(in srgb, var(--voice-art-peach) 14%, transparent); }
+.voice-art-orbits { color: var(--color-accent); opacity: .24; }
+.voice-art-halo { color: var(--color-accent); opacity: .5; transform-origin: 105px 100px; }
+.voice-art-mic-body { fill: var(--voice-art-mint); stroke: var(--voice-art-ink); }
+.voice-art-mic-inset { fill: color-mix(in srgb, var(--voice-art-mint) 72%, white); }
+.voice-art-ink { stroke: var(--voice-art-ink); }
+.voice-art-mic-stand { stroke: color-mix(in srgb, var(--color-accent) 70%, var(--voice-art-ink)); }
+.voice-art-ink-fill { fill: var(--voice-art-ink); }
+.voice-art-ribbon { stroke: var(--voice-art-peach); }
+.voice-art-note-shadow { fill: var(--voice-art-peach); }
+.voice-art-paper { fill: var(--voice-art-paper); stroke: var(--voice-art-ink); }
+.voice-art-paper-fold { fill: #f2e3c5; stroke: var(--voice-art-ink); }
+.voice-art-title-line { stroke: var(--voice-art-ink); }
+.voice-art-text-lines { stroke: #baccc2; }
+.voice-art-written { stroke: #4d8376; stroke-dasharray: 70; stroke-dashoffset: 70; transition: stroke-dashoffset .7s ease; }
+.voice-art-complete { opacity: 0; transform: scale(.6); transform-origin: 286px 163px; transition: opacity .25s ease, transform .35s var(--ease-out); stroke: var(--voice-art-paper); }
+.voice-art-check-disc { fill: var(--voice-art-ink); stroke: var(--voice-art-paper); stroke-width: 2px; }
+.voice-art-spark { stroke: var(--voice-art-peach); transform-origin: 301px 38px; }
+.voice-art-dot { fill: var(--voice-art-peach); }
+.voice-illustration[data-state="recording"] .voice-art-halo { animation: voice-halo 3s ease-in-out infinite; }
+.voice-illustration[data-state="processing"] .voice-art-written { animation: voice-writing 2.4s ease-in-out infinite; }
+.voice-illustration[data-state="complete"] .voice-art-written { stroke-dashoffset: 0; }
+.voice-illustration[data-state="complete"] .voice-art-complete { opacity: 1; transform: scale(1); }
+.voice-illustration[data-state="complete"] .voice-art-spark { animation: voice-spark .7s var(--ease-out) both; }
+@keyframes voice-halo { 0%, 100% { opacity: .35; transform: scale(.97); } 50% { opacity: .8; transform: scale(1.05); } }
+@keyframes voice-writing { 0%, 15% { stroke-dashoffset: 70; } 75%, 100% { stroke-dashoffset: 0; } }
+@keyframes voice-spark { from { transform: scale(.7) rotate(-20deg); } to { transform: scale(1) rotate(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .voice-illustration *, .voice-illustration *::before, .voice-illustration *::after { animation: none !important; transition: none !important; }
+  .voice-illustration[data-state="processing"] .voice-art-written { stroke-dashoffset: 25; }
+}
+.recording-focus-return { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; min-height: 66px; padding: 16px max(24px, calc((100vw - 960px) / 2)); border-top: 1px solid var(--color-border-subtle); }
+.recording-focus-return p { font-size: 12px; color: var(--color-text-secondary); }
+.recording-focus-return > div { display: flex; gap: 8px; }
+.recording-focus-countdown { display: inline-block; min-width: 3ch; font-variant-numeric: tabular-nums; color: var(--color-text-primary); }
+@media (max-height: 800px) {
+  .recording-focus-content { padding-top: 20px; }
+  .recording-focus .microphone-test-heading { min-height: 0; margin-bottom: 20px; }
+  .recording-focus .microphone-test-eyebrow { display: none; }
+  .recording-focus .microphone-test-heading h2 { font-size: 32px; }
+  .recording-focus .voice-illustration { max-width: 260px; max-height: 145px; }
+  .recording-focus .microphone-test-recorder { padding: 20px; }
+  .recording-focus .microphone-test-recorder-topline { margin-bottom: 14px; }
+  .recording-focus .microphone-test-signal { margin-top: 20px; padding-top: 16px; }
+  .recording-focus .microphone-test-waveform, .recording-focus .microphone-test-placeholder { height: 48px; }
+  .recording-focus .microphone-test-history { margin-top: 20px; }
+}
+@container page (max-width: 600px) {
+  .recording-focus-content { padding: 24px 20px; }
+  .recording-focus-toolbar { padding-right: 20px; }
+  .microphone-test-heading { gap: 12px; }
+  .microphone-test-heading > .voice-illustration { width: 120px; height: auto; }
+  .recording-focus .voice-illustration { width: 32%; margin-right: 0; }
+  .microphone-test-device { max-width: 100%; }
+  .microphone-test-recorder { padding: 16px; }
+  .microphone-test-controls { align-items: flex-start; flex-direction: column; gap: 14px; }
+  .microphone-test-toggle { width: 100%; }
+  .microphone-test-waveform { gap: 2px; }
+}
+@container page (max-width: 420px) {
+  .microphone-test-heading > .voice-illustration { width: 88px; }
+  .recording-focus .microphone-test-heading > .voice-illustration { width: 29%; }
+  .microphone-test-eyebrow { max-width: 190px; }
+  .microphone-test-empty { gap: 10px; padding: 14px 12px; }
+  .transcript-illustration { width: 50px; }
+}

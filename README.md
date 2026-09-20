@@ -32,7 +32,7 @@ Privacy first means you can dictate without sending your speech to a server. Lin
 | Source / access | **MIT; free app and source** | GPL-3.0 source; paid packaged app | Free tier and paid Pro | Free tier and paid plans |
 | Build or modify the app yourself | Yes | Yes | Use the vendor's app | Use the vendor's app |
 
-Comparison checked **17 September 2026** against the projects' own documentation: [VoiceInk source](https://github.com/Beingpax/VoiceInk) and [product details](https://tryvoiceink.com), [Superwhisper models](https://superwhisper.com/models) and [downloads](https://superwhisper.com/download), [Wispr Flow requirements](https://docs.wisprflow.ai/articles/1036674442-supported-devices-and-system-requirements) [internet requirement](https://docs.wisprflow.ai/articles/4048537120-what-to-expect-from-flow-accuracy-and-known-limitations), and [plans](https://wisprflow.ai/pricing). This is a feature comparison, not a head-to-head speed or accuracy benchmark. Features and plans can change.
+Comparison checked **20 September 2026** against the projects' own documentation: [VoiceInk source](https://github.com/Beingpax/VoiceInk) and [product details](https://tryvoiceink.com), [Superwhisper models](https://superwhisper.com/models) and [downloads](https://superwhisper.com/download), [Wispr Flow requirements](https://docs.wisprflow.ai/articles/1036674442-supported-devices-and-system-requirements) [internet requirement](https://docs.wisprflow.ai/articles/4048537120-what-to-expect-from-flow-accuracy-and-known-limitations), and [plans](https://wisprflow.ai/pricing). This is a feature comparison, not a head-to-head speed or accuracy benchmark. Features and plans can change.
 
 ## Measured performance
 
@@ -103,9 +103,12 @@ Download estimates describe disk transfer, not RAM requirements. Available memor
 
 ## Privacy first
 
+Read the [privacy notice](PRIVACY.md) and [license and responsible use](TERMS.md), also included offline in the app.
+
 - **Local speech recognition keeps audio on your Mac.** Once a model is downloaded, speech recognition works offline.
 - **Speech recognition, text cleanup, and history stay local.** Read the [history storage](docs/HISTORY-STORAGE.md) details.
 - **Saving recordings is opt-in.** Enable “Save dictation audio” in Privacy & storage for local History playback and WAV export. Recordings follow history retention and deletion. This does not authorize sharing, training, or automatic evaluations. See the [audio privacy policy](docs/AUDIO-PRIVACY.md).
+- **Downloads and updates use the network.** Model hosts and GitHub receive connection metadata. Website hosting is separate from app processing; see the [website disclosure](PRIVACY.md#website-and-github).
 - **No app usage telemetry.** The download badge uses GitHub's total release-asset download counts across versions. Website downloads point to those same GitHub-hosted files. This includes installers, updater archives, and other release assets.
 
 ## Build from source
@@ -135,7 +138,7 @@ Each release includes customer-facing improvements in `RELEASE_NOTES.md`, shared
 
 ## Build with me
 
-I'm [Hari Shekhar](https://github.com/shekhardtu), and I'm building Linty around one principle: **privacy first**. If you care about useful, local software, come build with me. Let's make dictation better and explore what else we can create together.
+Linty is built around **privacy first** and useful local software. Contributions are welcome to make dictation better.
 
 Contributions that would make a difference:
 

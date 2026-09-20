@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Privacy notice — Linty</title>
+  <meta name="description" content="Linty is open-source dictation software. This notice describes the official app and linty.ai. Forks and other distributions may differ." />
+  <script src="privacy-guard.js?v=2afc4702a0c1"></script>
+  <script src="theme.js?v=87c2c8532cc6"></script>
+  <link rel="stylesheet" href="brand/theme.css?v=934b29bfa881" />
+  <link rel="stylesheet" href="styles.css?v=b85c46bc8294" />
+  <link rel="stylesheet" href="legal.css?v=37a8ee0bae50" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="container header-inner"><a class="wordmark" href="index.html">Linty</a><a href="index.html#privacy">Back to Linty</a></div></header>
+  <main id="main" class="container legal-page">
+    <p class="eyebrow">Linty · Updated 2026-09-20</p>
+    <h1>Privacy notice</h1>
+    <p>Linty is open-source dictation software. This notice describes the official app and linty.ai. Forks and other distributions may differ.</p>
+    <nav class="legal-links" aria-label="Legal documents"><a href="privacy.html">Privacy notice</a><a href="terms.html">License and responsible use</a></nav>
+    <nav aria-label="On this page"><ul><li><a href="#local">On your Mac</a></li><li><a href="#storage">Storage and your choices</a></li><li><a href="#connections">Downloads, updates, and diagnostics</a></li><li><a href="#website">Website and GitHub</a></li><li><a href="#changes">About this notice</a></li></ul></nav>
+    <section id="local" aria-labelledby="local-title"><h2 id="local-title">On your Mac</h2><p>Speech recognition and optional text cleanup run on your Mac and work offline after model download. Linty does not upload your recordings or transcripts. The app has no automatic usage-analytics or crash-upload service.</p><p>Microphone access records dictation and microphone tests. Accessibility access supports shortcuts and pasting. Pasting uses the clipboard; receiving apps and clipboard managers may keep or sync copies.</p></section>
+    <section id="storage" aria-labelledby="storage-title"><h2 id="storage-title">Storage and your choices</h2><p>History, corrections, and your dictionary are saved locally. History stays until deleted by default. Audio saving is off by default; enabling it retains recordings with successful dictations. Local history and audio are not separately encrypted by Linty.</p><p>App attribution is on by default and saves the active app’s name and identifier with dictations. Automatic dictionary learning and observing corrections in other apps are off by default. Enabling observation reads supported text fields for up to two minutes after pasting and saves relevant corrections, not the full field.</p><p>Settings → Privacy &amp; storage provides retention, export, and deletion controls. Optional history expiry runs at most once per 24 hours while Linty is running. Turning off a saving preference does not delete earlier records. Deleting a transcript removes its recording and corrections; dictionary entries remain separate.</p><p>Reset removes Linty’s application data and downloaded models. It does not erase diagnostic logs, exports, backups, or copies in other apps. The project cannot remotely access or delete your local archive.</p></section>
+    <section id="connections" aria-labelledby="connections-title"><h2 id="connections-title">Downloads, updates, and diagnostics</h2><p>Setup downloads models from Hugging Face and its delivery services. Linty automatically checks GitHub for updates; required updates can download and install when dictation is idle. These hosts receive IP addresses and request metadata. On-device speech processing does not disable these connections.</p><p>Technical diagnostic logs stay on your Mac unless you share them. They rotate by size, with four archives and an active file of roughly 5 MiB each. Review exported diagnostics before sharing.</p><ul><li><a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noreferrer">GitHub privacy statement</a></li><li><a href="https://huggingface.co/privacy" rel="noreferrer">Hugging Face privacy policy</a></li></ul></section>
+    <section id="website" aria-labelledby="website-title"><h2 id="website-title">Website and GitHub</h2><p>Yofix hosts linty.ai and receives connection metadata. Its injected analytics has been observed sending page paths, referrers, viewport width, event IDs, and performance measurements. This website’s source opts out of that observed script and blocks fetch and beacon requests; this does not disable host-side logs. Host retention has not been confirmed.</p><p>The website saves your chosen theme and motion preference in browser storage until you change them or clear site data. Platform detection happens in your browser.</p><p>GitHub issues and contributions may be public. Use them only for non-sensitive reports; do not post recordings, private transcripts, API keys, or personal privacy requests.</p></section>
+    <section id="changes" aria-labelledby="changes-title"><h2 id="changes-title">About this notice</h2><p>The date above identifies this notice. The app includes the notice for its installed version, available offline. The website may describe a later version. This notice describes data practices and does not certify legal compliance or waive rights provided by applicable law.</p></section>
+  </main>
+</body>
+</html>

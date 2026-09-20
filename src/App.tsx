@@ -20,6 +20,7 @@ import { checkMicrophonePermission } from "@/services/permissions.service";
 import { Sidebar } from "@/components/layout/Sidebar.component";
 import { WindowToolbar } from "@/components/layout/WindowToolbar.component";
 import { StatusBar } from "@/components/layout/StatusBar.component";
+import { RecordingFocus } from "@/components/RecordingFocus.component";
 import { ConfirmResetDialogue } from "@/components/shared/ConfirmReset.dialogue";
 import { UpdateRequiredDialogue } from "@/components/shared/UpdateRequired.dialogue";
 import { UpdateAcknowledgmentDialogue } from "@/components/shared/UpdateAcknowledgment.dialogue";
@@ -224,6 +225,7 @@ export default function App() {
       </div>
 
       <ToastContainer />
+      <RecordingFocus />
       <ConfirmResetDialogue
         open={showResetConfirm}
         onConfirm={handleResetConfirm}

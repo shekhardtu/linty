@@ -14,12 +14,20 @@ release soften small fluctuations. This display curve also drives the favicon;
 it does not change recorded audio, speech detection, or the inactivity deadline.
 There is no continuous canvas draw loop.
 
-The in-app Microphone Test shares this response curve and the same 19-bar,
-20 px input history. Each native amplitude frame advances the history, including
-repeated silence; there is no generated center bulge or timed wave. The timer
-reserves its width, and the circular start/stop control stays in place. Its level
-listener exists only while the waveform is visible. Microphone frames no longer
-rerender the global shortcut controller or the rest of the test widget.
+The in-app Microphone Test shares this response curve in an 80-bar, full-width
+display. Each native amplitude frame advances the history, including repeated
+silence. Its level listener exists only while recording. The last three results
+remain readable and copyable until the user leaves the screen, independently of
+the shared dictation reset timers. Empty results and errors preserve earlier text.
+
+Starting dictation with the configured shortcut while Linty is focused opens a
+recording view that fills the existing window. The originating page stays mounted,
+preserving its settings section, search, selection, and scroll position. After
+processing finishes, a visible ten-second countdown returns to that page. Back now
+returns sooner; Stay here cancels the countdown. A new recording resets it. The
+countdown controls remain visible while long transcripts scroll. External-app
+dictation continues to use the capsule. Run `yarn test:microphone` for the interface
+regressions, or `UI_BROWSER=webkit yarn test:microphone` for WebKit.
 
 When listening finishes, the row fades over 140 ms as the same shell contracts
 around its center to a **40 × 40 px circle** over 360 ms. The favicon moves with
