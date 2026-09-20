@@ -1,5 +1,9 @@
 # Customer-facing releases
 
+Releases are currently built and published on the maintainer's Mac. Use the
+`deploy` skill or follow [local releases](local-releases.md). The hosted release
+workflow is disabled in GitHub and can be re-enabled without removing its file.
+
 Every release must explain what improved. Before merging a change to `main`, replace `RELEASE_NOTES.md` with concise, customer-facing notes for the upcoming release. Use Markdown headings and `- ` bullets, with one improvement per line. Describe the resulting behavior and any action a customer needs to take. Avoid commit titles, internal implementation details, and generic placeholders.
 
 Run `yarn release:check` after fetching tags. Release preparation checks that the notes are meaningful and different from the highest versioned release tag, before changing versions or building. The first release using this process accepts the new notes file. A release without fresh notes fails instead of publishing stale text.
@@ -10,9 +14,13 @@ After an upgrade, Linty keeps an acknowledgment until the customer dismisses it.
 
 For a failed publication, retry uploading the saved artifacts with `scripts/publish-release.sh TAG`. For a new release, write new notes. Required updates use the same notes and acknowledgment; see [force updates](force-update.md).
 
-## Build timing and validation
+## Optional hosted build timing and validation
 
-The release workflow builds and notarizes the candidate while the complete check suite runs. Publication starts only after both succeed. Only the publication job has repository write permission; it verifies the transferred version commit against the original source SHA before tagging it. Main pushes run this check suite once through the release workflow.
+This section applies when the remote release workflow is enabled.
+
+The release workflow builds and notarizes the candidate while validating its source. For a main push, it looks for the merged PR's latest successful `Checks` run. Successful PR checks save the tested merge commit in a small artifact, retained for seven days. The release compares that commit's complete Git tree with the main commit, including workflows, tests, dependencies, and release notes. Identical trees reuse the PR suite even when squash/rebase merging changes the commit SHA. This currently applies to PRs from branches in this repository; fork PRs run a fresh suite.
+
+Missing or expired evidence, changed trees, failed/pending checks, direct pushes, and API errors trigger the full suite. Manual workflow runs always run fresh checks, including `build_only` timing runs. The release summary links to any reused PR run. The build still runs Node and Rust tests after preparing the release version, then signs and notarizes the app. Publication requires a successful build and either verified PR checks or a successful fresh suite. Only the publication job has repository write permission; it verifies the transferred version commit against the original source SHA before tagging it.
 
 To check warm-cache performance without creating another release:
 

@@ -23,15 +23,34 @@ permissions:
   contents: read
 
 jobs:
-  checks:
+  checked-source:
+    name: Check for successful PR validation
     if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      reused: ${{ steps.previous-checks.outputs.reused }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Verify the PR tested the same source tree
+        id: previous-checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/reuse-pr-checks.mjs
+
+  checks:
+    needs: checked-source
+    if: needs.checked-source.outputs.reused != 'true'
     uses: ./.github/workflows/checks.yml
     permissions:
       contents: read
 
   build-macos:
-    # Build concurrently with validation. Only the publish job can create a
-    # tag/release, and it requires both this build and every check to pass.
+    # Build concurrently with validation. Publication also requires either a
+    # matching successful PR suite or a fresh successful suite.
     runs-on: macos-14 # Apple Silicon (M1) runner
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -230,8 +249,14 @@ jobs:
           if-no-files-found: error
 
   publish-release:
-    needs: [checks, build-macos]
-    if: ${{ needs.checks.result == 'success' && needs.build-macos.result == 'success' && !inputs.build_only }}
+    needs: [checked-source, checks, build-macos]
+    # A deliberately skipped suite must not skip publication, but every other
+    # failure/skip still blocks it. Manual builds always run fresh checks.
+    if: >-
+      ${{ !cancelled() && needs.checked-source.result == 'success' &&
+          needs.build-macos.result == 'success' && !inputs.build_only &&
+          (needs.checks.result == 'success' ||
+           (needs.checks.result == 'skipped' && needs.checked-source.outputs.reused == 'true')) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
