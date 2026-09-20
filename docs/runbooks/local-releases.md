@@ -68,8 +68,11 @@ main is synchronized. It does not change Git, build, or publish. The second:
 2. Creates an isolated worktree from that exact local main commit. Release
    preparation chooses the next unused version and requires fresh
    `RELEASE_NOTES.md`, as described in [releases](releases.md).
-3. Runs corpus, logging, Node, Rust, Swift, security, and both browser suites on
-   the versioned source. Rust, Swift, Python and package caches remain on the Mac.
+3. Runs corpus, logging, Node, Rust, Swift and security checks on the versioned
+   source. Browser suites reuse the latest successful PR result only when its
+   saved tested commit has exactly the same complete tree as main. Missing,
+   expired, failed or mismatched evidence runs both full browser suites locally.
+   Rust, Swift, Python and package caches remain on the Mac.
 4. Builds and signs the app and updater archive, verifies app notarization,
    notarizes/staples the DMG, and verifies the updater signature against the
    application's configured public key using Minisign.
@@ -108,7 +111,8 @@ tag or GitHub release. It permits unchanged release notes for timing runs.
 
 Builds are retained under `release/local/build-*` beside the repository's common
 Git directory. The command prints the exact path. `release/build.json` records
-the source commit, version commit, release type, version bump, and artifact SHA-256 hashes;
+the source commit, version commit, release type, version bump, browser validation
+evidence, and artifact SHA-256 hashes;
 `release/release-source.bundle` preserves the built commit. Failed commands retain
 the worktree. Package-manager, Rust and Swift caches are under `release/local/cache`.
 

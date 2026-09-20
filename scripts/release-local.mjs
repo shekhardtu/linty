@@ -6,6 +6,7 @@ import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { pathToFileURL } from 'node:url';
 import { nextVersion } from './prepare-release.mjs';
+import { findReusableChecks } from './reuse-pr-checks.mjs';
 
 const repository = 'shekhardtu/linty';
 const target = 'aarch64-apple-darwin';
@@ -13,6 +14,14 @@ const versionPattern = /^\d+\.\d+\.\d+$/;
 const signingNames = ['APPLE_SIGNING_IDENTITY', 'APPLE_ID', 'APPLE_PASSWORD', 'APPLE_TEAM_ID',
   'TAURI_SIGNING_PRIVATE_KEY', 'TAURI_SIGNING_PRIVATE_KEY_PASSWORD'];
 export const localUiSuites = ['security', 'ui', 'onboarding', 'audio-history', 'correction-feedback', 'updates'];
+
+export function runBrowserChecks(build, env, checkedSource) {
+  if (checkedSource?.reused === true) return;
+  build('yarn', ['playwright', 'install', 'chromium', 'webkit']);
+  for (const browser of ['chromium', 'webkit']) for (const suite of localUiSuites) {
+    build('yarn', [`test:${suite}`], { env: { ...env, UI_BROWSER: browser } });
+  }
+}
 
 export function parseArgs(args) {
   const options = { mode: '--check', releaseType: undefined, bump: 'patch', help: false };
@@ -181,6 +190,19 @@ async function main(options) {
   try {
     console.log('Synchronizing main and pushing its commits...');
     const sourceSha = synchronizeMain(git);
+    const browserChecks = findReusableChecks({
+      repository, sha: sourceSha, eventName: 'push',
+      api: endpoint => JSON.parse(gh(['api', endpoint])),
+      readCheckedCommit: checkedRun => {
+        const directory = mkdtempSync(path.join(storage, 'checked-source-'));
+        try {
+          gh(['run', 'download', String(checkedRun.id), '--repo', repository,
+            '--name', `checked-source-${checkedRun.run_attempt}`, '--dir', directory]);
+          return readFileSync(path.join(directory, 'checked-commit.txt'), 'utf8');
+        } finally { rmSync(directory, { recursive: true, force: true }); }
+      },
+    });
+    console.log(`Browser validation: ${browserChecks.reason}`);
     buildDir = mkdtempSync(path.join(storage, 'build-'));
     git(['worktree', 'add', '--detach', buildDir, sourceSha]);
     const buildGit = args => run('git', args, { cwd: buildDir, capture: true });
@@ -207,7 +229,7 @@ async function main(options) {
     build(python, ['-m', 'venv', venv]);
     const py = path.join(venv, 'bin', 'python');
     build(py, ['-m', 'pip', 'install', '-r', 'scripts/benchmarks/public-requirements.txt']);
-    console.log('Running the complete check suite locally on the versioned release source...');
+    console.log('Validating the versioned release source locally...');
     build(py, ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'public_corpus_test.py', '-v']);
     build('bash', ['scripts/check-rust-logging.sh']);
     build('yarn', ['test']);
@@ -219,10 +241,7 @@ async function main(options) {
     build('swift', ['test', '--package-path', 'src-tauri/swift', '--scratch-path', path.join(cache, 'swift-tests'), '--disable-automatic-resolution']);
     build(py, ['tests/supervisor.test.py']);
     build(py, ['scripts/check-rust-advisories.py']);
-    build('yarn', ['playwright', 'install', 'chromium', 'webkit']);
-    for (const browser of ['chromium', 'webkit']) for (const suite of localUiSuites) {
-      build('yarn', [`test:${suite}`], { env: { ...env, UI_BROWSER: browser } });
-    }
+    runBrowserChecks(build, env, browserChecks);
 
     const bundle = path.join(targetDir, target, 'release', 'bundle');
     rmSync(bundle, { recursive: true, force: true }); // Only this command's dedicated output cache.
@@ -273,7 +292,7 @@ async function main(options) {
     buildGit(['bundle', 'create', 'release/release-source.bundle', 'HEAD', `^${sourceSha}`]);
     const checksums = Object.fromEntries([...files.map(([name]) => name), 'latest.json', 'RELEASE_NOTES.md'].map(name =>
       [name, createHash('sha256').update(readFileSync(path.join(buildDir, name))).digest('hex')]));
-    writeFileSync(path.join(buildDir, 'release/build.json'), `${JSON.stringify({ version, releaseType, bump: options.bump, sourceSha, builtSha, checksums }, null, 2)}\n`);
+    writeFileSync(path.join(buildDir, 'release/build.json'), `${JSON.stringify({ version, releaseType, bump: options.bump, sourceSha, builtSha, browserChecks, checksums }, null, 2)}\n`);
     if (options.mode === '--build-only') {
       console.log(`Local build verified; no release published. Artifacts and build record: ${buildDir}`);
       return;
