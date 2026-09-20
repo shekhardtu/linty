@@ -140,15 +140,42 @@ async fn raw_is_saved_before_cleanup_and_delivery_then_verification_is_recorded(
     assert_eq!(record["pastedText"], b.candidate);
 }
 #[tokio::test]
-async fn changed_amount_falls_back_before_any_delivery() {
+async fn corrected_numbers_and_dates_are_delivered_with_the_original_retained() {
+    for (raw, candidate) in [
+        ("Four licences—my bad—five licences", "Five licences."),
+        (
+            "we ship in April, my mistake, January",
+            "We ship in January.",
+        ),
+        ("meet on Friday scratch that Monday", "Meet on Monday."),
+    ] {
+        let b = FakeBackend::new(raw, candidate);
+        let result = run(&b, &session()).await.unwrap();
+        let record = result.record.unwrap();
+        assert_eq!(record["rawText"], b.raw);
+        assert_eq!(record["finalText"], b.candidate);
+        assert_eq!(record["reformattedText"], b.candidate);
+        assert_eq!(record["pastedText"], b.candidate);
+        assert_eq!(record["textValidation"]["status"], "accepted");
+        assert_eq!(record["reformatting"]["status"], "applied");
+        assert_eq!(record["deliveryStatus"], "verified");
+        assert!(result.warnings.is_empty());
+    }
+}
+#[tokio::test]
+async fn changed_currency_falls_back_before_any_delivery() {
     let b = FakeBackend::new(
         "the budget is one lakh fifty thousand rupees",
-        "The budget is ₹1,050,000.",
+        "The budget is $150,000.",
     );
     let result = run(&b, &session()).await.unwrap();
     let record = result.record.unwrap();
     assert_eq!(record["finalText"], b.raw);
     assert_eq!(record["textValidation"]["status"], "fallback");
+    assert_eq!(
+        record["textValidation"]["reasons"],
+        json!(["units_changed"])
+    );
     assert_eq!(record["reformatting"]["status"], "fallback");
     assert!(record.get("reformattedText").is_none());
     assert!(!result.warnings.is_empty());
