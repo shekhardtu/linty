@@ -20,4 +20,4 @@ History JSON export includes transcript text and metadata, but not audio bytes. 
 
 Saving locally does **not** grant permission to share recordings, train models, or run automatic evaluations. Saved audio and its associated transcript/model metadata can support evaluations you choose to perform later. Any future feature that uploads recordings or uses them automatically for evaluations or training must obtain a separate, specific opt-in.
 
-Cloud transcription is a separate choice: if you select Groq, audio is sent to Groq to transcribe, whether or not local saving is enabled. Local speech engines process audio on the Mac. Cloud text refinement sends text when enabled; the audio-saving preference does not enable any cloud feature.
+Speech recognition and optional text cleanup run on this Mac. The audio-saving preference controls only local retention; dictation does not upload audio or text.

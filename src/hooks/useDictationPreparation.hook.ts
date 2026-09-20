@@ -2,12 +2,13 @@ import { useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { useAppStore } from "@/store/app.store";
 import { dictationPreparation, prepareDictation } from "@/services/dictation-preparation.service";
+import { modelSupportsLanguage } from "@/lib/languages.util";
 
 export function useDictationPreparation() {
-  const { settingsLoaded, onboardingComplete, sttMode, loadedModelFilename, reformatEnabled, dictionaryEnabled } = useAppStore();
+  const { settingsLoaded, onboardingComplete, loadedModelFilename, transcriptionLanguage, reformatEnabled, dictionaryEnabled } = useAppStore();
   const hasWords = useAppStore((s) => s.dictionaryEntries.some((entry) => entry.enabled));
   useEffect(() => {
-    if (!settingsLoaded || !onboardingComplete || (sttMode === "local" && !loadedModelFilename)) return;
+    if (!settingsLoaded || !onboardingComplete || !modelSupportsLanguage(loadedModelFilename, transcriptionLanguage)) return;
     const prepare = () => {
       const state = useAppStore.getState();
       if (state.isRecording || ["preparing", "transcribing", "correcting", "pasting"].includes(state.status)) return;
@@ -25,5 +26,5 @@ export function useDictationPreparation() {
       void wake.then((off) => off());
       window.removeEventListener("focus", focus);
     };
-  }, [settingsLoaded, onboardingComplete, sttMode, loadedModelFilename, reformatEnabled, dictionaryEnabled, hasWords]);
+  }, [settingsLoaded, onboardingComplete, loadedModelFilename, transcriptionLanguage, reformatEnabled, dictionaryEnabled, hasWords]);
 }

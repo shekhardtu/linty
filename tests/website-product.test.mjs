@@ -24,7 +24,7 @@ function preview({ reduced = false } = {}) {
   const root = element();
   root.dataset = { theme: 'light', motion: 'on' };
   const ids = Object.fromEntries(['the-app', 'product-window', 'product-playback', 'product-status', 'screen-caption', 'sample-label'].map(id => [id, element()]));
-  const names = ['history', 'overview', 'engines'];
+  const names = ['history', 'overview', 'language'];
   const images = names.map(name => Object.assign(element(), { complete: true, naturalWidth: 2400, src: `${name}-light?v=version`, dataset: { light: `${name}-light?v=version`, dark: `${name}-dark?v=version` } }));
   const slides = names.map((name, index) => {
     const slide = element();
@@ -80,7 +80,7 @@ test('rotates every ten seconds in view and wraps without duplicate active scree
   const p = preview();
   assert.equal(p.timers.size, 0);
   p.visible(true);
-  for (const name of ['engines', 'history', 'overview', 'engines']) {
+  for (const name of ['language', 'history', 'overview', 'language']) {
     p.tick(9999);
     assert.notEqual(p.selected, name);
     p.tick(1);
@@ -136,9 +136,9 @@ test('rapid screen clicks keep the final choice and the matching caption', () =>
   p.buttons[2].emit('click');
   p.finish();
   p.finish();
-  assert.equal(p.selected, 'engines');
-  assert.equal(p.ids['screen-caption'].textContent, 'engines caption');
-  assert.equal(p.ids['product-status'].textContent, 'engines');
+  assert.equal(p.selected, 'language');
+  assert.equal(p.ids['screen-caption'].textContent, 'language caption');
+  assert.equal(p.ids['product-status'].textContent, 'language');
   assert.equal(p.slides.filter(slide => !slide.hidden).length, 1);
   assert.equal(p.timers.size, 1);
 });
@@ -152,12 +152,12 @@ test('waits for images and keeps the previous screen if a requested image fails'
   assert.equal(p.timers.size, 0);
   p.images[2].complete = true;
   p.images[2].emit('load');
-  assert.equal(p.selected, 'engines');
+  assert.equal(p.selected, 'language');
   p.finish();
   p.images[0].complete = false;
   p.buttons[0].emit('click');
   p.images[0].emit('error');
-  assert.equal(p.selected, 'engines');
+  assert.equal(p.selected, 'language');
   assert.match(p.ids['product-status'].textContent, /could not load/);
   p.tick(10000);
   assert.equal(p.selected, 'overview', 'Skips the unavailable image');
@@ -181,14 +181,14 @@ test('explicit pause, hidden tabs, offscreen and page navigation suspend autopla
     assert.equal(p.timers.size, 1);
   }
   p.tick(6000);
-  assert.equal(p.selected, 'engines');
+  assert.equal(p.selected, 'language');
 });
 
 test('motion preferences stop animation while manual and keyboard selection remain available', () => {
   const p = preview({ reduced: true });
   p.visible(true);
   p.buttons[1].emit('keydown', { key: 'ArrowRight', preventDefault() {} });
-  assert.equal(p.selected, 'engines');
+  assert.equal(p.selected, 'language');
   assert.equal(p.buttons[2].focused, true);
   assert.equal(p.slides.filter(slide => !slide.hidden).length, 1);
   assert.equal(p.timers.size, 0);

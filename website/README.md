@@ -17,7 +17,7 @@ compare their contents with the local files, then check the page in a browser.
 An HTTP 200 or a HEAD-only check is insufficient: an empty cached response can
 also return 200.
 
-- `index.html` — product tour, illustrated workflow, privacy choices, setup answers
+- `index.html` — product tour, illustrated workflow, on-device privacy, language setup answers
 - `styles.css` — responsive layout using the application's color and type tokens
 - `theme.js` — saved/system theme, applied before paint
 - `main.js` — explicit light/dark choices and download feedback
@@ -105,7 +105,7 @@ logical width and reserves the aspect ratio. Screenshots are not zoom links:
 
 - `overview-{light,dark}.png` — initial Overview
 - `history-{light,dark}.png` — History with the latest email reply selected
-- `engines-{light,dark}.png` — Settings → Speech engine
+- `language-{light,dark}.png` — Settings → Language with English selected
 
 On desktop (at least 761px wide and 560px tall), the showcase scales to the
 viewport height below the sticky header, with 16px of breathing room at each end.
@@ -144,7 +144,7 @@ a plain-text checklist; Email preserves greeting, paragraph breaks, and sign-off
 The code editor shows a dictated comment beside prewritten, syntax-highlighted
 TypeScript. It does not claim code generation or a code-aware formatting mode.
 The app windows are illustrations; their toolbar icons are decorative. Notes and
-Email captions explain that formatting uses optional text cleanup.
+Email captions explain that formatting uses optional on-device text cleanup for English.
 
 Each example automatically loops through ready, listening, transcribing,
 a typewriter reveal, and the completed example, with time to read the result

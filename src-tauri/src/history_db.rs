@@ -74,8 +74,11 @@ fn put_transcript(conn: &Connection, original: &Value, replace: bool) -> Result<
         .as_i64()
         .filter(|n| *n >= 0)
         .unwrap_or_else(|| text.split_whitespace().count() as i64);
-    let engine = if original["engine"] == "cloud" {
-        "cloud"
+    let engine = if original["engine"]
+        .as_str()
+        .is_some_and(|engine| engine != "local")
+    {
+        "previous"
     } else {
         "local"
     };
@@ -494,7 +497,6 @@ impl HistoryDb {
             "pasteTimeMs",
             "reformatTimeMs",
             "correctionTimeMs",
-            "cloudRefinementStatus",
             "reformatting",
             "textValidation",
             "dictionaryValidation",
@@ -666,9 +668,12 @@ impl HistoryDb {
             timeline.push(json!({"timestamp":b.timestamp,"label":b.label,"fullLabel":b.full_label,"words":w,"sessions":n}));
         }
         let mut engines = Vec::new();
-        for engine in ["local", "cloud"] {
-            let (n,w):(i64,i64)=self.conn.query_row("SELECT COUNT(*),COALESCE(SUM(words),0) FROM transcripts WHERE engine=?1 AND timestamp>=?2 AND timestamp<=?3",params![engine,start,end],|r|Ok((r.get(0)?,r.get(1)?)))?;
-            let changes:i64=self.conn.query_row("SELECT COALESCE(SUM(c.changes),0) FROM corrections c JOIN transcripts t ON t.id=c.transcript_id WHERE t.engine=?1 AND t.timestamp>=?2 AND t.timestamp<=?3",params![engine,start,end],|r|r.get(0))?;
+        for engine in ["local", "previous"] {
+            let (n,w):(i64,i64)=self.conn.query_row("SELECT COUNT(*),COALESCE(SUM(words),0) FROM transcripts WHERE (CASE WHEN engine='local' THEN 'local' ELSE 'previous' END)=?1 AND timestamp>=?2 AND timestamp<=?3",params![engine,start,end],|r|Ok((r.get(0)?,r.get(1)?)))?;
+            let changes:i64=self.conn.query_row("SELECT COALESCE(SUM(c.changes),0) FROM corrections c JOIN transcripts t ON t.id=c.transcript_id WHERE (CASE WHEN t.engine='local' THEN 'local' ELSE 'previous' END)=?1 AND t.timestamp>=?2 AND t.timestamp<=?3",params![engine,start,end],|r|r.get(0))?;
+            if engine == "previous" && n == 0 {
+                continue;
+            }
             engines.push(json!({"engine":engine,"sessions":n,"share":if sessions>0{Some((n as f64/sessions as f64*100.0).round())}else{None},"rate":rate(changes,w)}));
         }
         let recent=payloads(&self.conn,"SELECT payload FROM transcripts WHERE timestamp>=?1 AND timestamp<=?2 ORDER BY timestamp DESC,id DESC LIMIT 5",params![start,end])?;
@@ -779,6 +784,32 @@ mod tests {
         }
     }
     #[test]
+    fn retired_engine_history_is_preserved_and_never_counted_as_on_device() {
+        let dir = Temp::new();
+        let mut db = HistoryDb::open(&dir.0).unwrap();
+        let mut older = record(1, 100);
+        older["engine"] = json!("retired-provider");
+        db.save(&older, 200).unwrap();
+        db.save(&record(2, 110), 200).unwrap();
+        // An existing database may contain any former provider value.
+        db.conn
+            .execute(
+                "UPDATE transcripts SET engine='retired-provider' WHERE id='t-00001'",
+                [],
+            )
+            .unwrap();
+        assert_eq!(
+            db.get("t-00001").unwrap().unwrap()["engine"],
+            older["engine"]
+        );
+        let usage = db.usage(0, 200, &[]).unwrap();
+        assert_eq!(usage["stats"]["sessions"], 2);
+        assert_eq!(usage["engines"][0]["sessions"], 1);
+        assert_eq!(usage["engines"][1]["engine"], "previous");
+        assert_eq!(usage["engines"][1]["sessions"], 1);
+        assert_eq!(usage["engines"][1]["share"], 50.0);
+    }
+    #[test]
     fn streamed_reads_exports_and_stats_remain_correct_across_reopen() {
         let dir = Temp::new();
         let mut db = HistoryDb::open(&dir.0).unwrap();
@@ -788,7 +819,7 @@ mod tests {
             consent_epoch: db.audio_consent().unwrap().unwrap(),
             samples: Arc::new(vec![0.25; AUDIO_READ_LIMIT + 13]),
         };
-        let expected = crate::transcribe::encode_wav(&audio.samples);
+        let expected = crate::pcm_wav::encode_reference(&audio.samples);
         db.save_with_audio(&record(1, 100), 200, Some(&audio))
             .unwrap();
         // Re-saving cannot replace an attachment or double-count its storage.
@@ -843,7 +874,7 @@ mod tests {
             .unwrap();
         assert_eq!(
             db.audio("t-00002").unwrap(),
-            Some(crate::transcribe::encode_wav(&captured.samples))
+            Some(crate::pcm_wav::encode_reference(&captured.samples))
         );
         db.set_save_audio(false, 203).unwrap();
         db.save_with_audio(&record(3, 204), 205, Some(&captured))

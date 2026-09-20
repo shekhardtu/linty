@@ -28,7 +28,6 @@ Privacy first means you can dictate without sending your speech to a server. Lin
 | | **Linty** | **VoiceInk** | **Superwhisper** | **Wispr Flow** |
 |---|---|---|---|---|
 | Offline speech recognition | Whisper Turbo Q5 and Parakeet TDT v3 | Local models | Local Whisper and Parakeet options | Requires an internet connection |
-| Cloud features | Optional Groq transcription / refinement, your API key | Optional text enhancement | Optional cloud models | Cloud processing |
 | Desktop availability | macOS 14+, Apple Silicon | macOS | macOS and Windows | macOS and Windows |
 | Source / access | **MIT; free app and source** | GPL-3.0 source; paid packaged app | Free tier and paid Pro | Free tier and paid plans |
 | Build or modify the app yourself | Yes | Yes | Use the vendor's app | Use the vendor's app |
@@ -66,7 +65,7 @@ These are single repeat runs on one machine, not typical-user latency or accurac
 
 [Full methodology and limitations](docs/TRANSCRIPTION-CAPACITY.md) · [Raw CSV](docs/benchmarks/capacity-m3-pro-2026-09-16.csv) · [Quality regression results](docs/TRANSCRIPTION-GUARDS.md)
 
-## Install and choose a model
+## Install and choose your language
 
 | Platform | Status |
 |---|---|
@@ -77,15 +76,14 @@ These are single repeat runs on one machine, not typical-user latency or accurac
 1. [Download Linty for Mac](https://github.com/shekhardtu/linty/releases/latest/download/Linty_aarch64.dmg) — the installer downloads directly.
 2. Open it and drag **Linty** into **Applications**.
 3. Launch Linty and grant **Microphone** and **Accessibility** access.
-4. Download a local model, select your microphone and language, then hold **fn** to dictate into a text field. Release to transcribe and paste.
+4. Choose your dictation language. Linty downloads or reuses the right local model automatically. Hold **fn** to dictate into a text field; release to transcribe and paste. Change languages later in **Settings → Language**.
 
-Official releases are Developer ID signed and notarized by Apple. Local transcription needs no account or subscription. Optional cloud services use your API key and are subject to the provider's pricing and limits.
+Official releases are Developer ID signed and notarized by Apple. Dictation needs no account, API key, or subscription.
 
 | Available engine | Processing | Accelerator | Initial model download |
 |---|---|---|---|
 | **Parakeet TDT v3 (0.6B)** | Offline after download | CoreML / Apple Neural Engine via FluidAudio | About 500 MB, as estimated in the app |
 | **Whisper Large v3 Turbo Q5** | Offline after download | Metal via whisper.cpp | About 574 MB |
-| **Groq Whisper** | Cloud; internet and your API key required | Provider infrastructure | No local speech model |
 
 Download estimates describe disk transfer, not RAM requirements. Available memory, language, background noise, and microphone quality affect results. Additional Parakeet dictionary assets may be downloaded when vocabulary support is enabled.
 
@@ -97,7 +95,7 @@ Download estimates describe disk transfer, not RAM requirements. Available memor
 </picture>
 <p align="center"><sub>Actual interface with illustrative data. Estimated time saved uses a 40 wpm typing baseline.</sub></p>
 
-- **Native menu bar controls:** switch microphone, engine, and language without opening the main window.
+- **Native menu bar controls:** switch microphone and language without opening the main window.
 - **Local history:** search, edit, and copy past transcriptions. By default, entries stay until you delete them; optional retention settings are available, and there is no 500-entry cap.
 - **Personal dictionary:** keep names and technical terms close to the transcription workflow.
 - **Overview:** see activity, app usage, and estimated time saved.
@@ -106,8 +104,7 @@ Download estimates describe disk transfer, not RAM requirements. Available memor
 ## Privacy first
 
 - **Local speech recognition keeps audio on your Mac.** Once a model is downloaded, speech recognition works offline.
-- **Cloud features are optional and cross a clear boundary.** Groq transcription sends audio; cloud text refinement sends transcription text, even when speech recognition is local. Leave cloud features off for an entirely local dictation workflow.
-- **History stays local; credentials use macOS Keychain.** Read the [history storage](docs/HISTORY-STORAGE.md) and [credential storage](docs/CREDENTIAL-STORAGE.md) details.
+- **Speech recognition, text cleanup, and history stay local.** Read the [history storage](docs/HISTORY-STORAGE.md) details.
 - **Saving recordings is opt-in.** Enable “Save dictation audio” in Privacy & storage for local History playback and WAV export. Recordings follow history retention and deletion. This does not authorize sharing, training, or automatic evaluations. See the [audio privacy policy](docs/AUDIO-PRIVACY.md).
 - **No app usage telemetry.** The download badge uses GitHub's total release-asset download counts across versions. Website downloads point to those same GitHub-hosted files. This includes installers, updater archives, and other release assets.
 

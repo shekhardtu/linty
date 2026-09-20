@@ -122,6 +122,9 @@ jobs:
       - run: yarn test:ui
         env:
           UI_BROWSER: ${{ matrix.browser }}
+      - run: yarn test:onboarding
+        env:
+          UI_BROWSER: ${{ matrix.browser }}
       - run: yarn test:audio-history
         env:
           UI_BROWSER: ${{ matrix.browser }}

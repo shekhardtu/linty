@@ -47,9 +47,8 @@ function setupTranscripts({ original, edited }) {
   const unchanged = qa.stores[2].transcripts[2];
   unchanged.pastedText = unchanged.rawText = unchanged.finalText;
   Object.assign(unchanged, {deliveryStatus:'verified', releaseToInsertionMs:1350, audioStopTimeMs:100, preparationTimeMs:20});
-  qa.stores[2].transcripts[3].cloudRefinementStatus = 'applied';
   Object.assign(qa.stores[2].transcripts[3], {
-    deliveryStatus:'unverified', attemptedText:qa.stores[2].transcripts[3].finalText,
+    corrected:true, deliveryStatus:'unverified', attemptedText:qa.stores[2].transcripts[3].finalText,
     textValidation:{status:'fallback',reasons:['numbers_changed']},
   });
 }
@@ -94,7 +93,7 @@ try {
   await audit();
   await page.screenshot({path:`${output}/transcript-light.png`});
   await openDetails();
-  for (const label of ['Speech engine','Model','Audio length','Words','Total processing','Speech recognition','Cloud refinement']) {
+  for (const label of ['Speech engine','Model','Audio length','Words','Total processing','Speech recognition','Text refinement (previous version)']) {
     assert.equal(await dialog.getByText(label,{exact:true}).count(),1,`${label} is preserved in Details`);
   }
   assert.equal(await dialog.locator('.text-version-content').count(),1,'Identical original and pasted snapshots appear once');
@@ -183,7 +182,7 @@ try {
   await openDetails();
   assert.equal(await dialog.locator('.text-version-content').count(),2);
   await dialog.getByText('Automatic changes',{exact:true}).click();
-  assert.match(await dialog.innerText(),/Automatically refined this transcription/);
+  assert.match(await dialog.innerText(),/Automatically refined in a previous version/);
   assert.equal(await dialog.getByText('Pasted text',{exact:true}).count(),0);
   assert.match(await dialog.innerText(),/Paste sent — insertion unconfirmed/);
   assert.match(await dialog.innerText(),/Original kept — cleanup changed protected details/);

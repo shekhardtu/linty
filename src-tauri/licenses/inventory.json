@@ -1,10 +1,10 @@
 {
   "inputs": {
     "yarn.lock": "5dc0643a7d889e87b8f7caa1b24ec13792b188a0354c1a00603932184db248ac",
-    "src-tauri/Cargo.lock": "7d94b1403cf3467ca259e2299df20624a111b0407bf162fc2f1e64effdf18c18",
+    "src-tauri/Cargo.lock": "003f40a587a29957bcbdebf0a58075392ee5af96f8bac6e4522ae4fd8abf334c",
     "src-tauri/swift/Package.resolved": "51ca7f28c7e3ec9a6078527ab7a67f6ab6517c21a8d3f6ee2f260941cb682e12"
   },
-  "notices_sha256": "ea53e735a72b73bccd26578389dbae3cfbd11482aedbc3d68a5d669034d956cd",
+  "notices_sha256": "b128e1b1ab6465b122a602e1e5956fe2fc126a1b078e148e9921f07d5b6e74f2",
   "components": [
     {
       "ecosystem": "Cargo",
@@ -3867,19 +3867,6 @@
         {
           "source": "https://docs.rs/crate/mime/0.3.17/source/LICENSE-MIT",
           "sha256": "8b87502eddb2d7fa23d54ed2caf5681ab5fbbdc8eb553e8ade710240842f9097"
-        }
-      ]
-    },
-    {
-      "ecosystem": "Cargo",
-      "name": "mime_guess",
-      "version": "2.0.5",
-      "license": "MIT",
-      "repository": "https://github.com/abonander/mime_guess",
-      "notices": [
-        {
-          "source": "https://docs.rs/crate/mime_guess/2.0.5/source/LICENSE",
-          "sha256": "14373973f98d640ebefcf8161adb9363188fedc7695bdc5604003b17288c4e1f"
         }
       ]
     },
@@ -7971,23 +7958,6 @@
         {
           "source": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-MIT",
           "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
-        }
-      ]
-    },
-    {
-      "ecosystem": "Cargo",
-      "name": "unicase",
-      "version": "2.9.0",
-      "license": "MIT OR Apache-2.0",
-      "repository": "https://github.com/seanmonstar/unicase",
-      "notices": [
-        {
-          "source": "https://docs.rs/crate/unicase/2.9.0/source/LICENSE-APACHE",
-          "sha256": "143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4"
-        },
-        {
-          "source": "https://docs.rs/crate/unicase/2.9.0/source/LICENSE-MIT",
-          "sha256": "2d01890414494742ba4a509fcec8efa40f6d8be22cbd72be7cff08d6fda4ec89"
         }
       ]
     },

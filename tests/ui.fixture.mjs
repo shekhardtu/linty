@@ -26,7 +26,7 @@ export const fixture = ({
         processingTimeMs: 1200,
         sttTimeMs: 900,
         correctionTimeMs: 200,
-        engine: i % 4 ? "local" : "cloud",
+        engine: i % 4 ? "local" : "previous",
         modelName: "Large Turbo Q5",
         application: {
           name: ["Notes", "Mail", "Safari"][i % 3],
@@ -86,7 +86,6 @@ export const fixture = ({
     1: {
       theme,
       onboardingComplete: !onboarding,
-      sttMode: "local",
       selectedModelFilename: "ggml-large-v3-turbo-q5_0.bin",
       triggerKey: "fn",
       correctionEnabled: false,
@@ -406,7 +405,7 @@ export const fixture = ({
               sessions: list.length,
             };
           }),
-          engines: ["local", "cloud"].map((engine) => {
+          engines: ["local", "previous"].map((engine) => {
             const list = retained.filter((t) => t.engine === engine);
             return {
               engine,
@@ -438,7 +437,6 @@ export const fixture = ({
       await window.__TAURI_INTERNALS__.invoke("history_save", { record });
       await (await import(new URL('/src/services/history.service.ts', window.location.href).href)).refreshHistory();
     },
-    secureGroqKey: "",
     history,
     calls: [],
     emittedEvents: [],
@@ -484,20 +482,9 @@ export const fixture = ({
         window.__QA__.emittedEvents.push(structuredClone(args));
         return;
       }
-      if (command === "get_groq_api_key") return window.__QA__.secureGroqKey;
       if (command === "s1_model_status") return { downloaded: s1Downloaded, loaded: false, downloading: false, progress: 0, downloadBytes: 495642462 };
       if (command === "download_s1_model") { s1Downloaded = true; return; }
       if (["prepare_s1_model", "unload_s1_model", "cancel_reformatting"].includes(command)) return;
-      if (command === "set_groq_api_key") {
-        window.__QA__.secureGroqKey = args.key.trim();
-        return;
-      }
-      if (command === "remove_groq_api_key") {
-        window.__QA__.secureGroqKey = "";
-        delete stores[1].groqApiKey;
-        stores[1].sttMode = "local";
-        return;
-      }
       if (command.startsWith("history_"))
         return structuredClone(historyCommand(command, structuredClone(args)));
       if (command === "get_audio_inputs") return structuredClone(window.__QA__.audioInputs);

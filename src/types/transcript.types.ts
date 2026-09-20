@@ -30,9 +30,8 @@ export interface TranscriptRecord {
   releaseToInsertionMs?: number | null;
   audioStopTimeMs?: number;
   preparationTimeMs?: number;
-  cloudRefinementStatus?: "disabled" | "applied" | "unchanged" | "fallback" | "superseded-by-s1";
   originalWordCount?: number;
-  engine: "cloud" | "local";
+  engine: string;
   modelName: string;
   durationSeconds: number;
   processingTimeMs: number;
@@ -54,7 +53,6 @@ export interface UsageStats {
   totalProcessingMs: number;
   successCount: number;
   errorCount: number;
-  cloudCount: number;
   localCount: number;
   totalWords: number;
 }

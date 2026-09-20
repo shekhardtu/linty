@@ -160,7 +160,7 @@ mod tests {
     fn similarity_ignores_case_and_punctuation() {
         assert_eq!(similarity("Tauri,", "tauri"), 1.0);
         assert!(similarity("Tari", "Tauri") >= MIN_SIMILARITY);
-        assert!(similarity("Groke", "Groq") >= MIN_SIMILARITY);
+        assert!(similarity("Figna", "Figma") >= MIN_SIMILARITY);
         assert!(similarity("meeting", "Tauri") < MIN_SIMILARITY);
     }
 
@@ -171,25 +171,25 @@ mod tests {
             "use Tauri, not Taris"
         );
         assert_eq!(
-            replace_whole_word("Groke and groke", "Groke", "Groq"),
-            "Groq and groke"
+            replace_whole_word("Figna and figna", "Figna", "Figma"),
+            "Figma and figna"
         );
         assert_eq!(replace_whole_word("unchanged", "", "x"), "unchanged");
     }
 
     #[test]
     fn applies_only_candidates_that_resemble_the_term_or_a_known_wrong_form() {
-        let terms = [term("Tauri", &["Tory"]), term("Groq", &[])];
+        let terms = [term("Tauri", &["Tory"]), term("Figma", &[])];
         let candidates = [
             candidate("Tory", "Tauri", true),     // known wrong form
-            candidate("Groke", "Groq", true),     // close to the term
+            candidate("Figna", "Figma", true),    // close to the term
             candidate("meeting", "Tauri", true),  // rescorer over-reach
-            candidate("Grok", "Groq", false),     // engine itself would not apply
+            candidate("Fima", "Figma", false),    // engine itself would not apply
             candidate("Torrey", "Zustand", true), // not a dictionary term
         ];
         let (text, applied) =
-            apply_replacements("Tory and Groke at the meeting", &candidates, &terms);
-        assert_eq!(text, "Tauri and Groq at the meeting");
+            apply_replacements("Tory and Figna at the meeting", &candidates, &terms);
+        assert_eq!(text, "Tauri and Figma at the meeting");
         assert_eq!(
             applied,
             vec![
@@ -198,8 +198,8 @@ mod tests {
                     to: "Tauri".into()
                 },
                 AppliedReplacement {
-                    from: "Groke".into(),
-                    to: "Groq".into()
+                    from: "Figna".into(),
+                    to: "Figma".into()
                 },
             ]
         );

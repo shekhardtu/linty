@@ -26,7 +26,7 @@ struct Args {
     models_dir: PathBuf,
     whisper_file: String,
     runs: usize,
-    /// Dictionary terms (`Tauri:Tari|Tory,Groq`); when set, Parakeet also runs
+    /// Dictionary terms (`Tauri:Tari|Tory,Figma`); when set, Parakeet also runs
     /// with custom-vocabulary rescoring and reports what was applied.
     vocab: Vec<vocabulary::VocabTerm>,
     wavs: Vec<PathBuf>,

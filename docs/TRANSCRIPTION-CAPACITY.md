@@ -2,7 +2,7 @@
 
 This is a direct-file capacity and quality probe on one Mac, not certification of a thirty-minute live microphone session. Both engines completed every file through thirty minutes without a crash, timeout, or benchmark memory-guard stop. Parakeet preserved the reference closely. Whisper's former settings lost large portions of the recording; timestamp-guided decoding improved completeness substantially but still produced repeated or incorrect text around pauses. The worst updated Whisper word error in this corpus was 5.27%.
 
-The application's five-minute duration cutoff has been removed. Duration alone no longer invokes the watchdog recovery that discarded the recording. Abnormal-callback recovery remains. An active recording also prevents idle model unloading, and stopping refreshes the idle timer. Cloud correction now preserves the complete raw transcription if the provider truncates its rewrite at its token budget.
+The application's five-minute duration cutoff has been removed. Duration alone no longer invokes the watchdog recovery that discarded the recording. Abnormal-callback recovery remains. An active recording also prevents idle model unloading, and stopping refreshes the idle timer.
 
 ## Test conditions
 
@@ -68,7 +68,6 @@ The raw thirty-minute f32 audio buffer is 109.9 MiB. The production recorder's g
 
 1. **Removed the fixed recording cutoff and corrected idle unloading.** Two native regression tests cover long active recordings, stop-time idle reset, disabled unloading, and clock changes. No replacement duration cap was introduced.
 2. **Enabled internal Whisper timestamps for recordings longer than twenty seconds.** The earlier setting forced fixed window advances and caused omissions. Timestamp tokens remain internal; displayed output stays plain text. Short-recording settings are preserved. Whisper distinguishes timestamp generation from printing timestamps in its [parameter definitions](https://github.com/ggml-org/whisper.cpp/blob/master/include/whisper.h).
-3. **Prevented truncated cloud rewrites from replacing complete text.** This is a defensive change needed when longer recordings can exceed the correction output budget. Groq transcription itself was not benchmarked.
 4. **Added repeatable, isolated measurement tools.** The runner captures per-inference timing, CPU seconds, real-time factor, word counts, error status, page-ins and context switches; per-process load/read time, RSS and physical-footprint peaks; sampled CPU/RSS/Neural Engine counters; and host memory, swap and thermal snapshots. Available raw kernel energy counters are recorded, but they are not presented as calibrated power or battery-life estimates.
 
 ## Remaining optimization priorities

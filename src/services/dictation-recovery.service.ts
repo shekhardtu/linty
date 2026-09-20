@@ -2,7 +2,6 @@ import { invoke } from "@tauri-apps/api/core";
 import { DictationSession } from "@/lib/dictation-session";
 import { useAppStore } from "@/store/app.store";
 
-export const GROQ_SETUP_ERROR = "Add a Groq API key in Settings → Speech engine.";
 let active = new DictationSession();
 let terminalTimer: ReturnType<typeof setTimeout> | undefined;
 let recovery: Promise<void> | null = null;

@@ -20,7 +20,7 @@ export interface CorrectionRecord {
   transcriptId: string;
   timestamp: number;
   source: CorrectionSource;
-  engine: "cloud" | "local";
+  engine: string;
   modelName: string;
   language: string;
   application?: ApplicationIdentity | null;

@@ -391,17 +391,17 @@ mod tests {
         let before = "Meet yolo today. ";
         assert!(s.insert(
             "two".into(),
-            "Call Groc tomorrow.".into(),
+            "Call Figna tomorrow.".into(),
             before,
             before.len()..before.len(),
-            format!("{before}Call Groc tomorrow.")
+            format!("{before}Call Figna tomorrow.")
         ));
-        s.pending.latest = "Meet yolo today. Call Groq tomorrow.".into();
+        s.pending.latest = "Meet yolo today. Call Figma tomorrow.".into();
         let result = s.finish(app());
         assert_eq!(result.len(), 2);
         assert_eq!(result[0].pairs[0].from, "Jolo");
         assert_eq!(result[0].pairs[0].to, "yolo");
-        assert_eq!(result[1].pairs[0].to, "Groq");
+        assert_eq!(result[1].pairs[0].to, "Figma");
     }
     #[test]
     fn undo_returns_to_original_and_produces_no_batch() {
@@ -507,12 +507,12 @@ mod tests {
         );
         s.insert(
             "two".into(),
-            "Go to Groc".into(),
+            "Go to Figna".into(),
             "Go to Jolo",
             0..10,
-            "Go to Groc".into(),
+            "Go to Figna".into(),
         );
-        s.pending.latest = "Go to Groq".into();
+        s.pending.latest = "Go to Figma".into();
         let result = s.finish(app());
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].transcript_id, "two");

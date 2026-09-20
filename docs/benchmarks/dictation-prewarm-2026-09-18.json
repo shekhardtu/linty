@@ -3123,9 +3123,8 @@
       "failed": 0,
       "skipped": 0
     },
-    "ui_preparation": "passed; includes installed but disabled S1, cloud mode, capture gating, idle reload and changing selection",
+    "ui_preparation": "passed; includes installed but disabled S1, capture gating, idle reload and changing selection",
     "ui_recovery": "passed; includes preparation capsule",
-    "cloud_only_build_check": "passed",
     "web_release_build": "passed",
     "ui_onboarding": "passed; includes waiting for first preparation and retry without downloading again",
     "native_release_build": "passed"

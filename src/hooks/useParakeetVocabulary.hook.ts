@@ -12,7 +12,6 @@ const PARAKEET_ID = "parakeet-tdt-0.6b-v3";
  */
 export function useParakeetVocabulary() {
   const loadedModelFilename = useAppStore((s) => s.loadedModelFilename);
-  const sttMode = useAppStore((s) => s.sttMode);
   const dictionaryEnabled = useAppStore((s) => s.dictionaryEnabled);
   const hasWords = useAppStore((s) => s.dictionaryEntries.some((e) => e.enabled));
   const status = useAppStore((s) => s.parakeetVocabularyStatus);
@@ -22,8 +21,8 @@ export function useParakeetVocabulary() {
   const attemptedKey = useRef<string | null>(null);
 
   useEffect(() => {
-    const wanted = sttMode === "local" && loadedModelFilename === PARAKEET_ID && dictionaryEnabled && hasWords;
-    const key = `${sttMode}|${loadedModelFilename}|${dictionaryEnabled}|${hasWords}`;
+    const wanted = loadedModelFilename === PARAKEET_ID && dictionaryEnabled && hasWords;
+    const key = `${loadedModelFilename}|${dictionaryEnabled}|${hasWords}`;
     if (!wanted || status === "preparing" || attemptedKey.current === key) return;
     attemptedKey.current = key;
     setStatus("preparing");
@@ -42,5 +41,5 @@ export function useParakeetVocabulary() {
           message: "Could not prepare Parakeet’s vocabulary model. Dictionary words are still fixed after transcription.",
         });
       });
-  }, [sttMode, loadedModelFilename, dictionaryEnabled, hasWords, status, setStatus]);
+  }, [loadedModelFilename, dictionaryEnabled, hasWords, status, setStatus]);
 }

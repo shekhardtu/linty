@@ -41,7 +41,7 @@ export default function App() {
   const currentView = useAppStore((s) => s.currentView);
   const setCurrentView = useAppStore((s) => s.setCurrentView);
   const sidebarVisible = useAppStore((s) => s.sidebarVisible);
-  const { groqApiKey, sttMode, saveSttMode, saveTranscriptionLanguage, onboardingComplete, saveOnboardingComplete, settingsLoaded } = useSettings();
+  const { saveTranscriptionLanguage, onboardingComplete, saveOnboardingComplete, settingsLoaded } = useSettings();
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [micPermission, setMicPermission] = useState<string | null>(null);
@@ -90,21 +90,12 @@ export default function App() {
   }, []);
   useUpdaterAutoCheck();
   useUpdateAcknowledgment();
-  useTraySync(saveSttMode, saveTranscriptionLanguage);
+  useTraySync(saveTranscriptionLanguage);
   const { checkForUpdate } = useUpdater();
 
   const handleOnboardingComplete = useCallback(async () => {
     await saveOnboardingComplete(true);
   }, [saveOnboardingComplete]);
-
-  // Auto-show settings if no API key and cloud mode selected (only after settings loaded)
-  useEffect(() => {
-    if (!onboardingComplete || !settingsLoaded) return;
-    if (!groqApiKey && sttMode === "cloud") {
-      const timer = setTimeout(() => useAppStore.getState().setSettingsSection("models"), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [groqApiKey, sttMode, setCurrentView, onboardingComplete, settingsLoaded]);
 
   // Menu: Check for Updates
   useEffect(() => {

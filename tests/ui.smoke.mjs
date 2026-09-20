@@ -39,7 +39,7 @@ try {
     while (!(await page.getByRole('dialog').count()) && !(await page.locator(':popover-open').count()) && await page.getByRole('button', {name:'Dismiss notification',exact:true}).count()) await page.getByRole('button', {name:'Dismiss notification',exact:true}).first().click();
     return page.screenshot({ path: `${output}/${name}.png`, animations: 'disabled' });
   };
-  const settingLabels = { general:'Dictation', audio:'Audio', models:'Speech engine', language:'Language', appearance:'Appearance', privacy:'Privacy & storage' };
+  const settingLabels = { general:'Dictation', audio:'Audio', language:'Language', appearance:'Appearance', privacy:'Privacy & storage' };
   const openSettingsSection = async (screen, name) => {
     const showSidebar = screen.getByRole('button', {name:'Show sidebar',exact:true});
     if (await showSidebar.count()) await showSidebar.click();
@@ -48,6 +48,11 @@ try {
   const chooseOption = async (screen,label,option) => {
     await screen.getByRole('combobox',{name:label,exact:true}).click();
     await screen.getByRole('listbox',{name:label,exact:true}).getByRole('option',{name:option,exact:true}).click();
+    if (label === 'Transcription language') await screen.waitForFunction(async expected => {
+      const { useAppStore } = await import('/src/store/app.store.ts');
+      const { languageLabel } = await import('/src/lib/languages.util.ts');
+      return languageLabel(useAppStore.getState().transcriptionLanguage) === expected;
+    }, option);
   };
   const checkOverviewRanges = async (screen) => {
     const ranges = screen.getByRole('group', {name:'Usage period'});
@@ -308,7 +313,9 @@ try {
   await page.getByRole('listbox',{name:'Transcription language',exact:true}).waitFor();
   await audit('language-dropdown'); await screenshot('language-dropdown');
   assert.deepEqual(await languageSelect.boundingBox(),languageGeometry,'Opening a dropdown keeps trigger geometry fixed');
-  await page.keyboard.press('Home'); await page.keyboard.press('e'); await page.keyboard.press('Enter');
+  await page.getByRole('combobox', {name:'Search languages',exact:true}).fill('English');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => window.__QA__.stores[1].transcriptionLanguage === 'en');
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].transcriptionLanguage),'en','Typeahead selects English');
   await languageSelect.click();
   await page.keyboard.press('End'); await page.keyboard.press('Escape');
@@ -327,7 +334,7 @@ try {
       await page.keyboard.press('ArrowLeft');
       assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
     }
-    for (const section of ['general', 'audio', 'models', 'language', 'appearance', 'privacy']) {
+    for (const section of ['general', 'audio', 'language', 'appearance', 'privacy']) {
       await openSettingsSection(page,settingLabels[section]);
       await audit(`${section}-${theme}`);
       if (section === 'audio') {
@@ -384,38 +391,38 @@ try {
           await page.waitForFunction(() => window.__QA__.emittedEvents.filter(e => e.event === 'tray-state-changed').at(-1)?.payload.transcriptionLanguage === 'fr');
           const trayLanguages = await page.evaluate(() => window.__QA__.emittedEvents.filter(e => e.event === 'tray-state-changed').at(-1).payload.languages);
           await dropdown.click();
-          assert.deepEqual(await page.getByRole('listbox', {name:'Transcription language',exact:true}).getByRole('option').allTextContents(), trayLanguages.map(language => language.label), 'Tray and Settings share language choices');
+          assert.deepEqual(await page.getByRole('listbox', {name:'Transcription language',exact:true}).getByRole('option').evaluateAll(elements => elements.map(el => el.getAttribute('aria-label'))), trayLanguages.map(language => language.label), 'Tray and Settings share language choices');
           await page.keyboard.press('Escape');
           await chooseOption(page, 'Transcription language', 'German');
           await page.waitForFunction(() => window.__QA__.emittedEvents.filter(e => e.event === 'tray-state-changed').at(-1)?.payload.transcriptionLanguage === 'de');
           await page.evaluate(() => { window.__QA__.failures['plugin:store|save'] = 'Language preferences could not be saved'; });
           await chooseTrayLanguage('fr');
-          assert.equal(await dropdown.innerText(), 'German', 'Failed tray saves retain the confirmed selection');
+          assert.equal(await page.locator('.language-feature h3').innerText(), 'GermanDeutsch', 'Failed tray saves retain the active language');
           assert.equal(await page.evaluate(() => window.__QA__.stores[1].transcriptionLanguage), 'de');
           await page.evaluate(async () => {
             delete window.__QA__.failures['plugin:store|save'];
             (await import('/src/store/app.store.ts')).useAppStore.getState().setIsRecording(true);
           });
           await chooseTrayLanguage('fr');
-          assert.equal(await dropdown.innerText(), 'German', 'Language cannot change during dictation');
+          assert.equal(await page.evaluate(() => window.__QA__.stores[1].transcriptionLanguage), 'de', 'Language cannot change during dictation');
           assert.equal(await dropdown.isDisabled(), true);
           await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().setIsRecording(false));
           await chooseTrayLanguage('xx');
-          assert.equal(await dropdown.innerText(), 'German', 'Unsupported tray values are rejected');
+          assert.equal(await page.evaluate(() => window.__QA__.stores[1].transcriptionLanguage), 'de', 'Unsupported tray values are rejected');
           await chooseTrayLanguage('auto');
           assert.equal(await dropdown.innerText(), 'Auto-detect');
           await chooseTrayLanguage('es'); // Restore the shared fixture for later cancellation checks.
         }
       }
 
-      if (section === 'models' || section === 'appearance' || section === 'language') await screenshot(`${section}-${theme}`);
-      if (section === 'models') {
+      if (section === 'privacy' || section === 'appearance' || section === 'language') await screenshot(`${section}-${theme}`);
+      if (section === 'privacy') {
         const processing = page.locator('details', {has:page.getByText('Processing details', {exact:true})});
         assert.equal(await processing.evaluate(el => el.open), false);
         await processing.locator('summary').click();
         const engines = processing.getByRole('table', {name:'Processing by speech engine'});
         assert.equal(await engines.getByRole('row', {name:/On-device/}).getByRole('cell').first().innerText(), '13');
-        assert.equal(await engines.getByRole('row', {name:/Cloud/}).getByRole('cell').first().innerText(), '5');
+        assert.equal(await engines.getByRole('row', {name:/Previous version/}).getByRole('cell').first().innerText(), '5');
         await processing.getByRole('button', {name:'All time',exact:true}).click();
         await audit(`processing-${theme}`); await screenshot(`processing-${theme}`);
         await processing.locator('summary').click();
@@ -535,20 +542,7 @@ try {
   await audit('history-observed'); await screenshot('history-observed');
   await page.keyboard.press('Escape');
   await page.keyboard.press('Meta+,');
-  await openSettingsSection(page,settingLabels['models']);
-  await page.getByRole('button',{name:'Cloud',exact:true}).click();
-  await page.getByLabel('Groq API key',{exact:true}).fill('synthetic-test-key');
-  await page.getByRole('button',{name:'Save and use Cloud',exact:true}).click();
-  await page.waitForFunction(() => window.__QA__.secureGroqKey === 'synthetic-test-key' && window.__QA__.stores[1].sttMode === 'cloud');
-  assert.equal(await page.evaluate(() => 'groqApiKey' in window.__QA__.stores[1]), false);
-  await page.getByLabel('Show API key',{exact:true}).click();
-  assert.equal(await page.getByLabel('Groq API key',{exact:true}).getAttribute('type'),'text');
-  await audit('cloud-settings');
-  await page.getByRole('button',{name:'Local',exact:true}).click();
-  await page.evaluate(() => { window.__QA__.failures.download_model_file = 'Offline'; });
-  await page.getByRole('button',{name:'Download',exact:true}).first().click();
-  await page.getByText('Model download failed. Check your connection, then try again.').waitFor();
-  await page.evaluate(() => { delete window.__QA__.failures.download_model_file; });
+  await openSettingsSection(page,settingLabels['privacy']);
   // Native reset-menu event opens an inert dialog; cancellation restores focus.
   await page.getByRole('button',{name:'Hide sidebar',exact:true}).focus();
   await page.evaluate(() => window.__QA__.emit('menu-reset-all-data', {}));
@@ -571,14 +565,14 @@ try {
   await checkOverviewRanges(page);
   await page.keyboard.press('Meta+,');
   await page.setViewportSize({ width:640, height:480 });
-  for (const section of ['general','audio','models','language','appearance','privacy']) {
+  for (const section of ['general','audio','language','appearance','privacy']) {
     await openSettingsSection(page,settingLabels[section]);
     const overflow = await page.locator('.preferences-scroll').evaluate(el => el.scrollWidth > el.clientWidth + 1);
     assert.equal(overflow, false, `${section}: horizontal overflow at 640 × 480`);
     if (section === 'language') {
       const trigger=page.getByRole('combobox',{name:'Transcription language',exact:true});
       await trigger.click();
-      assert.equal(await trigger.evaluate(el=>el===document.activeElement),true,'Clicking a dropdown owns keyboard focus on macOS');
+      assert.equal(await page.getByRole('combobox', {name:'Search languages',exact:true}).evaluate(el=>el===document.activeElement),true,'Opening the language picker focuses search on macOS');
       const bounds=await page.getByRole('listbox',{name:'Transcription language',exact:true}).boundingBox();
       assert.ok(bounds.x>=0 && bounds.y>=0 && bounds.x+bounds.width<=640 && bounds.y+bounds.height<=480,'Long language list fits the minimum window');
       await page.keyboard.press('End');
@@ -751,8 +745,6 @@ try {
   await setup.getByRole('combobox',{name:'Dictation language',exact:true}).waitFor();
   await setup.getByRole('button',{name:'Continue',exact:true}).click();
   await setup.getByRole('heading',{name:'Choose Your Trigger Key'}).waitFor();
-  await setup.getByRole('button',{name:'Continue',exact:true}).click();
-  await setup.getByRole('heading',{name:'Speech Engine Ready'}).waitFor();
   await setup.getByRole('button',{name:'Continue',exact:true}).click();
   await setup.getByRole('button',{name:'Start Using Linty'}).waitFor();
   await setup.getByRole('button',{name:'Start Using Linty'}).click();

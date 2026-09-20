@@ -2,7 +2,7 @@ import { useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "@/store/app.store";
 import type { ApplicationIdentity } from "@/types/transcript.types";
-import { beginDictation, currentDictation, finishEmptyDictation, GROQ_SETUP_ERROR, isRecoveringDictation, ownsDictation, recoverDictation } from "@/services/dictation-recovery.service";
+import { beginDictation, currentDictation, finishEmptyDictation, isRecoveringDictation, ownsDictation, recoverDictation } from "@/services/dictation-recovery.service";
 import type { DictationSession } from "@/lib/dictation-session";
 import { dictationOptions } from "@/services/dictation-options.service";
 import { initializeDictionary } from "@/services/dictionary.service";
@@ -32,7 +32,6 @@ export function useRecording() {
         await initializeDictionary();
         const settings = useAppStore.getState();
         if (!settings.settingsLoaded) throw new Error("Settings are still loading. Please try again.");
-        if (settings.sttMode === "cloud" && !settings.groqApiKey.trim()) throw new Error(GROQ_SETUP_ERROR);
         useAppStore.getState().setStatus("preparing");
         if (!document.hasFocus()) void invoke("show_capsule").then(() => {
           if (ownsDictation(session) && !session.cancelled && useAppStore.getState().status === "preparing") {

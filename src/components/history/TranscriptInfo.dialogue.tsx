@@ -25,7 +25,7 @@ export function TranscriptInfoDialogue({ transcript, onClose, showEditHistory = 
   const { corrections, loaded, error, retry } = useTranscriptCorrections(transcript.transcriptId);
   const toast = useToast();
   const reformatted = transcript.reformatting?.enabled && transcript.reformatting.status === "applied";
-  const hasAutomaticChanges = reformatted || transcript.cloudRefinementStatus === "applied" || Boolean(transcript.dictionaryApplied?.length);
+  const hasAutomaticChanges = reformatted || transcript.corrected || Boolean(transcript.dictionaryApplied?.length);
 
   useEffect(() => {
     const element = dialog.current;
@@ -95,7 +95,7 @@ export function TranscriptInfoDialogue({ transcript, onClose, showEditHistory = 
         </time>
       </p>
       <dl className="transcript-info-facts">
-        <div><dt>Speech engine</dt><dd>{transcript.engine === "cloud" ? "Cloud" : "On-device"}</dd></div>
+        <div><dt>Speech engine</dt><dd>{transcript.engine === "local" ? "On-device" : "Previous version"}</dd></div>
         <div><dt>Model</dt><dd>{transcript.modelName}</dd></div>
         <div><dt>Audio length</dt><dd>{formatDuration(transcript.durationSeconds)}</dd></div>
         <div><dt>Words</dt><dd>{transcript.wordCount.toLocaleString()}</dd></div>
@@ -108,7 +108,7 @@ export function TranscriptInfoDialogue({ transcript, onClose, showEditHistory = 
       {hasAutomaticChanges && <details className="original-transcript">
         <summary>Automatic changes <ChevronDown size={14} /></summary>
         {reformatted && <p className="reading-note"><strong>S1-mini:</strong> Automatically reformatted this transcription.</p>}
-        {transcript.cloudRefinementStatus === "applied" && <p className="reading-note"><strong>Cloud refinement:</strong> Automatically refined this transcription.</p>}
+        {transcript.corrected && !reformatted && !transcript.dictionaryApplied?.length && <p className="reading-note">Automatically refined in a previous version.</p>}
         {transcript.dictionaryApplied?.length ? <p className="dictionary-applied-note">
           Dictionary applied before paste:{" "}
           {transcript.dictionaryApplied.map((pair) => `${pair.from} → ${pair.to}`).join(", ")}

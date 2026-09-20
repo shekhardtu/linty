@@ -38,7 +38,7 @@ try {
   });
   const state = () => page.evaluate(async () => {
     const s = (await import('/src/store/app.store.ts')).useAppStore.getState();
-    return {status:s.status,isRecording:s.isRecording,mode:s.sttMode,error:s.error,finalText:s.finalText};
+    return {status:s.status,isRecording:s.isRecording,error:s.error,finalText:s.finalText};
   });
   const store = await page.evaluateHandle(async () => (await import('/src/store/app.store.ts')).useAppStore);
   const waitStatus = status => page.waitForFunction(({store,status}) => store.getState().status === status, {store,status});
@@ -48,127 +48,6 @@ try {
   const waitRecovery = () => page.waitForFunction(recovering => !recovering(), recovering);
   const lastCapsule = () => page.evaluate(() => window.__QA__.capsule.at(-1));
   const clearCalls = () => page.evaluate(() => { window.__QA__.calls = []; window.__QA__.capsule = []; });
-
-  // Opening Cloud is setup only until an API key has been explicitly saved.
-  // Local settings never display the key input.
-  await page.keyboard.press('Meta+,');
-  await page.getByRole('navigation', {name:'Main navigation'}).getByRole('button', {name:'Speech engine',exact:true}).click();
-  const cloud = page.getByRole('group', {name:'Speech engine',exact:true}).getByRole('button', {name:'Cloud',exact:true});
-  const local = page.getByRole('group', {name:'Speech engine',exact:true}).getByRole('button', {name:'Local',exact:true});
-  const key = page.getByLabel('Groq API key',{exact:true});
-  assert.equal(await key.count(),0);
-  await cloud.click(); await key.waitFor();
-  assert.equal((await state()).mode,'local');
-  assert.equal(await cloud.getAttribute('aria-pressed'),'true');
-  assert.equal(await cloud.getAttribute('data-pending'),'true');
-  assert.equal(await local.getAttribute('aria-pressed'),'false');
-  await page.getByText('Setup required',{exact:true}).waitFor();
-  await page.getByText('Local is still active. Save an API key to switch to Cloud.',{exact:true}).waitFor();
-  assert.equal(await cloud.evaluate(el => getComputedStyle(el).borderStyle),'dashed');
-  assert.deepEqual((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations,[]);
-  await page.screenshot({path:'/tmp/linty-cloud-setup-pending.png'});
-  await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().setTheme('dark'));
-  await page.setViewportSize({width:640,height:480});
-  await page.screenshot({path:'/tmp/linty-cloud-setup-pending-small-dark.png'});
-  assert.equal(await page.locator('.page-scroll').evaluate(el => el.scrollWidth > el.clientWidth + 1),false);
-  assert.deepEqual((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations,[]);
-  await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().setTheme('light'));
-  await page.setViewportSize({width:1280,height:720});
-  assert.equal(await page.evaluate(() => window.__QA__.stores[1].sttMode),'local');
-  const saveCloud = page.getByRole('button',{name:'Save and use Cloud',exact:true});
-  assert.equal(await saveCloud.isDisabled(),true);
-  await key.fill('   '); assert.equal(await saveCloud.isDisabled(),true);
-  await key.fill('test-key-not-a-real-secret'); await key.blur();
-  assert.equal((await state()).mode,'local');
-  assert.equal(await page.evaluate(() => window.__QA__.secureGroqKey),'');
-  await page.getByRole('button',{name:'Cancel setup',exact:true}).click();
-  assert.equal(await key.count(),0);
-  assert.equal(await local.getAttribute('aria-pressed'),'true');
-  assert.equal(await page.getByText('Setup required',{exact:true}).count(),0);
-  await cloud.click();
-  assert.equal(await key.inputValue(),'');
-  await key.fill('test-key-not-a-real-secret');
-  // Keyboard selection follows the visible panel and can leave setup too.
-  await cloud.focus(); await page.keyboard.press('ArrowLeft');
-  assert.equal(await key.count(),0);
-  await page.keyboard.press('ArrowRight'); await key.waitFor();
-  assert.equal(await cloud.getAttribute('data-pending'),'true');
-  await key.fill('test-key-not-a-real-secret');
-  await page.evaluate(() => window.__QA__.emit('tray-engine-changed','cloud'));
-  await page.getByText('Add a Groq API key in Settings → Speech engine first.',{exact:true}).waitFor();
-  assert.equal((await state()).mode, 'local');
-  await page.evaluate(() => { window.__QA__.failures.set_groq_api_key = 'Keychain is locked'; });
-  await saveCloud.click();
-  await page.getByRole('alert').filter({hasText:'Keychain is locked'}).waitFor();
-  assert.equal((await state()).mode,'local');
-  assert.equal(await cloud.getAttribute('data-pending'),'true');
-  assert.equal(await page.evaluate(() => window.__QA__.secureGroqKey),'');
-  await page.evaluate(() => { delete window.__QA__.failures.set_groq_api_key; });
-  await saveCloud.click();
-  await page.waitForFunction(store => store.getState().sttMode === 'cloud', store);
-  assert.equal(await cloud.getAttribute('aria-pressed'),'true');
-  assert.equal(await cloud.getAttribute('data-pending'),null);
-  assert.equal(await page.getByText('Setup required',{exact:true}).count(),0);
-  assert.equal(await page.getByRole('button',{name:'Cancel setup',exact:true}).count(),0);
-  assert.equal(await page.evaluate(() => window.__QA__.secureGroqKey),'test-key-not-a-real-secret');
-  assert.equal(await page.evaluate(() => 'groqApiKey' in window.__QA__.stores[1]),false);
-  await local.click(); assert.equal(await key.count(),0);
-  await cloud.click();
-  await page.waitForFunction(store => store.getState().sttMode === 'cloud', store);
-
-  // Failed replacement/removal preserves the saved credential and engine.
-  const remove = page.getByRole('button',{name:'Remove API key',exact:true});
-  await page.evaluate(() => { window.__QA__.failures.set_groq_api_key = 'Keychain is locked'; });
-  await key.fill('synthetic-replacement');
-  await page.getByRole('button',{name:'Save API key',exact:true}).click();
-  await page.getByRole('alert').filter({hasText:'Keychain is locked'}).waitFor();
-  assert.equal(await page.evaluate(() => window.__QA__.secureGroqKey),'test-key-not-a-real-secret');
-  await page.evaluate(() => {
-    delete window.__QA__.failures.set_groq_api_key;
-    window.__QA__.failures.remove_groq_api_key = 'Could not remove key';
-  });
-  await remove.click();
-  await page.getByRole('alert').filter({hasText:'Could not remove key'}).waitFor();
-  assert.equal((await state()).mode,'cloud');
-  assert.equal(await page.evaluate(() => window.__QA__.secureGroqKey),'test-key-not-a-real-secret');
-  await page.evaluate(async () => {
-    delete window.__QA__.failures.remove_groq_api_key;
-    (await import('/src/store/app.store.ts')).useAppStore.getState().setStatus('transcribing');
-  });
-  assert.equal(await remove.isDisabled(),true);
-  await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().setStatus('idle'));
-  await page.screenshot({path:'/tmp/linty-secure-key-settings.png'});
-  await remove.click();
-  await page.waitForFunction(store => store.getState().sttMode === 'local', store);
-  assert.equal(await page.evaluate(() => window.__QA__.secureGroqKey),'');
-  assert.equal(await page.evaluate(() => 'groqApiKey' in window.__QA__.stores[1]),false);
-  assert.equal(await page.evaluate(() => window.__QA__.stores[1].sttMode),'local');
-  assert.equal(await key.count(),0);
-  await cloud.click();
-  assert.equal(await key.inputValue(),'');
-  assert.equal(await remove.count(),0);
-  assert.equal((await state()).mode,'local');
-  assert.equal(await saveCloud.isDisabled(),true);
-  await key.fill('another-synthetic-key');
-  // Mode persistence can fail independently after the key was saved securely.
-  await page.evaluate(() => { window.__QA__.failures['plugin:store|save'] = 'Disk full'; });
-  await saveCloud.click();
-  await page.getByRole('alert').filter({hasText:'Disk full'}).waitFor();
-  assert.equal((await state()).mode,'local');
-  assert.equal(await page.evaluate(() => window.__QA__.stores[1].sttMode),'local');
-  assert.equal(await page.evaluate(() => window.__QA__.secureGroqKey),'another-synthetic-key');
-  assert.equal(await cloud.getAttribute('data-pending'),'true');
-  await page.evaluate(() => { delete window.__QA__.failures['plugin:store|save']; });
-  await saveCloud.click();
-  await page.waitForFunction(store => store.getState().sttMode === 'cloud', store);
-
-  // Older settings, or deletion of the saved key, cannot bypass recording preflight.
-  await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().setGroqApiKey(''));
-  await clearCalls(); await press(); await waitStatus('error'); await waitRecovery();
-  assert.match((await lastCapsule()).error, /Groq API key/);
-  assert.equal(await page.evaluate(() => window.__QA__.calls.includes('start_dictation')), false);
-  await local.click();
-  await page.waitForFunction(store => store.getState().sttMode === 'local', store);
 
   // A failed startup explains the failure in the capsule; an empty recording
   // on the very next attempt ends idle, without an orphan transcribing event.
@@ -265,15 +144,15 @@ try {
   await capsule.locator('.capsule-message').getByText('Getting ready…', { exact: true }).waitFor();
   assert.equal(await capsule.locator('.capsule-recording').count(), 0, 'Preparation must not look like active microphone capture');
   await capsule.screenshot({ path: '/tmp/linty-preparing-capsule.png', animations: 'disabled' });
-  await capsule.evaluate(() => window.__QA__.emit('capsule-state',{state:'error',error:'Add a Groq API key in Settings → Speech engine.'}));
+  await capsule.evaluate(() => window.__QA__.emit('capsule-state',{state:'error',error:'Choose your dictation language in Settings → Language.'}));
   await capsule.locator('.capsule-error').waitFor();
-  assert.equal(await capsule.locator('.capsule-error').innerText(), 'Add a Groq API key in Settings → Speech engine.');
+  assert.equal(await capsule.locator('.capsule-error').innerText(), 'Choose your dictation language in Settings → Language.');
   await capsule.clock.runFor(300);
   await capsule.screenshot({path:'/tmp/linty-recovery-capsule.png',animations:'disabled'});
   await capsule.clock.runFor(6500);
   assert.equal(await capsule.locator('.capsule-pill').count(),0);
   assert.deepEqual(errors,[]);
-  console.log('Recovery checks passed: Groq key gating/save failure, capsule errors, empty audio, quick release, microphone loss, startup timeout, inference timeout, retry, and stale-result suppression.');
+  console.log('Recovery checks passed: capsule errors, empty audio, quick release, microphone loss, startup timeout, inference timeout, retry, and stale-result suppression.');
 } finally {
   await browser?.close();
   server.kill('SIGTERM');

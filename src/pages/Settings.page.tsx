@@ -1,26 +1,13 @@
 import { Select } from "@/components/shared/Select.component";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import {
-  Cpu,
-  Eye,
-  EyeOff,
-  Cloud,
-  CircleDashed,
-  Check,
-  Loader2,
-  Play,
-  Download,
-  HardDrive,
-  ExternalLink,
   Languages,
   Mic,
   ShieldCheck,
 } from "lucide-react";
-import { open } from "@tauri-apps/plugin-shell";
 import { useSettings } from "@/hooks/useSettings.hook";
 import { audioInputOptions, useAudioInput } from "@/hooks/useAudioInput.hook";
 import { useAppStore } from "@/store/app.store";
-import { useModelDownload } from "@/hooks/useModelDownload.hook";
 import { Toggle } from "@/components/shared/Toggle.component";
 import { SegmentedControl } from "@/components/shared/SegmentedControl.component";
 import {
@@ -29,10 +16,10 @@ import {
   SettingRow,
   ValueBadge,
 } from "@/components/shared/SettingsLayout.component";
-import { cn } from "@/lib/utils";
 import {
   AUTO_LANGUAGE,
-  TRANSCRIPTION_LANGUAGES,
+  nativeLanguageLabel,
+  modelSupportsLanguage,
   languageLabel,
 } from "@/lib/languages.util";
 import { SETTINGS_SECTIONS } from "@/config/navigation.config";
@@ -46,9 +33,12 @@ import { ThemePreview } from "@/components/settings/ThemePreview.component";
 import { BrandMark } from "@/components/shared/BrandMark.component";
 import { HistoryStorage } from "@/components/settings/HistoryStorage.component";
 import { AudioStorage } from "@/components/settings/AudioStorage.component";
+import { LanguagePicker } from "@/components/shared/LanguagePicker.component";
+import { LanguageReadiness } from "@/components/settings/LanguageReadiness.component";
+import { languagePreparation } from "@/services/language-preparation.service";
 import { modelLabel } from "@/lib/model-labels.util";
 import { Reformatting } from "@/components/settings/Reformatting.component";
-import type { SttMode, ThemePreference } from "@/store/slices/settings.slice";
+import type { ThemePreference } from "@/store/slices/settings.slice";
 
 const THEME_SEGMENTS = [
   {
@@ -66,11 +56,6 @@ const THEME_SEGMENTS = [
     label: "System",
     icon: <ThemePreview theme="system" />,
   },
-];
-
-const ENGINE_SEGMENTS = [
-  { value: "local" as SttMode, label: "Local", icon: <Cpu size={13} /> },
-  { value: "cloud" as SttMode, label: "Cloud", icon: <Cloud size={13} /> },
 ];
 
 const IDLE_UNLOAD_OPTIONS = [
@@ -102,11 +87,6 @@ export function SettingsPage() {
             <AudioSection />
           </div>
         )}
-        {(visited.has("models") || section === "models") && (
-          <div hidden={section !== "models"}>
-            <ModelsSection />
-          </div>
-        )}
         {(visited.has("language") || section === "language") && (
           <div hidden={section !== "language"}>
             <LanguageSection />
@@ -129,7 +109,15 @@ export function SettingsPage() {
 
 /* ═══ General ═══ */
 function GeneralSection() {
-  return <Reformatting />;
+  const { modelIdleUnloadMinutes, saveModelIdleUnloadMinutes } = useSettings();
+  return <div className="settings-section">
+    <Reformatting />
+    <SectionCard>
+      <SettingRow label="Free memory when idle" description="Releases speech and cleanup models after inactivity. They prepare automatically when needed."
+        right={<Select label="Free memory when idle" value={modelIdleUnloadMinutes}
+          onChange={(minutes) => { void saveModelIdleUnloadMinutes(minutes).catch(() => {}); }} options={IDLE_UNLOAD_OPTIONS} />} />
+    </SectionCard>
+  </div>;
 }
 
 /* ═══ Audio ═══ */
@@ -171,449 +159,54 @@ function AudioSection() {
   );
 }
 
-/* ═══ Models ═══ */
-function ModelsSection() {
-  const {
-    reformatEnabled,
-    groqApiKey,
-    sttMode,
-    whisperPrompt,
-    saveGroqApiKey,
-    removeGroqApiKey,
-    saveSttMode,
-    saveWhisperPrompt,
-    modelIdleUnloadMinutes,
-    saveModelIdleUnloadMinutes,
-  } = useSettings();
-  const {
-    models,
-    downloadedModels,
-    isDownloading,
-    downloadProgress,
-    downloadingFilename,
-    isLocalAvailable,
-    loadedModel,
-    loadingFilename,
-    downloadModel,
-    loadModel,
-  } = useModelDownload();
-
-  const [showKey, setShowKey] = useState(false);
-  const [keyInput, setKeyInput] = useState(groqApiKey);
-  const [cloudSetupOpen, setCloudSetupOpen] = useState(false);
-  const engineView = cloudSetupOpen ? "cloud" : sttMode;
-  const cloudPending = engineView === "cloud" && sttMode !== "cloud";
-  const [savingKey, setSavingKey] = useState(false);
-  const [removingKey, setRemovingKey] = useState(false);
-  const dictationBusy = useAppStore((s) => s.isRecording || ["preparing", "recording", "transcribing", "correcting", "pasting"].includes(s.status));
-  const keyBusy = savingKey || removingKey;
-  const [keyError, setKeyError] = useState<string | null>(null);
-  const [whisperInput, setWhisperInput] = useState(whisperPrompt);
-
-  useEffect(() => {
-    setKeyInput(groqApiKey);
-  }, [groqApiKey]);
-
-  useEffect(() => {
-    setWhisperInput(whisperPrompt);
-  }, [whisperPrompt]);
-
-  const handleEngineChoice = async (mode: SttMode) => {
-    setKeyError(null);
-    setCloudSetupOpen(mode === "cloud");
-    if (mode === "local") {
-      setKeyInput(groqApiKey);
-      setShowKey(false);
-    }
-    if (mode === sttMode) return;
-    if (mode === "cloud" && !groqApiKey.trim()) return;
-    try { await saveSttMode(mode); }
-    catch (error) { setKeyError(error instanceof Error ? error.message : String(error)); }
-  };
-
-  const handleSaveCloud = async () => {
-    if (!keyInput.trim() || keyBusy) return;
-    setSavingKey(true);
-    setKeyError(null);
-    try {
-      await saveGroqApiKey(keyInput);
-      await saveSttMode("cloud");
-      setCloudSetupOpen(false);
-    } catch (error) {
-      setKeyError(error instanceof Error ? error.message : String(error));
-    } finally { setSavingKey(false); }
-  };
-
-  const handleRemoveKey = async () => {
-    if (keyBusy || dictationBusy) return;
-    setRemovingKey(true);
-    setKeyError(null);
-    try {
-      await removeGroqApiKey();
-      setKeyInput("");
-      setShowKey(false);
-      setCloudSetupOpen(false);
-      useAppStore.getState().addToast({ type: "success", message: "API key removed. Switched to Local." });
-    } catch (error) {
-      setKeyError(error instanceof Error ? error.message : String(error));
-    } finally { setRemovingKey(false); }
-  };
-
-  const handleWhisperBlur = () => {
-    if (whisperInput !== whisperPrompt) saveWhisperPrompt(whisperInput);
-  };
-
-  return (
-    <div className="settings-section">
-      <SectionHeader title="Speech Engine" />
-
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <SegmentedControl
-            label="Speech engine"
-            segments={ENGINE_SEGMENTS.map((segment) => ({
-              ...segment, disabled: keyBusy, pending: segment.value === "cloud" && cloudPending,
-            }))}
-            value={engineView}
-            onChange={(mode) => { void handleEngineChoice(mode); }}
-          />
-          <span role="status" className={cn("inline-flex items-center gap-1.5 text-[12px]", cloudPending ? "text-info" : "text-accent")}>
-            {cloudPending ? <CircleDashed size={13} aria-hidden="true" /> : <Check size={13} aria-hidden="true" />}
-            {cloudPending ? "Setup required" : "Active"}
-          </span>
-        </div>
-        {cloudPending && <div className="flex flex-wrap items-center gap-x-4 gap-y-2 animate-fade-in">
-          <p className="text-sm text-text-secondary">Local is still active. Save an API key to switch to Cloud.</p>
-          <button className="text-link text-[12px]" disabled={keyBusy}
-            onClick={() => { void handleEngineChoice("local"); }}>Cancel setup</button>
-        </div>}
-      </div>
-
-      {/* Opening Cloud setup does not change the active engine. */}
-      {engineView === "cloud" && (
-        <div className="settings-section animate-fade-in">
-          <SectionCard>
-            <div className="settings-form">
-              <div className="flex flex-col gap-1.5">
-                <label className="field-label" htmlFor="groq-api-key">
-                  Groq API Key
-                </label>
-                <div className="relative">
-                  <input
-                    id="groq-api-key"
-                    aria-label="Groq API key"
-                    type={showKey ? "text" : "password"}
-                    value={keyInput}
-                    disabled={keyBusy}
-                    onChange={(e) => { setKeyInput(e.target.value); setKeyError(null); }}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleSaveCloud(); } }}
-                    placeholder="gsk_..."
-                    spellCheck={false}
-                    autoComplete="off"
-                    className={cn(
-                      "w-full rounded-lg border border-border bg-bg-input px-3 py-[7px] pr-9",
-                      "text-[13px] text-text-primary placeholder:text-text-muted",
-                      "outline-none transition-interaction duration-150",
-                      "focus:border-border-focus focus:bg-bg-elevated",
-                    )}
-                  />
-                  <button
-                    type="button"
-                    aria-label={showKey ? "Hide API key" : "Show API key"}
-                    data-tooltip={showKey ? "Hide API key" : "Show API key"}
-                    onClick={() => setShowKey(!showKey)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
-                  >
-                    {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
-                  </button>
-                </div>
-              </div>
-              {keyError && <p role="alert" className="text-sm text-error">{keyError}</p>}
-              <p className="text-sm text-text-secondary">
-                {groqApiKey ? "Saved in macOS Keychain." : "Your key will be stored in macOS Keychain."}
-              </p>
-              <div className="flex flex-wrap items-center gap-3">
-                <button className="standard-button" disabled={keyBusy || !keyInput.trim()}
-                  onClick={() => { void handleSaveCloud(); }}>
-                  {savingKey ? "Saving…" : sttMode === "cloud" ? "Save API key" : "Save and use Cloud"}
-                </button>
-                {!!groqApiKey && <button className="standard-button text-error" disabled={keyBusy || dictationBusy}
-                  onClick={() => { void handleRemoveKey(); }}>
-                  {removingKey ? "Removing…" : "Remove API key"}
-                </button>}
-              </div>
-              {!!groqApiKey && <p className="text-sm text-text-secondary">
-                {dictationBusy ? "Finish dictating to remove your key." : "Removing your key switches to Local."}
-              </p>}
-              <button
-                onClick={() => open("https://console.groq.com/keys")}
-                className="text-link self-start"
-              >
-                Get a free API key at console.groq.com
-                <ExternalLink size={12} />
-              </button>
-            </div>
-          </SectionCard>
-
-          {sttMode === "cloud" && <>
-          <SectionCard>
-            <div className="settings-form">
-              <div className="flex flex-col gap-1.5">
-                <label className="field-label" htmlFor="transcription-prompt">
-                  Transcription Prompt
-                </label>
-                <textarea
-                  id="transcription-prompt"
-                  aria-label="Transcription prompt"
-                  value={whisperInput}
-                  onChange={(e) => setWhisperInput(e.target.value)}
-                  onBlur={handleWhisperBlur}
-                  rows={3}
-                  spellCheck={false}
-                  placeholder="e.g., Linty, Tauri, React, TypeScript..."
-                  className={cn(
-                    "w-full rounded-lg border border-border bg-bg-input px-3 py-2",
-                    "text-[13px] text-text-primary placeholder:text-text-muted",
-                    "outline-none transition-interaction duration-150 resize-none",
-                    "focus:border-border-focus focus:bg-bg-elevated",
-                  )}
-                />
-                <span className="text-[11px] text-text-muted leading-snug">
-                  Guide vocabulary and style (e.g., technical terms, names)
-                </span>
-              </div>
-            </div>
-          </SectionCard>
-
-          <SectionCard>
-            <SettingRow
-              label="Transcription model"
-              description="Whisper Large V3 Turbo via Groq"
-              right={
-                <span className="flex items-center gap-1.5 text-[12px] text-text-secondary bg-bg-hover rounded-md px-2.5 py-1">
-                  <Cloud size={11} />
-                  whisper-large-v3-turbo
-                </span>
-              }
-            />
-          </SectionCard>
-
-          <div className="flex items-start gap-2.5 rounded-[10px] bg-info-glow border border-info/10 px-4 py-3">
-            <Cloud size={13} className="text-info shrink-0 mt-px" />
-            <p className="text-[12px] text-text-secondary leading-relaxed">
-              Audio is sent to Groq API for transcription. Processing is fast
-              (~1-2s) with a free tier available.
-            </p>
-          </div>
-          </>}
-        </div>
-      )}
-
-      {/* Local settings */}
-      {engineView === "local" && (
-        <div className="settings-section animate-fade-in">
-          {!isLocalAvailable ? (
-            <div className="flex items-start gap-2.5 rounded-[10px] bg-warning-glow border border-warning/10 px-4 py-3">
-              <HardDrive size={13} className="text-warning shrink-0 mt-px" />
-              <div className="flex flex-col gap-1">
-                <span className="text-[13px] font-medium text-text-primary">
-                  On-device transcription unavailable
-                </span>
-                <span className="text-[12px] text-text-muted leading-relaxed">
-                  This build does not include on-device transcription. Choose
-                  Cloud to continue, or install the full macOS version.
-                </span>
-              </div>
-            </div>
-          ) : (
-            <>
-              {loadedModel && (
-                <div className="current-model">
-                  <div>
-                    <span className="eyebrow">ACTIVE MODEL</span>
-                    <h3>{modelLabel(loadedModel)}</h3>
-                    <p>
-                      On-device transcription · Ready for your next dictation
-                    </p>
-                  </div>
-                  <span>
-                    <Check size={13} /> Loaded
-                  </span>
-                </div>
-              )}
-              <SectionHeading title="Available models" />
-              <SectionCard>
-                <div className="flex flex-col">
-                  {models.map((model, i) => {
-                    const isDownloaded = downloadedModels.has(model.filename);
-                    const isThisDownloading =
-                      isDownloading && downloadingFilename === model.filename;
-
-                    return (
-                      <div
-                        key={model.filename}
-                        className={cn(
-                          "flex items-center justify-between px-4 py-3",
-                          i < models.length - 1 &&
-                            "border-b border-border-subtle",
-                        )}
-                      >
-                        <div className="flex flex-col gap-0.5">
-                          <span className="field-label">
-                            {model.name}
-                          </span>
-                          <span className="text-[11px] text-text-muted">
-                            {model.description}
-                          </span>
-                        </div>
-
-                        {isThisDownloading ? (
-                          <div className="flex items-center gap-2.5">
-                            <div className="h-1.5 w-20 overflow-hidden rounded-full bg-border">
-                              <div
-                                className="progress-fill h-full rounded-full bg-accent"
-                                style={{ transform: `scaleX(${downloadProgress / 100})` }}
-                              />
-                            </div>
-                            <span className="text-[11px] tabular-nums text-text-muted w-9 text-right">
-                              {downloadProgress}%
-                            </span>
-                          </div>
-                        ) : isDownloaded ? (
-                          loadedModel === model.filename ? (
-                            <span className="flex items-center gap-1.5 text-[12px] font-medium text-success">
-                              <Check size={13} />
-                              Active
-                            </span>
-                          ) : (
-                            <button
-                              onClick={async () => {
-                                try {
-                                  await loadModel(model.filename);
-                                } catch {
-                                  useAppStore.getState().addToast({
-                                    type: "error",
-                                    message:
-                                      "Could not load model. Try again or choose another model.",
-                                  });
-                                }
-                              }}
-                              disabled={loadingFilename !== null}
-                              className={cn(
-                                "flex h-[30px] items-center gap-1.5 rounded-md border border-success/20 px-3 text-[12px] font-medium text-success",
-                                "hover:bg-success/8 active:scale-[0.97] transition-interaction duration-150",
-                                "disabled:cursor-not-allowed disabled:opacity-40",
-                              )}
-                            >
-                              {loadingFilename === model.filename ? (
-                                <Loader2 size={12} className="animate-spin" />
-                              ) : (
-                                <Play size={12} />
-                              )}
-                              Load
-                            </button>
-                          )
-                        ) : (
-                          <button
-                            onClick={() => downloadModel(model)}
-                            disabled={isDownloading}
-                            className={cn(
-                              "flex h-[30px] items-center gap-1.5 rounded-md border border-border px-3 text-[12px] font-medium text-text-secondary",
-                              "hover:bg-bg-hover hover:text-text-primary active:scale-[0.97] transition-interaction duration-150",
-                              "disabled:cursor-not-allowed disabled:opacity-40",
-                            )}
-                          >
-                            <Download size={12} />
-                            Download
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </SectionCard>
-
-              <div className="flex items-start gap-2.5 rounded-[10px] bg-success-glow border border-success/10 px-4 py-3">
-                <Cpu size={13} className="text-success shrink-0 mt-px" />
-                <p className="text-[12px] text-text-secondary leading-relaxed">
-                  Audio stays on your device. Whisper runs on the GPU; Parakeet
-                  runs on the Neural Engine and is usually under a second.
-                </p>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-      {(engineView === "local" || reformatEnabled) && <SectionCard>
-        <SettingRow label="Unload model when idle"
-          description="Frees memory used by speech and cleanup models. They reload automatically when needed."
-          right={<Select label="Unload model when idle" value={modelIdleUnloadMinutes}
-            onChange={saveModelIdleUnloadMinutes} options={IDLE_UNLOAD_OPTIONS} />} />
-      </SectionCard>}
-      <ProcessingDetails />
-    </div>
-  );
-}
-
 /* ═══ Language ═══ */
 
 function LanguageSection() {
   const { transcriptionLanguage, saveTranscriptionLanguage } = useSettings();
-  const dictating = useAppStore((s) => s.isRecording || ["preparing", "transcribing", "correcting", "pasting"].includes(s.status));
+  const preparation = useSyncExternalStore(languagePreparation.subscribe, languagePreparation.getSnapshot);
+  const loadedModel = useAppStore((state) => state.loadedModelFilename);
+  const setCurrentView = useAppStore((state) => state.setCurrentView);
+  const dictating = useAppStore((state) => state.isRecording || ["preparing", "recording", "transcribing", "correcting", "pasting"].includes(state.status));
+  const ready = modelSupportsLanguage(loadedModel, transcriptionLanguage);
+  const choice = preparation.language ?? transcriptionLanguage;
 
-  return (
-    <div className="settings-section">
-      <SectionHeader title="Language" />
-      <div className="language-feature">
-        <Languages size={29} />
-        <span className="eyebrow">TRANSCRIPTION LANGUAGE</span>
-        <h3>{languageLabel(transcriptionLanguage)}</h3>
-        <p>
-          {transcriptionLanguage === AUTO_LANGUAGE
-            ? "Let the speech engine recognize the language you’re speaking."
-            : "A familiar language. Your own words."}
-        </p>
-      </div>
-
-      <SectionCard>
-        <div className="settings-field-row">
-          <div className="flex flex-col gap-0.5 min-w-0">
-            <span className="field-label">
-              Transcription language
-            </span>
-            <span className="text-[12px] text-text-muted leading-snug">
-              Set the spoken language or let the speech engine auto-detect
-            </span>
-          </div>
-          <div className="shrink-0 ml-4 relative">
-            <Select
-              label="Transcription language"
-              value={transcriptionLanguage}
-              disabled={dictating}
-              onChange={(language) => {
-                void saveTranscriptionLanguage(language).catch((error) => {
-                  useAppStore.getState().addToast({ type: "error", message: String(error) });
-                });
-              }}
-              options={TRANSCRIPTION_LANGUAGES.map((language) => ({
-                value: language.code,
-                label: language.label,
-              }))}
-            />
-          </div>
-        </div>
-      </SectionCard>
-
-      <div className="flex items-start gap-2.5 rounded-[10px] bg-bg-elevated border border-border-subtle px-4 py-3">
-        <Languages size={13} className="text-text-muted shrink-0 mt-px" />
-        <p className="text-[12px] text-text-secondary leading-relaxed">
-          {transcriptionLanguage === AUTO_LANGUAGE
-            ? "The speech engine will detect the spoken language automatically. For best accuracy, select it explicitly. Every listed language works with both Parakeet and Whisper."
-            : `Speech will be transcribed in ${languageLabel(transcriptionLanguage)}.`}
-        </p>
+  return <div className="settings-section language-settings">
+    <SectionHeader title="Language" />
+    <div className="language-feature">
+      <div className="language-symbol" aria-hidden="true"><Languages size={32} /></div>
+      <div>
+        <span className="eyebrow">YOUR DICTATION LANGUAGE</span>
+        <h3>{languageLabel(transcriptionLanguage)}{transcriptionLanguage !== AUTO_LANGUAGE && nativeLanguageLabel(transcriptionLanguage).toLowerCase() !== languageLabel(transcriptionLanguage).toLowerCase() && <span className="language-native" lang={transcriptionLanguage}>{nativeLanguageLabel(transcriptionLanguage)}</span>}</h3>
+        <p>{transcriptionLanguage === AUTO_LANGUAGE ? "Speak naturally. Linty recognizes the language you use." : "Your voice, in your own words."}</p>
       </div>
     </div>
-  );
+    <SectionCard>
+      <div className="language-choice-row">
+        <div>
+          <label className="field-label">Spoken language</label>
+          <p>Choose the language you usually dictate in. Linty takes care of speech support.</p>
+        </div>
+        <LanguagePicker value={choice} disabled={dictating} onChange={(language) => {
+          void saveTranscriptionLanguage(language).catch(() => {});
+        }} />
+      </div>
+      <p className="preferences-footnote">{dictating ? "Finish dictating before changing language." : "App menus stay in English. This preference controls speech recognition, not translation."}</p>
+    </SectionCard>
+    <LanguageReadiness />
+    <div className="language-notes">
+      <div><h4>One language or auto-detect</h4><p>Choose a language for a more focused transcription, or use Auto-detect when you switch between languages. Accuracy varies by language and recording.</p></div>
+      <div><h4>Prepared once, ready again</h4><p>Many languages share the same speech support. Downloads are reused when you change languages or return to an earlier choice.</p></div>
+    </div>
+    <div className="language-actions">
+      <button className="standard-button" disabled={!ready || dictating} onClick={() => setCurrentView("system-check")}><Mic size={15} />Try dictation</button>
+      <span>Check your microphone and try a short recording.</span>
+    </div>
+    <details className="language-details">
+      <summary>Technical details</summary>
+      <p>{loadedModel ? `Active speech model: ${modelLabel(loadedModel)}` : "Speech support is being prepared."}</p>
+      <p>Speech support is selected automatically for your language and this Mac. All speech recognition runs on this Mac.</p>
+    </details>
+  </div>;
 }
 
 /* ═══ Privacy ═══ */
@@ -642,9 +235,8 @@ function PrivacySection() {
         <div>
           <h3>Your words are yours.</h3>
           <p>
-            History and your dictionary are saved on this Mac. Cloud
-            transcription sends audio to Groq; refinement sends transcribed text
-            when enabled.
+            Speech recognition and optional text cleanup run on this Mac.
+            Your audio, transcript history, and dictionary stay on your device.
           </p>
         </div>
       </div>
@@ -699,6 +291,7 @@ function PrivacySection() {
           </button>
         </div>
       </SectionCard>
+      <ProcessingDetails />
       <AudioStorage />
       <HistoryStorage />
       <div className="rounded-xl border border-border-subtle bg-bg-elevated px-4 py-3 text-[12px] leading-relaxed text-text-secondary">

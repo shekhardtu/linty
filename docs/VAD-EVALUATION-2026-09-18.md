@@ -2,7 +2,7 @@
 
 The selected policy prioritizes preserving quiet speech, as requested. It uses
 FluidAudio's Silero v6 CoreML detector before both Parakeet transcription entry
-points, without cropping audio or filtering words. Whisper and cloud behavior
+points, without cropping audio or filtering words. Whisper behavior
 are outside this first iteration.
 
 ## Selected policy

@@ -26,7 +26,7 @@ try {
       if(command==='dictation_result'){
         qa.calls.push(command);
         return new Promise(resolve=>{qa.finishNative=()=>{
-          if(qa.nextOutcome.record)qa.stores[2].transcripts.unshift(qa.nextOutcome.record);
+          if(qa.nextOutcome.record){qa.stores[2].transcripts.unshift(qa.nextOutcome.record);qa.history.revision++;}
           qa.emit('dictation-history-changed');resolve(structuredClone(qa.nextOutcome));
         };});
       }
@@ -41,7 +41,7 @@ try {
   const press=()=>page.evaluate(()=>window.__QA__.emit('fnkey-pressed'));
   const release=()=>page.evaluate(()=>window.__QA__.emit('fnkey-released'));
   await page.waitForFunction(()=>window.__QA__.warmups.length===1);
-  await page.getByRole('button',{name:'On-device: Preparing. Configure speech engine'}).waitFor();
+  await page.getByRole('button',{name:'On-device: Preparing. Configure dictation language'}).waitFor();
   await press();await status('recording');
   const captured=await page.evaluate(()=>window.__QA__.options);
   await store.evaluate(s=>s.getState().setLoadedModelFilename('parakeet-tdt-0.6b-v3'));
@@ -75,7 +75,8 @@ try {
   await page.evaluate(()=>{window.__QA__.finishNative();delete window.__QA__.finishNative;});await status('done');
   assert.equal(await store.evaluate(s=>s.getState().finalText),'the budget is one lakh fifty thousand rupees');
   assert.ok(await store.evaluate(s=>s.getState().toasts.some(t=>t.message.includes('original transcript was kept'))));
-  await page.getByRole('button',{name:'Copy text',exact:true}).click();
+  // Quiet unverified delivery keeps copying available from the saved transcript.
+  await page.getByRole('button',{name:'Copy transcription: the budget is one lakh fifty thousand rupees',exact:true}).click();
   assert.equal(await page.evaluate(()=>window.__QA__.clipboard),'the budget is one lakh fifty thousand rupees');
   // Cleanup opt-in waits for preparation, rolls back failure, and can be retried.
   await page.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name:'Settings',exact:true}).click();

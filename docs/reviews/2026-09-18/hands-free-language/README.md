@@ -15,10 +15,10 @@ not contain customer transcripts or credentials.
   choice available to retry. Existing saved choices, including auto-detect, remain
   intact; completed installations without a saved language keep auto-detect.
 - Permission recovery bypasses the new step. Model downloads continue during
-  setup, and local/cloud progress counts include the added screen.
+  setup, and progress counts include the added screen.
 - The picker uses the current supported language catalog. App menus remain in
   English. Hindi/Hinglish feasibility is a separate discussion; no new speech
-  models, cloud providers, or language support are introduced here.
+  models or language support are introduced here.
 
 ## Before and after
 

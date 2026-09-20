@@ -7,7 +7,7 @@
 
 ## Problem
 
-Local whisper transcription felt noticeably slow compared to cloud mode, especially for short push-to-talk recordings (1-5s). Six compounding bottlenecks were identified:
+Local whisper transcription felt noticeably slow especially for short push-to-talk recordings (1-5s). Six compounding bottlenecks were identified:
 
 1. **Double IPC serialization** of raw audio samples
 2. **Unoptimized whisper inference params** (full 1500-token attention window for 2s clips)
@@ -121,7 +121,7 @@ The capsule panel was widened from 280px to 380px to accommodate streaming text.
 | File | Change |
 |------|--------|
 | `state.rs` | `whisper_ctx: Mutex<Option<Arc<WhisperContext>>>` -- Arc allows cloning context handle out of mutex before blocking inference |
-| `lib.rs` | New `StopResult` return type for `stop_recording`. New `transcribe_buffer` (local) and `transcribe_buffer_cloud` (Groq) commands that read samples from `AppState` |
+| `lib.rs` | New `StopResult` return type for `stop_recording`. New `transcribe_buffer` command that read samples from `AppState` |
 | `lib.rs` | `load_whisper_model` enables `flash_attn(true)` + `use_gpu(true)` |
 | `transcribe.rs` | New `transcribe_local_with_events()` with optimized params, segment/progress callbacks |
 | `transcribe.rs` | `available_models()` includes turbo-q5 and turbo variants |
@@ -133,7 +133,7 @@ The capsule panel was widened from 280px to 380px to accommodate streaming text.
 |------|--------|
 | `transcription.slice.ts` | Removed `audioSamples` / `setAudioSamples` (samples no longer cross IPC) |
 | `useRecording.hook.ts` | Returns `StopResult` instead of `number[]`, removed `setAudioSamples` call |
-| `useTranscription.hook.ts` | `processAudio(StopResult)` calls `transcribe_buffer` / `transcribe_buffer_cloud` |
+| `useTranscription.hook.ts` | `processAudio(StopResult)` calls `transcribe_buffer` |
 | `useGlobalHotkey.hook.ts` | Passes `StopResult` to `processAudio` |
 | `useModelAutoLoad.hook.ts` | Preference order includes turbo models |
 | `CapsulePanel.component.tsx` | Listens for `capsule-partial-text` and `capsule-stt-progress` events; shows streaming text during transcription, shows result text on done |
@@ -143,7 +143,6 @@ The capsule panel was widened from 280px to 380px to accommodate streaming text.
 ### Dead Code Removed
 - `transcribe_local()` -- replaced by `transcribe_local_with_events()`
 - `transcribe_local_audio` command -- replaced by `transcribe_buffer`
-- `transcribe_audio` command -- replaced by `transcribe_buffer_cloud`
 - `audioSamples` / `setAudioSamples` in Zustand store
 
 ---
@@ -182,7 +181,5 @@ This transforms the experience from "staring at a spinner wondering if it's stuc
 
 ## What Was Not Changed
 
-- **Cloud mode latency** -- unaffected (Groq API is already fast). Cloud path now avoids IPC overhead for audio samples but the HTTP round-trip dominates.
 - **VAD (Voice Activity Detection)** -- originally deferred because push-to-talk bounded silence and another model added complexity. The later [transcription guard evaluation](TRANSCRIPTION-GUARDS.md) compares VAD against short, quiet, and paused speech separately for Whisper and Parakeet; it also replaces unconditional phrase filtering.
 - **Model download UI** -- the new turbo models appear in the existing model picker. No UI changes needed.
-- **Correction pipeline** -- LLM correction still only runs in cloud mode. Unaffected by these changes.

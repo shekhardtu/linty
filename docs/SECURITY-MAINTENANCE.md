@@ -2,7 +2,7 @@ The macOS release runs the same required checks as a pull request before it can 
 
 JavaScript dependencies are checked with `yarn audit`. `python3 scripts/check-rust-advisories.py` checks the locked Apple Silicon macOS feature graph against OSV. Any exceptions in `security/rust-advisories.json` name the exact package version, advisory IDs, reason, and expiry. New versions or advisories need a new review. Current exceptions cover upstream maintenance notices, a build-only legacy rand dependency, and a Tauri issue in Windows/Android code that this app does not ship. Supporting another platform requires a fresh review.
 
-Model commands accept backend catalog IDs, reject symbolic links, and never accept a renderer-supplied download URL. The Whisper artifact has a pinned revision, size, and SHA-256. Capsule permissions permit its overlay controls, theme reader, and events; storage, credentials, model management, updater, and restart commands belong to the main window. Production CSP restricts scripts to bundled assets and network access to IPC and the configured Groq endpoint.
+Model commands accept backend catalog IDs, reject symbolic links, and never accept a renderer-supplied download URL. The Whisper artifact has a pinned revision, size, and SHA-256. Capsule permissions permit its overlay controls, theme reader, and events; storage, model management, updater, and restart commands belong to the main window. Production CSP restricts scripts to bundled assets and network access to IPC.
 
 Third-party notices and the component inventory are bundled under `Contents/Resources/licenses/` in the macOS app. Model attribution is in `src-tauri/licenses/MODELS.md`. After dependency changes, run:
 

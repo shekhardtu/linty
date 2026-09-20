@@ -52,7 +52,8 @@ every app. No equivalent edit-observation implementation was verified in this re
 ## Findings in the failing Linty workflow
 
 The test dictation was inserted into a Codex CLI hosted in Zed. The original forms
-were `Jolo` and `Groc`; the submitted prompt contained `yolo` and `Groq`. No correction
+included a project name and a technical term; the prompt contained the expected
+spellings. No correction
 record for that dictation reached Linty's history or learned dictionary.
 
 The native probe had Accessibility permission, but Zed exposed an `AXWindow`, zero

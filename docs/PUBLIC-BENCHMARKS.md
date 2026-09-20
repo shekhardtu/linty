@@ -13,7 +13,7 @@ be exported for publication.
 
 These are direct-file speech-engine measurements on one Mac, with production
 speech-presence guards enabled, English explicitly selected, and no vocabulary
-prompt, personal dictionary, text cleanup, or cloud call. Each engine is loaded
+prompt, personal dictionary, text cleanup, or network call. Each engine is loaded
 once per dataset and processes one recording at a time. Each recording receives
 one inference; no best-of-repeat output selection is performed.
 

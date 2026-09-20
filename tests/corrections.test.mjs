@@ -25,13 +25,13 @@ test("feedback promises future use only for saved, enabled dictionary learning",
 
 test("word diff pairs equal-length runs one to one and keeps punctuation with the word", () => {
   const pairs = wordDiff(
-    "names like Tari, Zustan and Groke are spelled",
-    "names like Tauri, Zustand and Groq are spelled",
+    "names like Tari, Zustan and Figna are spelled",
+    "names like Tauri, Zustand and Figma are spelled",
   );
   assert.deepEqual(pairs, [
     { kind: "substitution", from: "Tari,", to: "Tauri," },
     { kind: "substitution", from: "Zustan", to: "Zustand" },
-    { kind: "substitution", from: "Groke", to: "Groq" },
+    { kind: "substitution", from: "Figna", to: "Figma" },
   ]);
   assert.deepEqual(wordDiff("a b c", "a b c d"), [{ kind: "insertion", from: "", to: "d" }]);
   assert.deepEqual(wordDiff("a b c", "a c"), [{ kind: "deletion", from: "b", to: "" }]);
@@ -55,7 +55,7 @@ test("learnable pairs skip everyday words and multi-word swaps", () => {
     { kind: "substitution", from: "there", to: "their" },
     { kind: "substitution", from: "few seconds per", to: "Parakeet" },
     { kind: "substitution", from: "linty", to: "Linty" },
-    { kind: "insertion", from: "", to: "Groq" },
+    { kind: "insertion", from: "", to: "Figma" },
   ]);
   assert.deepEqual(pairs, [
     { from: "Tari", to: "Tauri" },
@@ -80,19 +80,19 @@ test("joining or splitting a name is a learnable correction, including in a shor
 
 test("suggestions count sightings and proper nouns are ready at once", () => {
   const base = { transcriptId: "t", source: "edit", engine: "local", modelName: "m", language: "en", wordCount: 10, changedRatio: 0.1, rewrite: false };
-  const first = { ...base, correctionId: "c1", timestamp: now, pairs: [{ kind: "substitution", from: "Groke", to: "Groq" }, { kind: "substitution", from: "recieve", to: "receive" }] };
+  const first = { ...base, correctionId: "c1", timestamp: now, pairs: [{ kind: "substitution", from: "Figna", to: "Figma" }, { kind: "substitution", from: "recieve", to: "receive" }] };
   const second = { ...base, correctionId: "c2", timestamp: now + 1, pairs: [{ kind: "substitution", from: "recieve", to: "receive" }] };
   let suggestions = suggestionsFromCorrection(first, [], []);
   assert.equal(suggestions.length, 2);
-  const groq = suggestions.find((s) => s.right === "Groq");
+  const figma = suggestions.find((s) => s.right === "Figma");
   const receive = suggestions.find((s) => s.right === "receive");
-  assert.equal(isSuggestionReady(groq), true, "proper noun after one sighting");
+  assert.equal(isSuggestionReady(figma), true, "proper noun after one sighting");
   assert.equal(isSuggestionReady(receive), false, "ordinary word needs two sightings");
   suggestions = suggestionsFromCorrection(second, suggestions, []);
   assert.equal(suggestions.find((s) => s.right === "receive").seenCount, 2);
   assert.equal(isSuggestionReady(suggestions.find((s) => s.right === "receive")), true);
   // Already in the dictionary: no suggestion.
-  const entries = addToDictionary([], "Groq", ["Groke"], "manual", now);
+  const entries = addToDictionary([], "Figma", ["Figna"], "manual", now);
   assert.deepEqual(suggestionsFromCorrection(first, [], entries).map((s) => s.right), ["receive"]);
   // Same correction folded twice does not double count.
   assert.equal(suggestionsFromCorrection(second, suggestions, []).find((s) => s.right === "receive").seenCount, 2);
@@ -114,19 +114,19 @@ test("dictionary replaces whole words, keeps punctuation and matches casing", ()
 test("engine terms rank by every time an entry helped, recognised or corrected", () => {
   let entries = addToDictionary([], "Tauri", ["Tari"], "manual", now);
   entries = addToDictionary(entries, "Zustand", ["Zustan"], "manual", now);
-  entries = addToDictionary(entries, "Groq", ["Groke"], "manual", now);
+  entries = addToDictionary(entries, "Figma", ["Figna"], "manual", now);
   entries[0] = { ...entries[0], timesApplied: 2, timesRecognized: 4 }; // Tauri: 6
   entries[1] = { ...entries[1], timesApplied: 5 }; // Zustand: 5
-  entries[2] = { ...entries[2], timesRecognized: 7 }; // Groq: 7
-  assert.deepEqual(engineTerms(entries).map((e) => e.right), ["Groq", "Tauri", "Zustand"]);
-  assert.deepEqual(engineTerms(entries, 1).map((e) => e.right), ["Groq"]);
+  entries[2] = { ...entries[2], timesRecognized: 7 }; // Figma: 7
+  assert.deepEqual(engineTerms(entries).map((e) => e.right), ["Figma", "Tauri", "Zustand"]);
+  assert.deepEqual(engineTerms(entries, 1).map((e) => e.right), ["Figma"]);
 });
 
 test("engine prompt appends dictionary terms after the manual prompt within the budget", () => {
   let entries = addToDictionary([], "Tauri", ["Tari"], "manual", now);
   entries = addToDictionary(entries, "Zustand", ["Zustan"], "manual", now);
   entries[1] = { ...entries[1], timesApplied: 5 };
-  assert.equal(promptWithDictionary("Linty, Groq", entries), "Linty, Groq, Zustand, Tauri");
+  assert.equal(promptWithDictionary("Linty, Figma", entries), "Linty, Figma, Zustand, Tauri");
   assert.equal(promptWithDictionary("", entries, 12), "Zustand");
   assert.equal(promptWithDictionary("tauri", entries), "tauri, Zustand");
 });
@@ -143,11 +143,11 @@ test("corrections per 100 words counts pairs and treats a rewrite as one", () =>
 
 test("undo restores only the correction batch and refuses to overwrite newer edits", async () => {
   const { undoDictionaryChange } = await import("../src/lib/dictionary-undo.util.ts");
-  const before = { entries: addToDictionary([], "Groq", ["Groke"], "manual", now), suggestions: [] };
+  const before = { entries: addToDictionary([], "Figma", ["Figna"], "manual", now), suggestions: [] };
   const after = { entries: addToDictionary(before.entries, "Harishekhar", ["Hari Shekhar"], "learned", now), suggestions: [] };
   const current = { entries: addToDictionary(after.entries, "YULU", ["YOLO"], "learned", now), suggestions: [] };
   const undone = undoDictionaryChange(current, before, after);
-  assert.deepEqual(undone.entries.map(e => e.right), ["Groq", "YULU"]);
+  assert.deepEqual(undone.entries.map(e => e.right), ["Figma", "YULU"]);
   const edited = { entries: addToDictionary(after.entries, "Harishekhar", ["Another spelling"], "manual", now), suggestions: [] };
   assert.throws(() => undoDictionaryChange(edited, before, after), /changed since learning/);
   assert.equal(edited.entries.at(-1).wrong.length, 2);
@@ -156,7 +156,7 @@ test("undo restores only the correction batch and refuses to overwrite newer edi
 test("native classification learns lowercase spellings but rejects unrelated replacements", () => {
   const base = { correctionId: 'native-1', transcriptId: 't', timestamp: now, source: 'observed',
     engine: 'local', modelName: 'm', language: 'en', wordCount: 10, changedRatio: 0.2, rewrite: false };
-  for (const [from, to] of [['Jolo', 'yolo'], ['Groc', 'Groq'], ['YOLO', 'YULU'],
+  for (const [from, to] of [['Jolo', 'yolo'], ['Figna', 'Figma'], ['YOLO', 'YULU'],
     ['Hari Shekhar', 'Harishekhar'], ['recieve', 'receive']]) {
     const suggestions = suggestionsFromCorrection({ ...base, pairs: [{ kind: 'substitution', from, to }] }, [], []);
     assert.equal(suggestions.length, 1, `${from} → ${to}`);

@@ -19,7 +19,6 @@ use dictionary::{apply, Entry};
 #[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Options {
-    pub local: bool,
     pub filename: Option<String>,
     pub model_name: String,
     pub language: String,
@@ -29,8 +28,6 @@ pub struct Options {
     pub cleanup: bool,
     pub cleanup_options: reformat::Options,
     pub cleanup_context_auto: bool,
-    pub cloud_correction: bool,
-    pub correction_prompt: String,
     pub observe_corrections: bool,
     pub track_application: bool,
 }
@@ -151,12 +148,6 @@ impl Coordinator {
 
 #[tauri::command]
 pub async fn start_dictation(app: tauri::AppHandle, options: Options) -> Result<u64, String> {
-    if !options.local {
-        let key = crate::credentials::get_groq_api_key(app.clone())?;
-        if key.trim().is_empty() {
-            return Err("Add a Groq API key in Settings → Speech engine.".into());
-        }
-    }
     let session = app.state::<Coordinator>().reserve(options)?;
     let result = crate::start_recording(
         app.clone(),
@@ -193,7 +184,6 @@ async fn prepare(app: &tauri::AppHandle, options: &Options) -> Result<(), String
     crate::prepare_dictation(
         app.clone(),
         app.state(),
-        options.local,
         options.filename.clone(),
         !options.vocabulary.is_empty(),
         false,
@@ -347,7 +337,7 @@ async fn process<B: Backend>(
     let id = format!("t-{}-{}", crate::now_epoch_ms(), s.id);
     let mut record = json!({"transcriptId":id,"rawText":raw,"finalText":raw,
         "timestamp":crate::now_epoch_ms(),"durationSeconds":audio.duration_secs,"processingTimeMs":millis(stopped),
-        "engine":if o.local {"local"} else {"cloud"},"modelName":o.model_name,"speechModelId":o.filename,
+        "engine":"local","modelName":o.model_name,"speechModelId":o.filename,
         "transcriptionLanguage":o.language,"audioSampleCount":audio.sample_count,"application":audio.application,
         "wordCount":raw.split_whitespace().count(),"originalWordCount":raw.split_whitespace().count(),"corrected":false,
         "deliveryStatus":"pending","sttTimeMs":stt_ms,"audioStopTimeMs":audio_stop_ms,"preparationTimeMs":preparation_ms});
@@ -371,12 +361,6 @@ async fn process<B: Backend>(
     s.check()?;
     let mut candidate = raw.clone();
     let mut reformat_ms = 0.;
-    let mut correction_ms = 0.;
-    let mut cloud_status = if o.cleanup {
-        "superseded-by-s1"
-    } else {
-        "disabled"
-    };
     if o.cleanup {
         backend.stage(s, "correcting")?;
         let tick = Instant::now();
@@ -429,30 +413,6 @@ async fn process<B: Backend>(
         }
         reformat_ms = millis(tick);
         record["reformatting"]["roundTripMs"] = json!(reformat_ms);
-    } else if o.cloud_correction && !o.local {
-        backend.stage(s, "correcting")?;
-        let tick = Instant::now();
-        match s
-            .guard(20., backend.correct(&raw, &o.correction_prompt))
-            .await
-        {
-            Ok(text) => {
-                candidate = text;
-                cloud_status = if candidate == raw {
-                    "unchanged"
-                } else {
-                    "applied"
-                };
-            }
-            Err(_) => {
-                s.check()?;
-                cloud_status = "fallback";
-                outcome.warnings.push(
-                    "Cloud cleanup did not finish. Your original transcript was kept.".into(),
-                );
-            }
-        }
-        correction_ms = millis(tick);
     }
     let validation = text_validation::validate(&raw, &candidate);
     if validation.status == "fallback" {
@@ -464,9 +424,6 @@ async fn process<B: Backend>(
             record["reformatting"]["changed"] = json!(false);
             record["reformatting"]["outputWords"] = json!(raw.split_whitespace().count());
             record["reformatting"]["outputCharacters"] = json!(raw.chars().count());
-        }
-        if cloud_status == "applied" {
-            cloud_status = "fallback";
         }
         outcome
             .warnings
@@ -509,8 +466,6 @@ async fn process<B: Backend>(
     record["wordCount"] = json!(candidate.split_whitespace().count());
     record["corrected"] = json!(candidate != raw);
     record["reformatTimeMs"] = json!(reformat_ms);
-    record["correctionTimeMs"] = json!(correction_ms);
-    record["cloudRefinementStatus"] = json!(cloud_status);
     s.check()?;
     if saved
         && persist(backend.update(id.clone(), record.clone()))
@@ -558,9 +513,9 @@ mod tests {
     use super::*;
     fn options() -> Options {
         serde_json::from_value(json!({
-        "local":true,"filename":"model.bin","modelName":"Fixture","language":"en","prompt":"", "vocabulary":[],"dictionary":[],
+        "filename":"model.bin","modelName":"Fixture","language":"en","prompt":"", "vocabulary":[],"dictionary":[],
         "cleanup":false,"cleanupOptions":{"styling":"semi-formal","structure":"lists","context":"general"},"cleanupContextAuto":false,
-        "cloudCorrection":false,"correctionPrompt":"","observeCorrections":false,"trackApplication":false
+        "observeCorrections":false,"trackApplication":false
     })).unwrap()
     }
     #[test]

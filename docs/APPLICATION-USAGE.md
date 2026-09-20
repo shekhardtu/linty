@@ -7,7 +7,7 @@ Linty can identify the active macOS application with AppKit’s [`NSWorkspace.fr
 - At the start of recording, Rust copies the active app’s display name and bundle identifier into the recording state. The nonactivating capsule is designed to preserve the foreground application.
 - The stop result carries that identity alongside the captured audio duration. Successful nonempty transcriptions save it with their final output word count to `~/Library/Application Support/ai.linty.desktop/linty-history.sqlite3`.
 - The dashboard groups by bundle identifier (falling back to name), reports words, dictation duration, and completed sessions, and allows sorting by words or duration. Selecting an app searches its name in History.
-- This metadata stays local even when the user selects cloud transcription. App identity is not included in the speech or correction API requests.
+- This metadata stays local, alongside speech recognition, text cleanup, and history.
 - Settings → Privacy & Storage → **Attribute dictations to apps** enables or disables capture for future recordings. It defaults on. Disabling it does not erase existing history.
 - Older records and sessions with missing/disabled attribution appear as **Unattributed**. They remain in overall totals; historical app attribution cannot be reconstructed.
 - History is kept **until you delete it** by default, with no record-count cap. Settings → Privacy & Storage also offers 30-day, 90-day, and 1-year retention, JSON export, and clear-all. **All time** includes every retained transcription; deleting or expiring records also removes their contribution to statistics. See [Local history storage](HISTORY-STORAGE.md) for migration and persistence details.
@@ -26,7 +26,7 @@ Linty can identify the active macOS application with AppKit’s [`NSWorkspace.fr
 
 **Milestones** recognize saved-word thresholds starting at 1,000, then 2,500, 5,000 and the same sequence at successive powers of ten. The crossing date is derived from chronological retained history. Deletion, expiry and clear-all therefore update or remove the recognition as well. No streak penalties, repeated celebration animation, telemetry or population rankings are involved.
 
-**Local share** measures the fraction of successful saved dictations that used the local speech engine. App-usage metadata stays local for both engines.
+**Local share** measures the fraction of successful saved dictations that used the local speech engine. Older records retain their original attribution; all new dictations are on-device.
 
 The 7-day and 30-day filters use local calendar days including today. Activity charts use the selected period and aggregate longer retained history by month. Empty periods display zeros and empty states.
 

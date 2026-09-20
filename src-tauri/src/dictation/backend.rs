@@ -22,11 +22,6 @@ pub(super) trait Backend: Sync {
         language: String,
         options: reformat::Options,
     ) -> impl Future<Output = Result<reformat::ReformatResult, String>> + Send;
-    fn correct<'a>(
-        &'a self,
-        text: &'a str,
-        prompt: &'a str,
-    ) -> impl Future<Output = Result<String, String>> + Send + 'a;
     fn cancel_cleanup(&self);
     fn save(
         &self,
@@ -56,22 +51,15 @@ impl Backend for NativeBackend {
     async fn transcribe(&self, options: &Options) -> Result<Transcription, String> {
         let language = (options.language != "auto").then(|| options.language.clone());
         let prompt = (!options.prompt.is_empty()).then(|| options.prompt.clone());
-        if options.local {
-            crate::transcribe_buffer(
-                self.app.clone(),
-                self.app.state(),
-                prompt,
-                language,
-                Some(options.vocabulary.clone()),
-                options.filename.clone(),
-            )
-            .await
-        } else {
-            let key = crate::credentials::get_groq_api_key(self.app.clone())?;
-            crate::transcribe_buffer_cloud(self.app.state(), key, prompt, language)
-                .await
-                .map(Transcription::from)
-        }
+        crate::transcribe_buffer(
+            self.app.clone(),
+            self.app.state(),
+            prompt,
+            language,
+            Some(options.vocabulary.clone()),
+            options.filename.clone(),
+        )
+        .await
     }
     async fn cleanup(
         &self,
@@ -81,10 +69,6 @@ impl Backend for NativeBackend {
     ) -> Result<reformat::ReformatResult, String> {
         reformat::reformat_transcript(self.app.clone(), self.app.state(), text, language, options)
             .await
-    }
-    async fn correct(&self, text: &str, prompt: &str) -> Result<String, String> {
-        let key = crate::credentials::get_groq_api_key(self.app.clone())?;
-        crate::transcribe::correct_text(text, &key, prompt).await
     }
     fn cancel_cleanup(&self) {
         self.app.state::<reformat::ReformatState>().cancel();
