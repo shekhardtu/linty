@@ -26,9 +26,11 @@ The raw transcript is saved before cleanup or delivery. A failed initial save re
 
 ## Text preservation
 
-Cleanup and dictionary output are proposals. Shared deterministic checks compare supported numeric values (including lakh/crore and spoken decimals), dates, negations, uncertainty words, currency/percentage markers, signs, explicit names and quoted/code/path literals. A rejected cleanup proposal falls back to the raw transcript. Configured dictionary spellings may intentionally change names; they cannot bypass the remaining checks.
+Cleanup and dictionary output are proposals. Shared deterministic checks compare negations, uncertainty words, currency/percentage markers, signs, explicit names and quoted/code/path literals. A rejected cleanup proposal falls back to the raw transcript. Configured dictionary spellings may intentionally change names; they cannot bypass the remaining checks.
 
-These checks do not prove semantic equivalence. They are chiefly English-oriented, miss some harmful paraphrases, and can reject valid edits. Only narrow, adjacent, explicit number/name self-corrections are normalized before comparison; reported or quoted alternatives remain protected. Ambiguous time expressions can fall back. Cleanup remains opt-in. The [measured comparison](benchmarks/native-pipeline-2026-09-19.md) records both prevented corruption and false rejection.
+Numeric values, weekdays and months are left to the cleanup model. Changes such as “four licences—my bad—five licences” → “five licences”, “two pm” → “2pm”, and “we ship in April, my mistake, January” → “We ship in January” do not trigger rejection on their own. Number words, weekdays and months are excluded from the name check regardless of capitalization. This also allows accidental numeric/calendar changes and changes to personal names that match calendar words, such as April or May. Quoted/code/path literals, signs, units and the other checks remain protected.
+
+These checks do not prove semantic equivalence. They are chiefly English-oriented, miss some harmful paraphrases, and can reject valid edits. Narrow, adjacent, explicit number/name self-corrections are still normalized for the remaining checks, such as negation and currency markers. Cleanup remains opt-in. The [historical comparison](benchmarks/native-pipeline-2026-09-19.md) predates removal of the numeric-value and calendar checks and records both prevented corruption and false rejection.
 
 ## Delivery and timing
 
