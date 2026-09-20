@@ -13,6 +13,12 @@ python3 -m http.server 4173 --bind 127.0.0.1 --directory website
 
 Deploy this directory with an existing static host.
 
+Website-only pull requests run focused checks without installing or building the
+desktop application. Run the same tests locally with
+`node --test tests/website-*.test.mjs tests/privacy.test.mjs tests/check-scope.test.mjs`.
+Application, dependency, shared-tooling, and workflow changes still run the full
+suite; see [check scope](../docs/runbooks/releases.md#pull-request-check-scope).
+
 Local asset URLs in `index.html` include a `?v=` content version so returning
 visitors fetch updated files. When an asset changes, update its version to the
 first 12 characters of its SHA-256 hash. Keep the underlying filenames stable.

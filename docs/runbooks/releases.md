@@ -16,11 +16,26 @@ After an upgrade, Linty keeps an acknowledgment until the customer dismisses it.
 
 For a failed publication, retry uploading the saved artifacts with `scripts/publish-release.sh TAG`. For a new release, write new notes. Required updates use the same notes and acknowledgment; see [force updates](force-update.md).
 
+## Pull request check scope
+
+Website-only PRs run the website behavior, privacy/legal consistency, check-scope,
+and JavaScript syntax checks without installing or building the desktop app.
+This includes `website/`, the screenshot capture/preview files, the three website
+test files, and accompanying release notes. Any other changed file (including
+app code, shared assets, dependencies, or CI configuration) runs the full suite.
+Release notes alone also run the full suite. Missing or unreadable diffs default
+to full validation.
+
+The `Required checks` gate runs for both scopes and requires all selected jobs
+to succeed; only the unselected suite may be skipped. Website checks never save
+the source artifact used to reuse application validation. Local and hosted
+release validation therefore require a full successful suite before reusing it.
+
 ## Optional hosted build timing and validation
 
 This section applies when the remote release workflow is enabled.
 
-The release workflow builds and notarizes the candidate while validating its source. For a main push, it looks for the merged PR's latest successful `Checks` run. Successful PR checks save the tested merge commit in a small artifact, retained for seven days. The release compares that commit's complete Git tree with the main commit, including workflows, tests, dependencies, and release notes. Identical trees reuse the PR suite even when squash/rebase merging changes the commit SHA. This currently applies to PRs from branches in this repository; fork PRs run a fresh suite.
+The release workflow builds and notarizes the candidate while validating its source. For a main push, it looks for the merged PR's latest successful `Checks` run. Successful full PR checks save the tested merge commit in a small artifact, retained for seven days. The release compares that commit's complete Git tree with the main commit, including workflows, tests, dependencies, and release notes. Identical trees reuse the PR suite even when squash/rebase merging changes the commit SHA. This currently applies to PRs from branches in this repository; fork PRs and website-only checks require a fresh suite.
 
 Missing or expired evidence, changed trees, failed/pending checks, direct pushes, and API errors trigger the full suite. Manual workflow runs always run fresh checks, including `build_only` timing runs. The release summary links to any reused PR run. The build still runs Node and Rust tests after preparing the release version, then signs and notarizes the app. Publication requires a successful build and either verified PR checks or a successful fresh suite. Only the publication job has repository write permission; it verifies the transferred version commit against the original source SHA before tagging it.
 
