@@ -171,16 +171,16 @@ try {
   await page.evaluate(()=>{window.__QA__.hasAudio=false;window.__QA__.failPaste=false;delete window.__QA__.deliveryStatus;});
   await page.getByRole('button',{name:'System Check',exact:true}).click();
   const microphoneTest=page.locator('.microphone-test');
-  const startTest=page.getByRole('button',{name:'Start microphone test',exact:true});
+  const startTest=page.getByRole('button',{name:/^Start microphone test:/});
   await startTest.scrollIntoViewIfNeeded();
   await page.locator('main').evaluate(el=>Promise.allSettled(el.getAnimations({subtree:true}).filter(a=>a.effect.getTiming().iterations!==Infinity).map(a=>a.finished)));
   const idleControl=await startTest.boundingBox();
   await startTest.click(); await status('recording');
-  const stopTest=page.getByRole('button',{name:'Stop microphone test',exact:true});
-  await page.waitForFunction(()=>document.querySelectorAll('.microphone-test .waveform-bar').length===19);
+  const stopTest=page.getByRole('button',{name:/^Stop microphone test:/});
+  await page.waitForFunction(()=>document.querySelectorAll('.microphone-test .waveform-bar').length===80);
   await page.clock.runFor(100);
   const liveControl=await stopTest.boundingBox();
-  assert.equal(liveControl.width,liveControl.height,'The microphone control remains a full circle');
+  assert.ok(liveControl.width >= 154,'The microphone control has a readable action label');
   assert.equal(liveControl.width,idleControl.width);
   assert.equal(liveControl.x,idleControl.x); assert.equal(liveControl.y,idleControl.y,'Starting a test never moves its control');
   const testLevels=()=>microphoneTest.locator('.waveform-bar').evaluateAll(bars=>bars.map(bar=>new DOMMatrix(bar.style.transform).d*bar.offsetHeight));
@@ -188,12 +188,12 @@ try {
     await page.evaluate(levels=>{for(const rms of levels) window.__QA__.emit('audio-amplitude',rms);},levels);
     await page.clock.runFor(70);
   };
-  await feedTest(Array(30).fill(.003));
-  assert.ok((await testLevels()).every(height=>height<4),'The app test keeps background noise close to the baseline');
-  await feedTest(Array(30).fill(.05));
-  assert.ok((await testLevels()).every(height=>height>7 && height<12),'Normal input leaves room for emphasis in the app test');
-  await feedTest(Array(45).fill(0));
-  assert.ok((await testLevels()).every(height=>Math.abs(height-2)<.000001),'Repeated zero frames clear the complete history');
+  await feedTest(Array(100).fill(.003));
+  assert.ok((await testLevels()).every(height=>height<8),'The app test keeps background noise close to the baseline');
+  await feedTest(Array(100).fill(.05));
+  assert.ok((await testLevels()).every(height=>height>14 && height<24),'Normal input leaves room for emphasis in the app test');
+  await feedTest(Array(120).fill(0));
+  assert.ok((await testLevels()).every(height=>Math.abs(height-4)<.000001),'Repeated zero frames clear the complete history');
   const phrase=[0,.001,.003,.008,.018,.06,.04,.009,.002,0,.001,.005,.025,.09,.04,.018,.004,.001,.0004];
   await feedTest(phrase);
   assert.ok(new Set(await testLevels()).size>10,'The app waveform displays the actual variation in input');
@@ -212,7 +212,7 @@ try {
   }
   await startTest.click(); await status('recording');
   await page.clock.runFor(100);
-  assert.ok((await testLevels()).every(height=>Math.abs(height-2)<.000001),'A new test starts with an empty waveform');
+  assert.ok((await testLevels()).every(height=>Math.abs(height-4)<.000001),'A new test starts with an empty waveform');
   await page.getByRole('button',{name:'Overview',exact:true}).click();
   await page.clock.runFor(100);
   assert.equal((await get()).recording,true,'Leaving System Check only removes the visualization');

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { LegalNotice } from "@/components/shared/LegalNotice.component";
 import { Download, RefreshCw, ExternalLink } from "lucide-react";
 import { open } from "@tauri-apps/plugin-shell";
 import { getVersion } from "@tauri-apps/api/app";
@@ -183,6 +184,7 @@ export function AboutPage() {
           </div>
         </SectionCard>
 
+        <LegalNotice />
         <p className="text-[11px] text-text-muted text-center leading-relaxed">
           Made with care. Your voice, your data, your device.
         </p>

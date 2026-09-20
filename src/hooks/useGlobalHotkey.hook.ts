@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
+import { flushSync } from "react-dom";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import {
@@ -17,7 +18,6 @@ import { isModifierHoldTrigger, triggerModifierName, formatTriggerLabel } from "
 export function useGlobalHotkey() {
   const { startRecording, stopRecording } = useRecording();
   const { processAudio, clearPendingTimers } = useTranscription();
-  const setCurrentView = useAppStore((s) => s.setCurrentView);
   const resetRecording = useAppStore((s) => s.resetRecording);
 
   // Latest-ref pattern: always hold current callback references so
@@ -26,14 +26,12 @@ export function useGlobalHotkey() {
   const processAudioRef = useRef(processAudio);
   const startRecordingRef = useRef(startRecording);
   const clearPendingTimersRef = useRef(clearPendingTimers);
-  const setCurrentViewRef = useRef(setCurrentView);
   useEffect(() => {
     stopRecordingRef.current = stopRecording;
     processAudioRef.current = processAudio;
     startRecordingRef.current = startRecording;
     clearPendingTimersRef.current = clearPendingTimers;
-    setCurrentViewRef.current = setCurrentView;
-  }, [stopRecording, processAudio, startRecording, clearPendingTimers, setCurrentView]);
+  }, [stopRecording, processAudio, startRecording, clearPendingTimers]);
 
   const isRecordingRef = useRef(false);
   const isRecording = useAppStore((s) => s.isRecording);
@@ -66,7 +64,9 @@ export function useGlobalHotkey() {
     const inFocus = document.hasFocus();
 
     try {
-      if (inFocus) setCurrentViewRef.current("system-check");
+      // Mount the focused view before capture starts so even a very fast result
+      // belongs to this visit. Keep the originating page and its state mounted.
+      if (inFocus) flushSync(() => useAppStore.getState().setRecordingFocusOpen(true));
       const starting = startRecordingRef.current();
       const session = currentDictation();
       const started = await starting;

@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+  <meta name="referrer" content="no-referrer" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Linty — A little less typing. Dictation for your Mac.</title>
   <meta name="description" content="Choose your language. Linty prepares offline dictation on your Mac. Hold fn, speak, and release to paste. Free and open source for Apple Silicon." />
@@ -13,6 +15,7 @@
   <link rel="icon" type="image/svg+xml" href="brand/icon.svg?v=b97b744a3624" />
   <link rel="icon" type="image/png" sizes="32x32" href="brand/favicon.png?v=36c2c759f331" />
   <link rel="apple-touch-icon" href="brand/apple-touch-icon.png?v=c8e6c0066772" />
+  <script src="privacy-guard.js?v=2afc4702a0c1"></script>
   <script src="theme.js?v=87c2c8532cc6"></script>
   <link rel="stylesheet" href="brand/theme.css?v=934b29bfa881" />
   <link rel="stylesheet" href="styles.css?v=b85c46bc8294" />
@@ -193,14 +196,15 @@
         <p class="eyebrow">03 / Privacy first</p>
         <h2 id="privacy-title">Your Mac does<br />the listening.</h2>
         <p>Speech recognition and optional text cleanup run on your Mac. Choose your language once, let Linty prepare it, and dictate offline.</p>
+        <p>Read the <a href="privacy.html">privacy notice</a> for local storage, permissions, downloads, updates, and website hosting.</p>
         <a class="text-link" href="https://github.com/shekhardtu/linty">Read the code for yourself <span aria-hidden="true">↗</span></a>
       </div>
       <div class="privacy-ledger">
-        <div class="ledger-header"><span class="brand-mark" aria-hidden="true"></span><span>Clear choices. No fine print.</span></div>
+        <div class="ledger-header"><span class="brand-mark" aria-hidden="true"></span><span>Local processing. Clear choices.</span></div>
         <dl>
           <div><dt>On-device transcription</dt><dd>Linty automatically prepares the right speech support for your language. Your audio stays on your Mac.</dd><dd class="ledger-label">Local</dd></div>
-          <div><dt>Optional text cleanup</dt><dd>Keep your words as spoken, or tidy English grammar, punctuation, and lists on your Mac. Enable cleanup in Dictation settings.</dd><dd class="ledger-label">On-device</dd></div>
-          <div><dt>History you manage</dt><dd>Your saved transcriptions live on this Mac. Search, edit, delete, or choose a retention period in Settings.</dd><dd class="ledger-label">Your choice</dd></div>
+          <div><dt>Optional text cleanup</dt><dd>Keep your words as spoken, or tidy English grammar, punctuation, and lists on your Mac. English selects cleanup automatically; choose Keep as spoken in Dictation settings to turn it off.</dd><dd class="ledger-label">On-device</dd></div>
+          <div><dt>History you manage</dt><dd>History stays until deleted by default. Audio saving is opt-in. Use Settings to export, delete, or choose retention.</dd><dd class="ledger-label">Your choice</dd></div>
         </dl>
         <p class="ledger-footer">No account or subscription required.</p>
       </div>
@@ -242,13 +246,13 @@
     <section class="container closing" aria-labelledby="closing-title">
       <span class="ambient-artwork ambient-closing" aria-hidden="true"><span class="ambient-motif motif-contour"></span></span>
       <div class="closing-brand"><a class="app-icon-link" data-icon-motion data-download href="https://github.com/shekhardtu/linty/releases/latest/download/Linty_aarch64.dmg" aria-label="Download Linty for macOS"><span class="icon-surface" aria-hidden="true"><img src="brand/icon.svg?v=b97b744a3624" width="88" height="88" alt="" loading="lazy" /></span></a><div><p class="eyebrow">A little less typing</p><h2 id="closing-title">Give your next thought<br />a little room.</h2></div></div>
-      <div><a class="button" data-download href="https://github.com/shekhardtu/linty/releases/latest/download/Linty_aarch64.dmg"><span class="download-label"><span>Download Linty</span><span class="download-starting" aria-hidden="true">Starting…</span></span><span class="download-symbol" aria-hidden="true">↓</span></a><p class="fine-print" data-download-note>macOS 14+ · Apple Silicon</p><a class="release-link" href="https://github.com/shekhardtu/linty/releases">Release notes <span aria-hidden="true">↗</span></a><a class="download-badge" href="https://github.com/shekhardtu/linty/releases" title="Total downloads of all GitHub release assets, across all versions"><img src="https://img.shields.io/github/downloads/shekhardtu/linty/total?style=flat-square&amp;label=downloads&amp;color=28756f" alt="Total GitHub release downloads" width="140" height="20" loading="lazy" /></a></div>
+      <div><a class="button" data-download href="https://github.com/shekhardtu/linty/releases/latest/download/Linty_aarch64.dmg"><span class="download-label"><span>Download Linty</span><span class="download-starting" aria-hidden="true">Starting…</span></span><span class="download-symbol" aria-hidden="true">↓</span></a><p class="fine-print" data-download-note>macOS 14+ · Apple Silicon</p><p class="fine-print"><a href="privacy.html">Privacy notice</a> · <a href="terms.html">License and responsible use</a></p><a class="release-link" href="https://github.com/shekhardtu/linty/releases">Release notes <span aria-hidden="true">↗</span></a></div>
     </section>
   </main>
 
   <footer class="container footer">
     <div class="footer-brand"><a class="wordmark" href="#top" data-icon-motion><span class="brand-mark" aria-hidden="true"></span><span>Linty</span></a><p>Made for the words you haven’t typed yet.</p></div>
-    <nav aria-label="Footer"><a href="https://github.com/shekhardtu/linty">Source code ↗</a><a href="#requests">Feature requests ↗</a><a href="https://github.com/shekhardtu/linty/issues">Report an issue ↗</a><a href="https://github.com/shekhardtu/linty/blob/main/LICENSE">MIT License ↗</a></nav>
+    <nav aria-label="Footer"><a href="privacy.html">Privacy notice</a><a href="terms.html">License and responsible use</a><a href="https://github.com/shekhardtu/linty">Source code ↗</a><a href="#requests">Feature requests ↗</a><a href="https://github.com/shekhardtu/linty/issues">Report an issue ↗</a><a href="https://github.com/shekhardtu/linty/blob/main/LICENSE">MIT License ↗</a></nav>
     <button type="button" class="motion-toggle" id="motion-toggle" aria-pressed="false">Pause motion</button>
   </footer>
   <p class="sr-only" id="download-status" role="status" aria-atomic="true"></p>

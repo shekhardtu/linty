@@ -1,4 +1,3 @@
-import { useAppStore } from "@/store/app.store";
 import { useState, useEffect, useCallback } from "react";
 import {
   Mic,
@@ -6,9 +5,6 @@ import {
   CheckCircle2,
   AlertCircle,
   ExternalLink,
-  Square,
-  Loader2,
-  Check,
 } from "lucide-react";
 import {
   checkMicrophonePermission,
@@ -17,9 +13,7 @@ import {
   reinitFnKeyMonitor,
   openSystemSettings,
 } from "@/services/permissions.service";
-import { useRecording } from "@/hooks/useRecording.hook";
-import { useTranscription } from "@/hooks/useTranscription.hook";
-import { WaveformVisualizer } from "@/components/WaveformVisualizer.component";
+import { MicrophoneTest } from "@/components/MicrophoneTest.component";
 import { FnKeyConflictWarning } from "@/components/shared/FnKeyConflictWarning.component";
 import { cn } from "@/lib/utils";
 import {
@@ -112,7 +106,6 @@ function StatusBadge({
     </span>
   );
 }
-
 function PermissionRow({
   icon,
   label,
@@ -252,147 +245,7 @@ export function SystemCheckPage() {
         Settings.
       </p>
 
-      {/* Microphone Test */}
-      <div className="mt-6 mb-2.5">
-        <span className="text-[13px] font-semibold text-text-primary">
-          Microphone Test
-        </span>
-      </div>
-      <RecordingTestWidget />
+      <MicrophoneTest />
     </PageLayout>
-  );
-}
-
-/* ── Recording Test Widget ── */
-function RecordingTestWidget() {
-  const quietSeconds = useAppStore((s) => s.quietSeconds);
-  const {
-    isRecording,
-    recordingDuration,
-    startRecording,
-    stopRecording,
-  } = useRecording();
-  const { status, finalText, error, processAudio, resetTranscription } =
-    useTranscription();
-
-  const isProcessing =
-    status === "preparing" ||
-    status === "transcribing" ||
-    status === "correcting" ||
-    status === "pasting";
-  const isDone = status === "done";
-  const isError = status === "error";
-  const isIdle = status === "idle";
-
-  const handleStopAndProcess = useCallback(async () => {
-    const result = await stopRecording();
-    if (result.sample_count > 0) {
-      processAudio(result);
-    }
-  }, [stopRecording, processAudio]);
-
-  const handleToggle = useCallback(async () => {
-    if (isRecording) {
-      await handleStopAndProcess();
-    } else if (isIdle || isDone || isError) {
-      resetTranscription();
-      await startRecording();
-    }
-  }, [
-    isRecording,
-    isIdle,
-    isDone,
-    isError,
-    resetTranscription,
-    startRecording,
-    handleStopAndProcess,
-  ]);
-
-  // Auto-reset after done/error
-  useEffect(() => {
-    if (isDone || isError) {
-      const timer = setTimeout(resetTranscription, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [isDone, isError, resetTranscription]);
-
-  const formatDuration = (s: number) => {
-    const secs = Math.floor(s);
-    const tenths = Math.floor((s % 1) * 10);
-    return `${secs}.${tenths}s`;
-  };
-
-  return (
-    <div className="settings-group microphone-test">
-      <div className="px-4 py-3.5">
-        <div className="flex min-h-9 items-center gap-3">
-          <button
-            onClick={handleToggle}
-            data-tooltip={isRecording ? "Stop microphone test" : "Start microphone test"}
-            aria-label={
-              isRecording ? "Stop microphone test" : "Start microphone test"
-            }
-            disabled={isProcessing}
-            className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-interaction duration-200",
-              isRecording
-                ? "bg-accent text-white shadow-[0_0_12px_var(--color-accent-glow-strong)]"
-                : isProcessing
-                  ? "bg-bg-hover text-text-muted cursor-not-allowed"
-                  : "bg-bg-hover border border-border text-text-secondary hover:bg-bg-active hover:text-text-primary",
-              !isRecording && !isProcessing && "active:scale-[0.97]",
-            )}
-          >
-            {isRecording ? (
-              <Square size={12} fill="currentColor" />
-            ) : isProcessing ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <Mic size={15} />
-            )}
-          </button>
-
-          <div className="flex-1 min-w-0">
-            {isRecording && quietSeconds >= 20 ? (
-              <span role="status" className="text-[12px] text-text-secondary">
-                Still talking? Speak to continue. Stopping in {Math.max(0, 30 - quietSeconds)}s.
-              </span>
-            ) : isRecording ? (
-              <div className="flex items-center gap-3">
-                <WaveformVisualizer
-                  isActive
-                  className="h-[20px] flex-1 min-w-0"
-                />
-                <span className="w-[6ch] text-right text-[13px] font-medium text-text-secondary tabular-nums shrink-0">
-                  {formatDuration(recordingDuration)}
-                </span>
-              </div>
-            ) : isProcessing ? (
-              <span className="text-[13px] text-text-secondary">
-                {status === "preparing" ? "Getting ready…" : status === "transcribing"
-                  ? "Transcribing..."
-                  : status === "correcting"
-                    ? "Polishing..."
-                    : "Pasting..."}
-              </span>
-            ) : isDone && finalText ? (
-              <p className="text-[13px] text-text-primary truncate">
-                {finalText}
-              </p>
-            ) : isError ? (
-              <span className="text-[13px] text-error">
-                {error || "Something went wrong"}
-              </span>
-            ) : (
-              <span className="text-[13px] text-text-muted">
-                Click to test recording & transcription
-              </span>
-            )}
-          </div>
-
-          {isDone && <Check size={15} className="text-success shrink-0" />}
-        </div>
-      </div>
-    </div>
   );
 }

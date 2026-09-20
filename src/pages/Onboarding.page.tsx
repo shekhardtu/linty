@@ -1,4 +1,5 @@
 import { BrandMark, SoundPattern } from "@/components/shared/BrandMark.component";
+import { LegalNotice } from "@/components/shared/LegalNotice.component";
 import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from "react";
 import { Mic, Shield, CheckCircle2, ArrowRight, Loader2, ExternalLink, Keyboard, Languages } from "lucide-react";
 import {
@@ -81,12 +82,14 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
         Welcome to Linty
       </h1>
       <p className="text-[14px] text-text-secondary leading-relaxed mb-8">
-        Voice-to-text that works anywhere on your Mac.
+        Voice-to-text for supported text fields on your Mac.
         <br />
         Choose the languages you speak most, then grant a couple of permissions.
         <br />
-        Speech support for your language downloads in the background during setup.
+        Models download during setup. Linty also checks GitHub for app updates.
       </p>
+
+      <LegalNotice />
 
       <button
         onClick={onNext}

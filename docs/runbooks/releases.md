@@ -4,6 +4,8 @@ Releases are currently built and published on the maintainer's Mac. Use the
 `deploy` skill or follow [local releases](local-releases.md). The hosted release
 workflow is disabled in GitHub and can be re-enabled without removing its file.
 
+Run `yarn legal:check` to verify that the website and GitHub notices match the text bundled offline in the app. Update `src/content/legal.json` and run `yarn legal:generate` when data practices change. This is a consistency check, not legal certification.
+
 Every release must explain what improved. Before merging a change to `main`, replace `RELEASE_NOTES.md` with concise, customer-facing notes for the upcoming release. Use Markdown headings and `- ` bullets, with one improvement per line. Describe the resulting behavior and any action a customer needs to take. Avoid commit titles, internal implementation details, and generic placeholders.
 
 Run `yarn release:check` after fetching tags. Release preparation checks that the notes are meaningful and different from the highest versioned release tag, before changing versions or building. The first release using this process accepts the new notes file. A release without fresh notes fails instead of publishing stale text.

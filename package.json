@@ -5,13 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "yarn icons:check && tsc && vite build",
+    "build": "yarn icons:check && yarn legal:check && tsc && vite build",
     "preview": "vite preview",
     "storage:benchmarks": "node scripts/storage-benchmarks.mjs",
     "tauri": "tauri",
     "build:mac": "bash scripts/build-mac.sh",
     "build:mac:universal": "tauri build --target universal-apple-darwin --bundles dmg app --features local-stt,parakeet && mkdir -p release && cp -f src-tauri/target/release/bundle/dmg/*.dmg release/",
-    "test": "node --experimental-strip-types --test tests/usage.test.mjs tests/history-audio.test.mjs tests/languages.test.mjs tests/corrections.test.mjs tests/payoff.test.mjs tests/force-update.test.mjs tests/reformat.test.mjs tests/settings-save.test.mjs tests/dictation-trigger.test.mjs tests/dictation-evaluation.test.mjs tests/website-demo.test.mjs tests/website-platform.test.mjs tests/website-product.test.mjs tests/release-publish.test.mjs tests/reuse-pr-checks.test.mjs tests/release-local.test.mjs tests/release-version.test.mjs tests/update-acknowledgment.test.mjs tests/release-notes.test.mjs",
+    "test": "node --experimental-strip-types --test tests/usage.test.mjs tests/history-audio.test.mjs tests/languages.test.mjs tests/corrections.test.mjs tests/payoff.test.mjs tests/force-update.test.mjs tests/reformat.test.mjs tests/settings-save.test.mjs tests/dictation-trigger.test.mjs tests/dictation-evaluation.test.mjs tests/website-demo.test.mjs tests/website-platform.test.mjs tests/website-product.test.mjs tests/release-publish.test.mjs tests/reuse-pr-checks.test.mjs tests/release-local.test.mjs tests/release-version.test.mjs tests/update-acknowledgment.test.mjs tests/release-notes.test.mjs tests/privacy.test.mjs",
     "test:ui": "node tests/ui.smoke.mjs",
     "test:motion": "node tests/ui.motion.mjs",
     "test:usability": "node tests/ui.usability.mjs",
@@ -27,7 +27,11 @@
     "test:security": "node tests/ui.security.mjs",
     "release:check": "node scripts/release-notes.mjs",
     "test:updates": "node tests/ui.updates.mjs",
-    "release:local": "node scripts/release-local.mjs"
+    "release:local": "node scripts/release-local.mjs",
+    "legal:generate": "node scripts/legal-docs.mjs",
+    "legal:check": "node scripts/legal-docs.mjs --check",
+    "test:privacy": "node tests/ui.privacy.mjs",
+    "test:microphone": "node tests/ui.microphone-focus.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "~2.11.1",

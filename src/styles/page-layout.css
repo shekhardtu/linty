@@ -569,11 +569,6 @@
   font-size: 12px;
   margin-top: 6px;
 }
-.microphone-test {
-  padding: 6px;
-  background: var(--color-panel);
-  border-radius: 4px 12px 4px 4px;
-}
 .permission-row {
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr) auto;

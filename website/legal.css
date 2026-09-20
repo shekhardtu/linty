@@ -1,0 +1,9 @@
+.legal-page { max-width: 780px; padding-block: 56px 80px; }
+.legal-page h1 { font-size: clamp(2rem, 6vw, 3.5rem); margin: 12px 0 20px; }
+.legal-page h2 { font-size: 1.3rem; margin: 0 0 16px; }
+.legal-page section { margin-block: 36px; scroll-margin-top: 100px; }
+.legal-page p { line-height: 1.75; margin-block: 14px; overflow-wrap: anywhere; }
+.legal-page a { text-decoration: underline; text-underline-offset: 3px; }
+.legal-page li { margin-block: 10px; }
+.legal-page ul { padding-left: 24px; }
+.legal-links { display: flex; gap: 20px; flex-wrap: wrap; margin-block: 24px; }

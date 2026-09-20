@@ -6,4 +6,4 @@ Include the Linty version, macOS version, affected feature, steps to reproduce, 
 
 Security fixes target the latest release. Install updates from [GitHub Releases](https://github.com/shekhardtu/linty/releases/latest) or Linty's updater.
 
-Speech recognition and optional text cleanup run on the Mac. Audio, transcript history, and personal dictionaries stay on the device. Model downloads and app updates require internet access; dictation does not. See the [README](README.md#privacy-first) for details and implementation documentation.
+Speech recognition and optional text cleanup run on the Mac. Audio, transcript history, and personal dictionaries stay on the device. Model downloads and app updates require internet access; dictation does not. See the [privacy notice](PRIVACY.md) for local storage, permissions, downloads, updates, and website hosting details.

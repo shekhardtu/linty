@@ -1,4 +1,5 @@
 import { Select } from "@/components/shared/Select.component";
+import { LegalNotice } from "@/components/shared/LegalNotice.component";
 import { useState, useEffect } from "react";
 import {
   ChevronDown,
@@ -181,10 +182,12 @@ function PrivacySection() {
           <h3>Your words are yours.</h3>
           <p>
             Speech recognition and optional text cleanup run on this Mac.
-            Your audio, transcript history, and dictionary stay on your device.
+            Linty does not upload your recordings or transcripts. Model downloads
+            and automatic update checks connect to external hosts.
           </p>
         </div>
       </div>
+      <LegalNotice />
       <SectionCard>
         <Toggle
           enabled={trackApplicationUsage}

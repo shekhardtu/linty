@@ -134,6 +134,12 @@ jobs:
       - run: yarn test:updates
         env:
           UI_BROWSER: ${{ matrix.browser }}
+      - run: yarn test:privacy
+        env:
+          UI_BROWSER: ${{ matrix.browser }}
+      - run: yarn test:microphone
+        env:
+          UI_BROWSER: ${{ matrix.browser }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: failure()
         with:

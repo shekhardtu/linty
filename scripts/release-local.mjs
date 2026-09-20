@@ -13,7 +13,7 @@ const target = 'aarch64-apple-darwin';
 const versionPattern = /^\d+\.\d+\.\d+$/;
 const signingNames = ['APPLE_SIGNING_IDENTITY', 'APPLE_ID', 'APPLE_PASSWORD', 'APPLE_TEAM_ID',
   'TAURI_SIGNING_PRIVATE_KEY', 'TAURI_SIGNING_PRIVATE_KEY_PASSWORD'];
-export const localUiSuites = ['security', 'ui', 'onboarding', 'audio-history', 'correction-feedback', 'updates'];
+export const localUiSuites = ['security', 'ui', 'onboarding', 'audio-history', 'correction-feedback', 'updates', 'privacy', 'microphone'];
 
 export function runBrowserChecks(build, env, checkedSource) {
   if (checkedSource?.reused === true) return;
