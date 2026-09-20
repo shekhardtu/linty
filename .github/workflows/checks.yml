@@ -4,6 +4,11 @@ on:
   # Releases reuse a successful PR suite when its tested tree matches main.
   # workflow_call provides full validation when that cannot be verified.
   workflow_call:
+    inputs:
+      full_validation:
+        description: Require the full suite when called for release validation
+        type: boolean
+        default: true
   pull_request:
 
 concurrency:
@@ -14,8 +19,46 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Select check scope
+    runs-on: ubuntu-latest
+    outputs:
+      scope: ${{ steps.scope.outputs.scope }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          FORCE_FULL: ${{ inputs.full_validation }}
+        run: node scripts/check-scope.mjs
+
+  website-tests:
+    name: Website checks
+    needs: changes
+    if: needs.changes.outputs.scope == 'website'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      # The static website tests use Node's built-ins; no app dependencies/build.
+      - run: node --test tests/website-*.test.mjs tests/privacy.test.mjs tests/check-scope.test.mjs
+      - name: Check website JavaScript syntax
+        run: |
+          for script in website/*.js scripts/capture-website.mjs scripts/website-preview-data.mjs; do
+            node --check "$script"
+          done
+
   public-corpus-tests:
     name: Public corpus scoring and loader
+    needs: changes
+    if: needs.changes.outputs.scope == 'full'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -29,6 +72,8 @@ jobs:
 
   rust-logging:
     name: Rust logging hygiene
+    needs: changes
+    if: needs.changes.outputs.scope == 'full'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 — Node 24
@@ -37,6 +82,8 @@ jobs:
 
   node-tests:
     name: Node tests
+    needs: changes
+    if: needs.changes.outputs.scope == 'full'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 — Node 24
@@ -53,6 +100,8 @@ jobs:
 
   native-tests:
     name: macOS native tests
+    needs: changes
+    if: needs.changes.outputs.scope == 'full'
     runs-on: macos-14
     env:
       CARGO_INCREMENTAL: '1'
@@ -102,6 +151,8 @@ jobs:
 
   ui-tests:
     name: UI tests (${{ matrix.browser }})
+    needs: changes
+    if: needs.changes.outputs.scope == 'full'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -149,21 +200,24 @@ jobs:
   required-checks:
     name: Required checks
     if: always()
-    needs: [public-corpus-tests, rust-logging, node-tests, native-tests, ui-tests]
+    needs: [changes, website-tests, public-corpus-tests, rust-logging, node-tests, native-tests, ui-tests]
     runs-on: ubuntu-latest
     steps:
-      - name: Require every check to succeed
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - name: Require every selected check to succeed
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: |
-          echo "$RESULTS" | jq -e 'all(.[]; .result == "success")'
+        run: node scripts/check-scope.mjs --verify-results
       - name: Record the commit that passed all checks
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && needs.changes.outputs.scope == 'full'
         env:
           CHECKED_COMMIT: ${{ github.sha }}
         run: printf '%s\n' "$CHECKED_COMMIT" > "$RUNNER_TEMP/checked-commit.txt"
       - name: Save checked source for release validation
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && needs.changes.outputs.scope == 'full'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: checked-source-${{ github.run_attempt }}

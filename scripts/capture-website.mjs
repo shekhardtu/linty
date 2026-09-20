@@ -14,6 +14,7 @@ try {
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   const capture = async name => {
+    await page.getByText(/^Changes (?:are )?saved locally$/).waitFor();
     await page.mouse.move(1190, 790);
     await page.evaluate(async()=>{
       await document.fonts.ready;
@@ -38,10 +39,14 @@ try {
     await page.getByRole('region',{name:'Selected transcription',exact:true}).waitFor();
     await capture(`history-${theme}`);
     await page.getByRole('button',{name:'Settings',exact:true}).click();
-    await page.getByRole('button',{name:'Language',exact:true}).click();
-    await page.getByRole('heading',{name:'Language',exact:true}).waitFor();
-    await page.getByRole('heading',{name:'English',exact:true}).waitFor();
+    await page.getByRole('button',{name:'Dictation',exact:true}).click();
+    await page.getByRole('heading',{name:'Dictation',exact:true}).waitFor();
+    assert.equal(await page.getByRole('combobox',{name:'Transcription language',exact:true}).innerText(),'English');
+    await page.getByText('S1-mini by Superwhisper', { exact: true }).waitFor();
     await page.getByText('Ready for offline dictation', { exact: true }).waitFor();
+    await page.getByText('Customize cleanup', { exact: true }).click();
+    await page.getByText('Use lists when appropriate', { exact: true }).waitFor();
+    // Keep the existing asset URLs stable as Language moves into Dictation.
     await capture(`language-${theme}`);
   }
   assert.deepEqual(errors,[]);
