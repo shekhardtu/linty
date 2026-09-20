@@ -1,5 +1,5 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
-import { Info, TrendingUp, X } from "lucide-react";
+import { Info, X } from "lucide-react";
 import { useAppStore } from "@/store/app.store";
 import { saveTypingSpeed } from "@/hooks/useSettings.hook";
 import {
@@ -26,6 +26,12 @@ export function PayoffSummary({
 }) {
   const baseline = useAppStore((s) => s.typingWordsPerMinute);
   const estimate = estimatePayoff(summary.timing, baseline);
+  const speedRatio = estimate?.speedRatio.toLocaleString(undefined, {
+    maximumFractionDigits: 1,
+  });
+  const speedComparison = estimate
+    ? `About ${speedRatio}× your typing baseline, including processing.`
+    : null;
   const [open, setOpen] = useState(false);
   const info = useRef<HTMLButtonElement>(null);
   const positive = estimate && estimate.savedSeconds >= 30;
@@ -50,13 +56,18 @@ export function PayoffSummary({
     >
       <div className="payoff-label">
         <span>{label}</span>
+        {estimate && (
+          <span className="payoff-ratio" title={speedComparison ?? undefined}>
+            {speedRatio}×
+          </span>
+        )}
         <button
           ref={info}
           className="icon-button payoff-info"
           aria-label="How time saved is estimated"
           aria-haspopup="dialog"
           aria-expanded={open}
-          data-tooltip={`Compared with typing at ${baseline} wpm\nClick to view the calculation and adjust.`}
+          data-tooltip={`Compared with typing at ${baseline} wpm\n${speedComparison ? `${speedComparison}\n` : ""}Click to view the calculation and adjust.`}
           onClick={() => setOpen(true)}
         >
           <Info size={14} />
@@ -95,14 +106,6 @@ export function PayoffSummary({
           }
           detail={paceDetail}
         />
-      </div>
-      <div className="payoff-proof">
-        <TrendingUp size={14} aria-hidden="true" />
-        <span>
-          {estimate
-            ? `About ${estimate.speedRatio.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}× your typing baseline, including processing.`
-            : "Your progress will come from your saved dictations."}
-        </span>
       </div>
       <EstimateDetails
         open={open}

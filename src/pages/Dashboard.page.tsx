@@ -140,91 +140,93 @@ export function DashboardPage() {
               comparisonDays={usage.comparisonDays}
             />
           </section>
-          <section className="overview-apps">
-            <SectionHeading
-              title="Dictation by app"
-              actions={
-                <button
-                  className="text-link"
-                  onClick={() => setCurrentView("apps")}
-                >
-                  View all apps <ArrowRight size={13} />
-                </button>
-              }
-            />
-            {topApps.length > 0 ? (
-              <div className="app-table-scroll">
-                <table className="app-usage-table overview-app-table">
-                  <thead>
-                    <tr>
-                      <th>Application</th>
-                      <th>Words</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topApps.map((app) => {
-                      const share = stats.words
-                        ? Math.round((app.words / stats.words) * 100)
-                        : 0;
-                      return (
-                        <tr key={app.id}>
-                          <td>
-                            <button
-                              className="app-name"
-                              onClick={() => openHistory(app.name)}
-                              title={`View ${app.name} transcripts`}
-                            >
-                              <AppIcon
-                                name={app.name}
-                                icon={
-                                  app.bundleId ? appIcons[app.bundleId] : null
-                                }
-                              />
-                              <strong className="min-w-0">{app.name}</strong>
-                            </button>
-                          </td>
-                          <td>
-                            <strong className="font-semibold">
-                              {number(app.words)}
-                            </strong>
-                            <div className="overview-app-share">
-                              <span
-                                className="app-share-track"
-                                aria-hidden="true"
+          <div className="overview-support-details">
+            <section className="overview-apps">
+              <SectionHeading
+                title="Dictation by app"
+                actions={
+                  <button
+                    className="text-link"
+                    onClick={() => setCurrentView("apps")}
+                  >
+                    View all apps <ArrowRight size={13} />
+                  </button>
+                }
+              />
+              {topApps.length > 0 ? (
+                <div className="app-table-scroll">
+                  <table className="app-usage-table overview-app-table">
+                    <thead>
+                      <tr>
+                        <th>Application</th>
+                        <th>Words</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topApps.map((app) => {
+                        const share = stats.words
+                          ? Math.round((app.words / stats.words) * 100)
+                          : 0;
+                        return (
+                          <tr key={app.id}>
+                            <td>
+                              <button
+                                className="app-name"
+                                onClick={() => openHistory(app.name)}
+                                title={`View ${app.name} transcripts`}
                               >
-                                <span style={{ width: `${share}%` }} />
-                              </span>
-                              <span>
-                                <span className="sr-only">
-                                  Share of all words:{" "}
+                                <AppIcon
+                                  name={app.name}
+                                  icon={
+                                    app.bundleId ? appIcons[app.bundleId] : null
+                                  }
+                                />
+                                <strong className="min-w-0">{app.name}</strong>
+                              </button>
+                            </td>
+                            <td>
+                              <strong className="font-semibold">
+                                {number(app.words)}
+                              </strong>
+                              <div className="overview-app-share">
+                                <span
+                                  className="app-share-track"
+                                  aria-hidden="true"
+                                >
+                                  <span style={{ width: `${share}%` }} />
                                 </span>
-                                {share}%
-                              </span>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="app-empty">
-                <h3>
-                  {tracking
-                    ? "No app activity yet"
-                    : "App attribution is paused"}
-                </h3>
-                <p>
-                  {tracking
-                    ? "Dictate in your favorite apps to see where your words go."
-                    : "Turn on app attribution in Settings → Privacy & Storage for new dictations."}
-                </p>
-              </div>
-            )}
-          </section>
-          <OverviewWidgets />
-          <HistoryScopeNote />
+                                <span>
+                                  <span className="sr-only">
+                                    Share of all words:{" "}
+                                  </span>
+                                  {share}%
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="app-empty">
+                  <h3>
+                    {tracking
+                      ? "No app activity yet"
+                      : "App attribution is paused"}
+                  </h3>
+                  <p>
+                    {tracking
+                      ? "Dictate in your favorite apps to see where your words go."
+                      : "Turn on app attribution in Settings → Privacy & Storage for new dictations."}
+                  </p>
+                </div>
+              )}
+            </section>
+            <OverviewWidgets />
+            <HistoryScopeNote />
+          </div>
         </aside>
       </div>
     </PageLayout>
