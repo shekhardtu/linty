@@ -4,7 +4,7 @@
     "src/assets/brand-artwork.json": "aa8d66fcda9ac18871205f2d789613e6c34dfcd3fb157b608cf8801cea578a22",
     "src/styles/tokens.css": "d11c151b25f49754d33a87d7095d9ceae3ba8f981a700da9e3b50ffdeb2bb9f6",
     "scripts/generate-icons.mjs": "c3d72021cfc37a5c03b21ceb6bbe575341aed27e7313a19870764f82c2fef790",
-    "yarn.lock": "05473835de06304afb017fd2d71988ef0fdcf6e76463b50344c4e80b98c71eeb"
+    "yarn.lock": "5dc0643a7d889e87b8f7caa1b24ec13792b188a0354c1a00603932184db248ac"
   },
   "outputs": {
     "public/brand/apple-touch-icon.png": "c8e6c006677286cd8eb405608994229f2be477d766cc1b8a7a99c9e5767f7c9c",
@@ -13,7 +13,7 @@
     "src-tauri/icons/128x128.png": "3140f695efa239fd7acc1f90a19be3e7e4923f5de610a63d86dd57da20fae48a",
     "src-tauri/icons/128x128@2x.png": "38a1141a46476b26a7431f5de26a6f7715c8a3e675853c447bd770916b78c10e",
     "src-tauri/icons/32x32.png": "36c2c759f33109cf40ffcb0b17011e246d0574cf2e2f3e7844d7c3df513a10a4",
-    "src-tauri/icons/icon.icns": "6e2d4013a27f232adcf49b054cdf3bf77d819d2bdaed711dddc193263dacd743",
+    "src-tauri/icons/icon.icns": "ebd6b89f7510cbf4e539b349ef8da730db7dcedac973f927a8de5f62c2b2c118",
     "src-tauri/icons/icon.ico": "67c9d41543c7c44d740fb09b1d9f1518c92caed44c3421f871b592a1ac7fed72",
     "src-tauri/icons/icon.png": "cad27f6e1ff3a6bb5ee4ec7879955ee886f1cce7586a0b09e5dcb976aa2f0c00",
     "src-tauri/icons/icon.svg": "b97b744a3624d23014b583195c8e94193bfb668f1385185729b168f27765bac5",
@@ -21,9 +21,9 @@
     "src-tauri/icons/tray-icon.svg": "522903bc5e64bb9ddc11d2c27c426370b81e793f00b03e284c16a282cbbf9686",
     "src-tauri/icons/tray-icon@1x.png": "169b7064cc04c10a798ef49f4858c5f94d18f6e11672cefd8380cf9e834232aa",
     "website/brand/apple-touch-icon.png": "c8e6c006677286cd8eb405608994229f2be477d766cc1b8a7a99c9e5767f7c9c",
-    "website/brand/command.svg": "257443c046d548bde42c0042e2f0e15a298ef01b7971a24ed79cd9339ef488d7",
+    "website/brand/command.svg": "f7fa5b054a655d50a134cb61b1608059e591532950c6440d1b32bbab96bb4445",
     "website/brand/contour.svg": "60663da3af86f07943e5083aaf959a4b59f7ece0a82d358cd05383e6ca12f1de",
-    "website/brand/cpu.svg": "ca11e5644e9ae0092d7d8d91950647ea7711b401bccc9d60d549e876df4f42dd",
+    "website/brand/cpu.svg": "8d5e36885c71fdd9a6f015806eaa0e2863721ecd250e2c6dc9c487b1c1f30815",
     "website/brand/favicon.png": "36c2c759f33109cf40ffcb0b17011e246d0574cf2e2f3e7844d7c3df513a10a4",
     "website/brand/flow.svg": "777b300fe0215c797fd31544f4fdc15c865baca9572254a0a3b8923e57ab51e9",
     "website/brand/icon.svg": "b97b744a3624d23014b583195c8e94193bfb668f1385185729b168f27765bac5",

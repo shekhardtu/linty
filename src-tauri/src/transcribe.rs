@@ -641,7 +641,7 @@ pub async fn download_model(app: &tauri::AppHandle, dest: &std::path::Path) -> R
 
     verify_artifact(
         downloaded,
-        &format!("{:x}", digest.finalize()),
+        &crate::model_store::sha256_hex(digest.finalize()),
         WHISPER_BYTES,
         WHISPER_SHA256,
     )?;

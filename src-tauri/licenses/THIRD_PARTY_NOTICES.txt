@@ -151,6 +151,13 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/block-buffer/0.10.4/source/LICENSE-MIT
   License text: d5c22aa3118d240e877ad41c5d9fa232f9c77d757d4aac0c2f943afc0a95e0ef
 
+Cargo: block-buffer 0.12.1
+Declared license: MIT OR Apache-2.0
+  Source: https://docs.rs/crate/block-buffer/0.12.1/source/LICENSE-APACHE
+  License text: 6aed14a79871456730ce9c74d0e927e9097e63b4085c4395af363d431ede5c8f
+  Source: https://docs.rs/crate/block-buffer/0.12.1/source/LICENSE-MIT
+  License text: 98181e7249d0c01737645ec982499ce99a0f07eb8f7d625b8840d799d10dbc01
+
 Cargo: block2 0.5.1
 Declared license: MIT
   Source: https://raw.githubusercontent.com/madsmtm/objc2/4fc083f1c6d6784577e38b0ee8dbd344481e2fd2/LICENSE.txt
@@ -327,6 +334,15 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/cocoa/0.26.1/source/LICENSE-MIT
   License text: 62065228e42caebca7e7d7db1204cbb867033de5982ca4009928915e4095f3a3
 
+Cargo: cocoa 0.27.0
+Declared license: MIT OR Apache-2.0
+  Source: https://docs.rs/crate/cocoa/0.27.0/source/COPYRIGHT
+  License text: ec82b96487e9e778ee610c7ab245162464782cfa1f555c2299333f8dbe5c036a
+  Source: https://docs.rs/crate/cocoa/0.27.0/source/LICENSE-APACHE
+  License text: 143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4
+  Source: https://docs.rs/crate/cocoa/0.27.0/source/LICENSE-MIT
+  License text: 62065228e42caebca7e7d7db1204cbb867033de5982ca4009928915e4095f3a3
+
 Cargo: cocoa-foundation 0.2.1
 Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/cocoa-foundation/0.2.1/source/LICENSE-APACHE
@@ -338,6 +354,13 @@ Cargo: compact_str 0.9.1
 Declared license: MIT
   Source: https://docs.rs/crate/compact_str/0.9.1/source/LICENSE
   License text: 0d52feec79589df30138dad3800323fe5686b764b73347330a2dfef8ac83efe8
+
+Cargo: const-oid 0.10.2
+Declared license: Apache-2.0 OR MIT
+  Source: https://docs.rs/crate/const-oid/0.10.2/source/LICENSE-APACHE
+  License text: 6aed14a79871456730ce9c74d0e927e9097e63b4085c4395af363d431ede5c8f
+  Source: https://docs.rs/crate/const-oid/0.10.2/source/LICENSE-MIT
+  License text: 73b9dc2e79c7308998dd30296e073aefaefb944a68fb89aa412c23c0edcabcaa
 
 Cargo: convert_case 0.4.0
 Declared license: MIT
@@ -428,6 +451,13 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/cpufeatures/0.2.17/source/LICENSE-MIT
   License text: ae9baa7beea910273c2f384c2a6b721fb7bd02bda3436074a1072e4ee689f985
 
+Cargo: cpufeatures 0.3.1
+Declared license: MIT OR Apache-2.0
+  Source: https://docs.rs/crate/cpufeatures/0.3.1/source/LICENSE-APACHE
+  License text: 6aed14a79871456730ce9c74d0e927e9097e63b4085c4395af363d431ede5c8f
+  Source: https://docs.rs/crate/cpufeatures/0.3.1/source/LICENSE-MIT
+  License text: 73b9dc2e79c7308998dd30296e073aefaefb944a68fb89aa412c23c0edcabcaa
+
 Cargo: crc32fast 1.5.0
 Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/crc32fast/1.5.0/source/LICENSE-APACHE
@@ -471,6 +501,13 @@ Declared license: MIT OR Apache-2.0
   License text: 6aed14a79871456730ce9c74d0e927e9097e63b4085c4395af363d431ede5c8f
   Source: https://docs.rs/crate/crypto-common/0.1.7/source/LICENSE-MIT
   License text: 3521672491a3479422d5fe1aca6645dd2984090f85da6e5205abfb18fb7a6897
+
+Cargo: crypto-common 0.2.2
+Declared license: MIT OR Apache-2.0
+  Source: https://docs.rs/crate/crypto-common/0.2.2/source/LICENSE-APACHE
+  License text: 6aed14a79871456730ce9c74d0e927e9097e63b4085c4395af363d431ede5c8f
+  Source: https://docs.rs/crate/crypto-common/0.2.2/source/LICENSE-MIT
+  License text: d2e7ec5355c96eeade56b09187ceb48a6a30299da3ce7531a66d3d11405ab963
 
 Cargo: cssparser 0.29.6
 Declared license: MPL-2.0
@@ -615,6 +652,13 @@ Declared license: MIT OR Apache-2.0
   License text: 6aed14a79871456730ce9c74d0e927e9097e63b4085c4395af363d431ede5c8f
   Source: https://docs.rs/crate/digest/0.10.7/source/LICENSE-MIT
   License text: 9e0dfd2dd4173a530e238cb6adb37aa78c34c6bc7444e0e10c1ab5d8881f63ba
+
+Cargo: digest 0.11.3
+Declared license: MIT OR Apache-2.0
+  Source: https://docs.rs/crate/digest/0.11.3/source/LICENSE-APACHE
+  License text: 6aed14a79871456730ce9c74d0e927e9097e63b4085c4395af363d431ede5c8f
+  Source: https://docs.rs/crate/digest/0.11.3/source/LICENSE-MIT
+  License text: af59cea35d7f5e2777a713b8d155d65efa2c339eb43f3c14e868c6ac8506edad
 
 Cargo: dirs 6.0.0
 Declared license: MIT OR Apache-2.0
@@ -910,46 +954,46 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/futures-channel/0.3.32/source/LICENSE-MIT
   License text: 6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd
 
-Cargo: futures-core 0.3.32
+Cargo: futures-core 0.3.34
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/futures-core/0.3.32/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/futures-core/0.3.34/source/LICENSE-APACHE
   License text: 8337133fbd3cd6b5de6ca9fd048a242a01045f3257add148a03c29f91e51e2b2
-  Source: https://docs.rs/crate/futures-core/0.3.32/source/LICENSE-MIT
+  Source: https://docs.rs/crate/futures-core/0.3.34/source/LICENSE-MIT
   License text: 6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd
 
-Cargo: futures-io 0.3.32
+Cargo: futures-io 0.3.34
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/futures-io/0.3.32/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/futures-io/0.3.34/source/LICENSE-APACHE
   License text: 8337133fbd3cd6b5de6ca9fd048a242a01045f3257add148a03c29f91e51e2b2
-  Source: https://docs.rs/crate/futures-io/0.3.32/source/LICENSE-MIT
+  Source: https://docs.rs/crate/futures-io/0.3.34/source/LICENSE-MIT
   License text: 6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd
 
-Cargo: futures-macro 0.3.32
+Cargo: futures-macro 0.3.34
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/futures-macro/0.3.32/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/futures-macro/0.3.34/source/LICENSE-APACHE
   License text: 8337133fbd3cd6b5de6ca9fd048a242a01045f3257add148a03c29f91e51e2b2
-  Source: https://docs.rs/crate/futures-macro/0.3.32/source/LICENSE-MIT
+  Source: https://docs.rs/crate/futures-macro/0.3.34/source/LICENSE-MIT
   License text: 6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd
 
-Cargo: futures-sink 0.3.32
+Cargo: futures-sink 0.3.34
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/futures-sink/0.3.32/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/futures-sink/0.3.34/source/LICENSE-APACHE
   License text: 8337133fbd3cd6b5de6ca9fd048a242a01045f3257add148a03c29f91e51e2b2
-  Source: https://docs.rs/crate/futures-sink/0.3.32/source/LICENSE-MIT
+  Source: https://docs.rs/crate/futures-sink/0.3.34/source/LICENSE-MIT
   License text: 6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd
 
-Cargo: futures-task 0.3.32
+Cargo: futures-task 0.3.34
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/futures-task/0.3.32/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/futures-task/0.3.34/source/LICENSE-APACHE
   License text: 8337133fbd3cd6b5de6ca9fd048a242a01045f3257add148a03c29f91e51e2b2
-  Source: https://docs.rs/crate/futures-task/0.3.32/source/LICENSE-MIT
+  Source: https://docs.rs/crate/futures-task/0.3.34/source/LICENSE-MIT
   License text: 6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd
 
-Cargo: futures-util 0.3.32
+Cargo: futures-util 0.3.34
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/futures-util/0.3.32/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/futures-util/0.3.34/source/LICENSE-APACHE
   License text: 8337133fbd3cd6b5de6ca9fd048a242a01045f3257add148a03c29f91e51e2b2
-  Source: https://docs.rs/crate/futures-util/0.3.32/source/LICENSE-MIT
+  Source: https://docs.rs/crate/futures-util/0.3.34/source/LICENSE-MIT
   License text: 6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd
 
 Cargo: fxhash 0.2.1
@@ -1067,13 +1111,13 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/glob/0.3.3/source/LICENSE-MIT
   License text: 6485b8ed310d3f0340bf1ad1f47645069ce4069dcc6bb46c7d5c6faf41de1fdb
 
-Cargo: global-hotkey 0.7.0
+Cargo: global-hotkey 0.8.0
 Declared license: Apache-2.0 OR MIT
-  Source: https://docs.rs/crate/global-hotkey/0.7.0/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/global-hotkey/0.8.0/source/LICENSE-APACHE
   License text: 143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4
-  Source: https://docs.rs/crate/global-hotkey/0.7.0/source/LICENSE-MIT
+  Source: https://docs.rs/crate/global-hotkey/0.8.0/source/LICENSE-MIT
   License text: 2ab5537b8c0cb1d475e2145b6a7994b04e7c71e6e5bd836f7f9c47c221a5ad9a
-  Source: https://docs.rs/crate/global-hotkey/0.7.0/source/LICENSE.spdx
+  Source: https://docs.rs/crate/global-hotkey/0.8.0/source/LICENSE.spdx
   License text: 83d5a0b4f3fb9e400b1bd48c24ae6dfc53c41dae28f7998b254aa79b894c0832
 
 Cargo: h2 0.4.19
@@ -1179,6 +1223,13 @@ Declared license: MIT OR Apache-2.0
   License text: 143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4
   Source: https://docs.rs/crate/httparse/1.10.1/source/LICENSE-MIT
   License text: 1626f2c950cee975b5809748e288468141d09aa420314c7c9b35e6e62b772b2d
+
+Cargo: hybrid-array 0.4.15
+Declared license: MIT OR Apache-2.0
+  Source: https://docs.rs/crate/hybrid-array/0.4.15/source/LICENSE-APACHE
+  License text: 6aed14a79871456730ce9c74d0e927e9097e63b4085c4395af363d431ede5c8f
+  Source: https://docs.rs/crate/hybrid-array/0.4.15/source/LICENSE-MIT
+  License text: 70c9d40f1f9545c3f133b8a67206e89da850f6468eed072281bb3701514114a9
 
 Cargo: hyper 1.8.1
 Declared license: MIT
@@ -1382,11 +1433,11 @@ Declared license: MIT
   Source: https://docs.rs/crate/kuchikiki/0.8.8-speedreader/source/LICENSE
   License text: 23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3
 
-Cargo: libc 0.2.183
+Cargo: libc 0.2.189
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/libc/0.2.183/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/libc/0.2.189/source/LICENSE-APACHE
   License text: b30df9a48463d1c99c6a66cdee623b1b0832c3811d58a80b338268d71cea190e
-  Source: https://docs.rs/crate/libc/0.2.183/source/LICENSE-MIT
+  Source: https://docs.rs/crate/libc/0.2.189/source/LICENSE-MIT
   License text: 123a331b5dbf04c30097fa43b8f858bc85df671fe776de498d01f3d6b7c1f69e
 
 Cargo: libloading 0.8.9
@@ -1418,11 +1469,11 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/lock_api/0.4.14/source/LICENSE-MIT
   License text: c9a75f18b9ab2927829a208fc6aa2cf4e63b8420887ba29cdb265d6619ae82d5
 
-Cargo: log 0.4.29
+Cargo: log 0.4.34
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/log/0.4.29/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/log/0.4.34/source/LICENSE-APACHE
   License text: 143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4
-  Source: https://docs.rs/crate/log/0.4.29/source/LICENSE-MIT
+  Source: https://docs.rs/crate/log/0.4.34/source/LICENSE-MIT
   License text: 6485b8ed310d3f0340bf1ad1f47645069ce4069dcc6bb46c7d5c6faf41de1fdb
 
 Cargo: mac 0.1.1
@@ -1548,9 +1599,9 @@ Declared license: MIT OR Zlib OR Apache-2.0
   Source: https://docs.rs/crate/miniz_oxide/0.8.9/source/LICENSE-ZLIB.md
   License text: 0a54e647fe54104658b5e563c04c6f9edf251710e47bce692e0bd990a4ddaa39
 
-Cargo: mio 1.1.1
+Cargo: mio 1.2.3
 Declared license: MIT
-  Source: https://docs.rs/crate/mio/1.1.1/source/LICENSE
+  Source: https://docs.rs/crate/mio/1.2.3/source/LICENSE
   License text: 07919255c7e04793d8ea760d6c2ce32d19f9ff02bdbdde3ce90b1e1880929a9b
 
 Cargo: monostate 0.1.18
@@ -1628,12 +1679,12 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/num-complex/0.4.6/source/LICENSE-MIT
   License text: 6485b8ed310d3f0340bf1ad1f47645069ce4069dcc6bb46c7d5c6faf41de1fdb
 
-Cargo: num-conv 0.2.0
+Cargo: num-conv 0.2.2
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/num-conv/0.2.0/source/LICENSE-Apache
-  License text: 661cf13c5e043342ff87a6ab839d1c85e24d65fa96a0460a0097e740ca6e9f08
-  Source: https://docs.rs/crate/num-conv/0.2.0/source/LICENSE-MIT
-  License text: af85fff507d80e6c7ff242acfc4b0a7f5de9a72286bb3c883c782772ca4b4402
+  Source: https://docs.rs/crate/num-conv/0.2.2/source/LICENSE-Apache
+  License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
+  Source: https://docs.rs/crate/num-conv/0.2.2/source/LICENSE-MIT
+  License text: e2e245f2b566d0bfafb0f6a04c16b82d710c4e6e7d799e39bb4ef6e541b85b98
 
 Cargo: num-integer 0.1.47
 Declared license: MIT OR Apache-2.0
@@ -2415,11 +2466,11 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/seq-macro/0.3.6/source/LICENSE-MIT
   License text: 23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3
 
-Cargo: serde 1.0.228
+Cargo: serde 1.0.229
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/serde/1.0.228/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/serde/1.0.229/source/LICENSE-APACHE
   License text: b30df9a48463d1c99c6a66cdee623b1b0832c3811d58a80b338268d71cea190e
-  Source: https://docs.rs/crate/serde/1.0.228/source/LICENSE-MIT
+  Source: https://docs.rs/crate/serde/1.0.229/source/LICENSE-MIT
   License text: 23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3
 
 Cargo: serde-untagged 0.1.9
@@ -2429,18 +2480,18 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/serde-untagged/0.1.9/source/LICENSE-MIT
   License text: 23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3
 
-Cargo: serde_core 1.0.228
+Cargo: serde_core 1.0.229
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/serde_core/1.0.228/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/serde_core/1.0.229/source/LICENSE-APACHE
   License text: b30df9a48463d1c99c6a66cdee623b1b0832c3811d58a80b338268d71cea190e
-  Source: https://docs.rs/crate/serde_core/1.0.228/source/LICENSE-MIT
+  Source: https://docs.rs/crate/serde_core/1.0.229/source/LICENSE-MIT
   License text: 23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3
 
-Cargo: serde_derive 1.0.228
+Cargo: serde_derive 1.0.229
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/serde_derive/1.0.228/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/serde_derive/1.0.229/source/LICENSE-APACHE
   License text: b30df9a48463d1c99c6a66cdee623b1b0832c3811d58a80b338268d71cea190e
-  Source: https://docs.rs/crate/serde_derive/1.0.228/source/LICENSE-MIT
+  Source: https://docs.rs/crate/serde_derive/1.0.229/source/LICENSE-MIT
   License text: 23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3
 
 Cargo: serde_derive_internals 0.29.1
@@ -2533,6 +2584,13 @@ Declared license: MIT OR Apache-2.0
   License text: 6aed14a79871456730ce9c74d0e927e9097e63b4085c4395af363d431ede5c8f
   Source: https://docs.rs/crate/sha2/0.10.9/source/LICENSE-MIT
   License text: b4eb00df6e2a4d22518fcaa6a2b4646f249b3a3c9814509b22bd2091f1392ff1
+
+Cargo: sha2 0.11.0
+Declared license: MIT OR Apache-2.0
+  Source: https://docs.rs/crate/sha2/0.11.0/source/LICENSE-APACHE
+  License text: 6aed14a79871456730ce9c74d0e927e9097e63b4085c4395af363d431ede5c8f
+  Source: https://docs.rs/crate/sha2/0.11.0/source/LICENSE-MIT
+  License text: 831e0f43ad0bf014c1c4fec5767aae470434c1d66d6e671be2d823e729063e25
 
 Cargo: shared_child 1.1.1
 Declared license: MIT
@@ -2727,11 +2785,11 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/tar/0.4.46/source/LICENSE-MIT
   License text: 8ca6b96cea9e67c6c5c63f452c31bd396db8bd2406231fdea5d48ef462b48077
 
-Cargo: tauri 2.11.1
+Cargo: tauri 2.11.5
 Declared license: Apache-2.0 OR MIT
-  Source: https://docs.rs/crate/tauri/2.11.1/source/LICENSE_APACHE-2.0
+  Source: https://docs.rs/crate/tauri/2.11.5/source/LICENSE_APACHE-2.0
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/tauri/2.11.1/source/LICENSE_MIT
+  Source: https://docs.rs/crate/tauri/2.11.5/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
 Cargo: tauri-build 2.6.3
@@ -2771,13 +2829,13 @@ Declared license: Apache-2.0 OR MIT
   Source: https://raw.githubusercontent.com/tauri-apps/tauri/9b17a7aeae9a83222ffe829aa4e2d8a5ba6bed8c/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
-Cargo: tauri-plugin-clipboard-manager 2.3.2
+Cargo: tauri-plugin-clipboard-manager 2.3.3
 Declared license: Apache-2.0 OR MIT
-  Source: https://docs.rs/crate/tauri-plugin-clipboard-manager/2.3.2/source/LICENSE.spdx
+  Source: https://docs.rs/crate/tauri-plugin-clipboard-manager/2.3.3/source/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
-  Source: https://docs.rs/crate/tauri-plugin-clipboard-manager/2.3.2/source/LICENSE_APACHE-2.0
+  Source: https://docs.rs/crate/tauri-plugin-clipboard-manager/2.3.3/source/LICENSE_APACHE-2.0
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/tauri-plugin-clipboard-manager/2.3.2/source/LICENSE_MIT
+  Source: https://docs.rs/crate/tauri-plugin-clipboard-manager/2.3.3/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
 Cargo: tauri-plugin-dialog 2.7.3
@@ -2798,13 +2856,13 @@ Declared license: Apache-2.0 OR MIT
   Source: https://docs.rs/crate/tauri-plugin-fs/2.5.2/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
-Cargo: tauri-plugin-global-shortcut 2.3.1
+Cargo: tauri-plugin-global-shortcut 2.3.2
 Declared license: Apache-2.0 OR MIT
-  Source: https://docs.rs/crate/tauri-plugin-global-shortcut/2.3.1/source/LICENSE.spdx
+  Source: https://docs.rs/crate/tauri-plugin-global-shortcut/2.3.2/source/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
-  Source: https://docs.rs/crate/tauri-plugin-global-shortcut/2.3.1/source/LICENSE_APACHE-2.0
+  Source: https://docs.rs/crate/tauri-plugin-global-shortcut/2.3.2/source/LICENSE_APACHE-2.0
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/tauri-plugin-global-shortcut/2.3.1/source/LICENSE_MIT
+  Source: https://docs.rs/crate/tauri-plugin-global-shortcut/2.3.2/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
 Cargo: tauri-plugin-log 2.9.1
@@ -2825,40 +2883,40 @@ Declared license: Apache-2.0 OR MIT
   Source: https://docs.rs/crate/tauri-plugin-process/2.3.1/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
-Cargo: tauri-plugin-shell 2.3.5
+Cargo: tauri-plugin-shell 2.3.6
 Declared license: Apache-2.0 OR MIT
-  Source: https://docs.rs/crate/tauri-plugin-shell/2.3.5/source/LICENSE.spdx
+  Source: https://docs.rs/crate/tauri-plugin-shell/2.3.6/source/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
-  Source: https://docs.rs/crate/tauri-plugin-shell/2.3.5/source/LICENSE_APACHE-2.0
+  Source: https://docs.rs/crate/tauri-plugin-shell/2.3.6/source/LICENSE_APACHE-2.0
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/tauri-plugin-shell/2.3.5/source/LICENSE_MIT
+  Source: https://docs.rs/crate/tauri-plugin-shell/2.3.6/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
-Cargo: tauri-plugin-single-instance 2.4.3
+Cargo: tauri-plugin-single-instance 2.4.4
 Declared license: Apache-2.0 OR MIT
-  Source: https://docs.rs/crate/tauri-plugin-single-instance/2.4.3/source/LICENSE.spdx
+  Source: https://docs.rs/crate/tauri-plugin-single-instance/2.4.4/source/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
-  Source: https://docs.rs/crate/tauri-plugin-single-instance/2.4.3/source/LICENSE_APACHE-2.0
+  Source: https://docs.rs/crate/tauri-plugin-single-instance/2.4.4/source/LICENSE_APACHE-2.0
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/tauri-plugin-single-instance/2.4.3/source/LICENSE_MIT
+  Source: https://docs.rs/crate/tauri-plugin-single-instance/2.4.4/source/LICENSE_MIT
   License text: af76c60594af325c4efdcbcd27f5d34ff441c11f09b46b627b378d04d5aa1f1d
 
-Cargo: tauri-plugin-store 2.4.2
+Cargo: tauri-plugin-store 2.4.5
 Declared license: Apache-2.0 OR MIT
-  Source: https://docs.rs/crate/tauri-plugin-store/2.4.2/source/LICENSE.spdx
+  Source: https://docs.rs/crate/tauri-plugin-store/2.4.5/source/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
-  Source: https://docs.rs/crate/tauri-plugin-store/2.4.2/source/LICENSE_APACHE-2.0
+  Source: https://docs.rs/crate/tauri-plugin-store/2.4.5/source/LICENSE_APACHE-2.0
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/tauri-plugin-store/2.4.2/source/LICENSE_MIT
+  Source: https://docs.rs/crate/tauri-plugin-store/2.4.5/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
-Cargo: tauri-plugin-updater 2.10.0
+Cargo: tauri-plugin-updater 2.11.0
 Declared license: Apache-2.0 OR MIT
-  Source: https://docs.rs/crate/tauri-plugin-updater/2.10.0/source/LICENSE.spdx
+  Source: https://docs.rs/crate/tauri-plugin-updater/2.11.0/source/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
-  Source: https://docs.rs/crate/tauri-plugin-updater/2.10.0/source/LICENSE_APACHE-2.0
+  Source: https://docs.rs/crate/tauri-plugin-updater/2.11.0/source/LICENSE_APACHE-2.0
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/tauri-plugin-updater/2.10.0/source/LICENSE_MIT
+  Source: https://docs.rs/crate/tauri-plugin-updater/2.11.0/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
 Cargo: tauri-runtime 2.11.3
@@ -2943,25 +3001,25 @@ Declared license: MIT
   Source: https://docs.rs/crate/tiff/0.11.3/source/tests/COPYRIGHT
   License text: c6d1d56bb6e2fe4f0aed4aa8553261dd65247db6db50c87c9e9f3fbe095e2202
 
-Cargo: time 0.3.47
+Cargo: time 0.3.55
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/time/0.3.47/source/LICENSE-Apache
+  Source: https://docs.rs/crate/time/0.3.55/source/LICENSE-Apache
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/time/0.3.47/source/LICENSE-MIT
+  Source: https://docs.rs/crate/time/0.3.55/source/LICENSE-MIT
   License text: 2537228d9a1b44a5dc595241349cae7090b326c8de165aaf89bfddef4a00d0fc
 
-Cargo: time-core 0.1.8
+Cargo: time-core 0.1.9
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/time-core/0.1.8/source/LICENSE-Apache
+  Source: https://docs.rs/crate/time-core/0.1.9/source/LICENSE-Apache
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/time-core/0.1.8/source/LICENSE-MIT
+  Source: https://docs.rs/crate/time-core/0.1.9/source/LICENSE-MIT
   License text: 2537228d9a1b44a5dc595241349cae7090b326c8de165aaf89bfddef4a00d0fc
 
-Cargo: time-macros 0.2.27
+Cargo: time-macros 0.2.32
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/time-macros/0.2.27/source/LICENSE-Apache
+  Source: https://docs.rs/crate/time-macros/0.2.32/source/LICENSE-Apache
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/time-macros/0.2.27/source/LICENSE-MIT
+  Source: https://docs.rs/crate/time-macros/0.2.32/source/LICENSE-MIT
   License text: 2537228d9a1b44a5dc595241349cae7090b326c8de165aaf89bfddef4a00d0fc
 
 Cargo: tinystr 0.8.2
@@ -2983,14 +3041,14 @@ Declared license: Apache-2.0
   Source: https://docs.rs/crate/tokenizers/0.22.2/source/LICENSE
   License text: 50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a
 
-Cargo: tokio 1.50.0
+Cargo: tokio 1.53.1
 Declared license: MIT
-  Source: https://docs.rs/crate/tokio/1.50.0/source/LICENSE
+  Source: https://docs.rs/crate/tokio/1.53.1/source/LICENSE
   License text: 253cd04c6714889df2d32f3f64d669179a1c95c76ac43c40882c52eb06bc3552
 
-Cargo: tokio-macros 2.6.1
+Cargo: tokio-macros 2.7.2
 Declared license: MIT
-  Source: https://docs.rs/crate/tokio-macros/2.6.1/source/LICENSE
+  Source: https://docs.rs/crate/tokio-macros/2.7.2/source/LICENSE
   License text: 0b83dc40cba89b9922bb84b0a9c7d2768ce37c1d7e138b7424fd4549915778c9
 
 Cargo: tokio-native-tls 0.3.1
@@ -3089,13 +3147,13 @@ Declared license: MIT
   Source: https://docs.rs/crate/tracing-core/0.1.36/source/src/spin/LICENSE
   License text: 58545fed1565e42d687aecec6897d35c6d37ccb71479a137c0deb2203e125c79
 
-Cargo: tray-icon 0.23.1
+Cargo: tray-icon 0.24.2
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/tray-icon/0.23.1/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/tray-icon/0.24.2/source/LICENSE-APACHE
   License text: 143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4
-  Source: https://docs.rs/crate/tray-icon/0.23.1/source/LICENSE-MIT
+  Source: https://docs.rs/crate/tray-icon/0.24.2/source/LICENSE-MIT
   License text: 2ab5537b8c0cb1d475e2145b6a7994b04e7c71e6e5bd836f7f9c47c221a5ad9a
-  Source: https://docs.rs/crate/tray-icon/0.23.1/source/LICENSE.spdx
+  Source: https://docs.rs/crate/tray-icon/0.24.2/source/LICENSE.spdx
   License text: 44181d1db740d9841dbe6d7fa1963a23067f335567127fc15a9d050476af71a6
 
 Cargo: try-lock 0.2.5
@@ -3117,13 +3175,13 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/typeid/1.0.3/source/LICENSE-MIT
   License text: 23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3
 
-Cargo: typenum 1.19.0
+Cargo: typenum 1.20.1
 Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/typenum/1.19.0/source/LICENSE
+  Source: https://docs.rs/crate/typenum/1.20.1/source/LICENSE
   License text: 36bb253818ac13761081556ff5c457d626da9df1eb4f56194d9ad3926c418a68
-  Source: https://docs.rs/crate/typenum/1.19.0/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/typenum/1.20.1/source/LICENSE-APACHE
   License text: adb48f9ee5be072e48dea05c2a289da330aae14467f7474c4a1f00a81cf8d5ef
-  Source: https://docs.rs/crate/typenum/1.19.0/source/LICENSE-MIT
+  Source: https://docs.rs/crate/typenum/1.20.1/source/LICENSE-MIT
   License text: a825bd853ab71619a4923d7b4311221427848070ff44d990da39b0b274c1683f
 
 Cargo: ug 0.5.0
@@ -3504,9 +3562,9 @@ Declared license: MIT OR Apache-2.0
   Source: npm:@tauri-apps/plugin-store@2.4.5/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
 
-npm: @tauri-apps/plugin-updater 2.10.1
+npm: @tauri-apps/plugin-updater 2.11.0
 Declared license: MIT OR Apache-2.0
-  Source: npm:@tauri-apps/plugin-updater@2.10.1/LICENSE.spdx
+  Source: npm:@tauri-apps/plugin-updater@2.11.0/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
 
 npm: clsx 2.1.1
@@ -3514,14 +3572,14 @@ Declared license: MIT
   Source: npm:clsx@2.1.1/license
   License text: 9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97
 
-npm: lucide-react 0.468.0
+npm: lucide-react 1.46.0
 Declared license: ISC
-  Source: npm:lucide-react@0.468.0/LICENSE
-  License text: 1e7290b35280a048667bbf0ebabac1c7fd52a75300e8b2946ac165715997f2bc
-  Source: npm:lucide-react@0.468.0/dist/esm/icons/copyright.js
-  License text: da134a9801bb937213886856dc856a3b90d64a54f4479c3e279cec49e70f46ed
-  Source: npm:lucide-react@0.468.0/dist/esm/icons/copyright.js.map
-  License text: 6052fd16f356e5c30a335d693b763fd53157361e0f8e525c02936e6bb02666dd
+  Source: npm:lucide-react@1.46.0/LICENSE
+  License text: b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57
+  Source: npm:lucide-react@1.46.0/dist/esm/icons/copyright.mjs
+  License text: aaafba6c52867d64b95f9926d7bad5e64a61c4eb92063975fca0fefe970fd1ee
+  Source: npm:lucide-react@1.46.0/dist/esm/icons/copyright.mjs.map
+  License text: f1f3f54ef8b20ee3e35a8e0821081d6f41486b8598ae30ca872e1bb047960446
 
 npm: react 19.3.0
 Declared license: MIT
@@ -5599,23 +5657,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-=== License text SHA-256: 1e7290b35280a048667bbf0ebabac1c7fd52a75300e8b2946ac165715997f2bc ===
-ISC License
-
-Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT). All other copyright (c) for Lucide are held by Lucide Contributors 2022.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 === License text SHA-256: 1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5 ===
 Mozilla Public License Version 2.0
@@ -10201,9 +10242,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-=== License text SHA-256: 6052fd16f356e5c30a335d693b763fd53157361e0f8e525c02936e6bb02666dd ===
-{"version":3,"file":"copyright.js","sources":["../../../src/icons/copyright.ts"],"sourcesContent":["import createLucideIcon from '../createLucideIcon';\n\n/**\n * @component @name Copyright\n * @description Lucide SVG icon component, renders SVG Element with children.\n *\n * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIgLz4KICA8cGF0aCBkPSJNMTQuODMgMTQuODNhNCA0IDAgMSAxIDAtNS42NiIgLz4KPC9zdmc+Cg==) - https://lucide.dev/icons/copyright\n * @see https://lucide.dev/guide/packages/lucide-react - Documentation\n *\n * @param {Object} props - Lucide icons props and any valid SVG attribute\n * @returns {JSX.Element} JSX Element\n *\n */\nconst Copyright = createLucideIcon('Copyright', [\n  ['circle', { cx: '12', cy: '12', r: '10', key: '1mglay' }],\n  ['path', { d: 'M14.83 14.83a4 4 0 1 1 0-5.66', key: '1i56pz' }],\n]);\n\nexport default Copyright;\n"],"names":[],"mappings":";;;;;;;;;AAaM,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAY,iBAAiB,WAAa,CAAA,CAAA,CAAA;AAAA,CAC9C,CAAA,CAAC,QAAU,CAAA,CAAA,CAAA,CAAE,EAAI,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,EAAM,CAAI,CAAA,CAAA,CAAA,IAAA,CAAM,CAAA,CAAG,EAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAM,GAAK,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,EAAU,CAAA,CAAA;AAAA,CAAA,CACzD,CAAC,CAAA,CAAA,CAAA,CAAA,CAAA,CAAQ,CAAA,CAAA,CAAA,CAAE,GAAG,CAAiC,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAK,UAAU,CAAA;AAChE,CAAC,CAAA,CAAA;;"}
-
 === License text SHA-256: 60a7062291b01ba068f300612cdbdc20382ac1d4934f07bcdd7167c15299f309 ===
 Copyright (c) 2015 Keegan McAllister
 
@@ -10687,209 +10725,6 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
-
-=== License text SHA-256: 661cf13c5e043342ff87a6ab839d1c85e24d65fa96a0460a0097e740ca6e9f08 ===
-Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
-
-   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-
-   1. Definitions.
-
-      "License" shall mean the terms and conditions for use, reproduction,
-      and distribution as defined by Sections 1 through 9 of this document.
-
-      "Licensor" shall mean the copyright owner or entity authorized by
-      the copyright owner that is granting the License.
-
-      "Legal Entity" shall mean the union of the acting entity and all
-      other entities that control, are controlled by, or are under common
-      control with that entity. For the purposes of this definition,
-      "control" means (i) the power, direct or indirect, to cause the
-      direction or management of such entity, whether by contract or
-      otherwise, or (ii) ownership of fifty percent (50%) or more of the
-      outstanding shares, or (iii) beneficial ownership of such entity.
-
-      "You" (or "Your") shall mean an individual or Legal Entity
-      exercising permissions granted by this License.
-
-      "Source" form shall mean the preferred form for making modifications,
-      including but not limited to software source code, documentation
-      source, and configuration files.
-
-      "Object" form shall mean any form resulting from mechanical
-      transformation or translation of a Source form, including but
-      not limited to compiled object code, generated documentation,
-      and conversions to other media types.
-
-      "Work" shall mean the work of authorship, whether in Source or
-      Object form, made available under the License, as indicated by a
-      copyright notice that is included in or attached to the work
-      (an example is provided in the Appendix below).
-
-      "Derivative Works" shall mean any work, whether in Source or Object
-      form, that is based on (or derived from) the Work and for which the
-      editorial revisions, annotations, elaborations, or other modifications
-      represent, as a whole, an original work of authorship. For the purposes
-      of this License, Derivative Works shall not include works that remain
-      separable from, or merely link (or bind by name) to the interfaces of,
-      the Work and Derivative Works thereof.
-
-      "Contribution" shall mean any work of authorship, including
-      the original version of the Work and any modifications or additions
-      to that Work or Derivative Works thereof, that is intentionally
-      submitted to Licensor for inclusion in the Work by the copyright owner
-      or by an individual or Legal Entity authorized to submit on behalf of
-      the copyright owner. For the purposes of this definition, "submitted"
-      means any form of electronic, verbal, or written communication sent
-      to the Licensor or its representatives, including but not limited to
-      communication on electronic mailing lists, source code control systems,
-      and issue tracking systems that are managed by, or on behalf of, the
-      Licensor for the purpose of discussing and improving the Work, but
-      excluding communication that is conspicuously marked or otherwise
-      designated in writing by the copyright owner as "Not a Contribution."
-
-      "Contributor" shall mean Licensor and any individual or Legal Entity
-      on behalf of whom a Contribution has been received by Licensor and
-      subsequently incorporated within the Work.
-
-   2. Grant of Copyright License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      copyright license to reproduce, prepare Derivative Works of,
-      publicly display, publicly perform, sublicense, and distribute the
-      Work and such Derivative Works in Source or Object form.
-
-   3. Grant of Patent License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      (except as stated in this section) patent license to make, have made,
-      use, offer to sell, sell, import, and otherwise transfer the Work,
-      where such license applies only to those patent claims licensable
-      by such Contributor that are necessarily infringed by their
-      Contribution(s) alone or by combination of their Contribution(s)
-      with the Work to which such Contribution(s) was submitted. If You
-      institute patent litigation against any entity (including a
-      cross-claim or counterclaim in a lawsuit) alleging that the Work
-      or a Contribution incorporated within the Work constitutes direct
-      or contributory patent infringement, then any patent licenses
-      granted to You under this License for that Work shall terminate
-      as of the date such litigation is filed.
-
-   4. Redistribution. You may reproduce and distribute copies of the
-      Work or Derivative Works thereof in any medium, with or without
-      modifications, and in Source or Object form, provided that You
-      meet the following conditions:
-
-      (a) You must give any other recipients of the Work or
-          Derivative Works a copy of this License; and
-
-      (b) You must cause any modified files to carry prominent notices
-          stating that You changed the files; and
-
-      (c) You must retain, in the Source form of any Derivative Works
-          that You distribute, all copyright, patent, trademark, and
-          attribution notices from the Source form of the Work,
-          excluding those notices that do not pertain to any part of
-          the Derivative Works; and
-
-      (d) If the Work includes a "NOTICE" text file as part of its
-          distribution, then any Derivative Works that You distribute must
-          include a readable copy of the attribution notices contained
-          within such NOTICE file, excluding those notices that do not
-          pertain to any part of the Derivative Works, in at least one
-          of the following places: within a NOTICE text file distributed
-          as part of the Derivative Works; within the Source form or
-          documentation, if provided along with the Derivative Works; or,
-          within a display generated by the Derivative Works, if and
-          wherever such third-party notices normally appear. The contents
-          of the NOTICE file are for informational purposes only and
-          do not modify the License. You may add Your own attribution
-          notices within Derivative Works that You distribute, alongside
-          or as an addendum to the NOTICE text from the Work, provided
-          that such additional attribution notices cannot be construed
-          as modifying the License.
-
-      You may add Your own copyright statement to Your modifications and
-      may provide additional or different license terms and conditions
-      for use, reproduction, or distribution of Your modifications, or
-      for any such Derivative Works as a whole, provided Your use,
-      reproduction, and distribution of the Work otherwise complies with
-      the conditions stated in this License.
-
-   5. Submission of Contributions. Unless You explicitly state otherwise,
-      any Contribution intentionally submitted for inclusion in the Work
-      by You to the Licensor shall be under the terms and conditions of
-      this License, without any additional terms or conditions.
-      Notwithstanding the above, nothing herein shall supersede or modify
-      the terms of any separate license agreement you may have executed
-      with Licensor regarding such Contributions.
-
-   6. Trademarks. This License does not grant permission to use the trade
-      names, trademarks, service marks, or product names of the Licensor,
-      except as required for reasonable and customary use in describing the
-      origin of the Work and reproducing the content of the NOTICE file.
-
-   7. Disclaimer of Warranty. Unless required by applicable law or
-      agreed to in writing, Licensor provides the Work (and each
-      Contributor provides its Contributions) on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-      implied, including, without limitation, any warranties or conditions
-      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
-      PARTICULAR PURPOSE. You are solely responsible for determining the
-      appropriateness of using or redistributing the Work and assume any
-      risks associated with Your exercise of permissions under this License.
-
-   8. Limitation of Liability. In no event and under no legal theory,
-      whether in tort (including negligence), contract, or otherwise,
-      unless required by applicable law (such as deliberate and grossly
-      negligent acts) or agreed to in writing, shall any Contributor be
-      liable to You for damages, including any direct, indirect, special,
-      incidental, or consequential damages of any character arising as a
-      result of this License or out of the use or inability to use the
-      Work (including but not limited to damages for loss of goodwill,
-      work stoppage, computer failure or malfunction, or any and all
-      other commercial damages or losses), even if such Contributor
-      has been advised of the possibility of such damages.
-
-   9. Accepting Warranty or Additional Liability. While redistributing
-      the Work or Derivative Works thereof, You may choose to offer,
-      and charge a fee for, acceptance of support, warranty, indemnity,
-      or other liability obligations and/or rights consistent with this
-      License. However, in accepting such obligations, You may act only
-      on Your own behalf and on Your sole responsibility, not on behalf
-      of any other Contributor, and only if You agree to indemnify,
-      defend, and hold each Contributor harmless for any liability
-      incurred by, or claims asserted against, such Contributor by reason
-      of your accepting any such warranty or additional liability.
-
-   END OF TERMS AND CONDITIONS
-
-   APPENDIX: How to apply the Apache License to your work.
-
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
-
-   Copyright 2023 Jacob Pratt
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
 
 === License text SHA-256: 6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd ===
 Copyright (c) 2016 Alex Crichton
@@ -11906,6 +11741,33 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
 
+=== License text SHA-256: 70c9d40f1f9545c3f133b8a67206e89da850f6468eed072281bb3701514114a9 ===
+Copyright (c) 2022-2026 The RustCrypto Project Developers
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
 === License text SHA-256: 7320e6a3fa91141a06764cf2f24e7d32679f2bdd58e50daa647939fb612e817f ===
 Apache License
                            Version 2.0, January 2004
@@ -12111,6 +11973,33 @@ limitations under the License.
 
 === License text SHA-256: 7365cc8878a1d7ce155a58c4ca09c3d7a6be413efa5334a80ea842912b669349 ===
 Copyright (c) 2016--2023
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+=== License text SHA-256: 73b9dc2e79c7308998dd30296e073aefaefb944a68fb89aa412c23c0edcabcaa ===
+Copyright (c) 2020-2026 The RustCrypto Project Developers
 
 Permission is hereby granted, free of charge, to any
 person obtaining a copy of this software and associated
@@ -12999,6 +12888,36 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
    of your accepting any such warranty or additional liability.
 
 END OF TERMS AND CONDITIONS
+
+=== License text SHA-256: 831e0f43ad0bf014c1c4fec5767aae470434c1d66d6e671be2d823e729063e25 ===
+Copyright (c) 2016-2026 The RustCrypto Project Developers
+Copyright (c) 2016 Artyom Pavlov
+Copyright (c) 2009-2013 Mozilla Foundation
+Copyright (c) 2006-2009 Graydon Hoare
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
 
 === License text SHA-256: 8337133fbd3cd6b5de6ca9fd048a242a01045f3257add148a03c29f91e51e2b2 ===
 Apache License
@@ -14085,6 +14004,33 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
+=== License text SHA-256: 98181e7249d0c01737645ec982499ce99a0f07eb8f7d625b8840d799d10dbc01 ===
+Copyright (c) 2018-2025 The RustCrypto Project Developers
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
 === License text SHA-256: 98a817e7b85e5fe4e79d165c656a4a139793b8b643d0f3d9cbcc3538ef82ec82 ===
 Copyright (c) 2015 The unicode-categories Developers
 
@@ -15159,6 +15105,30 @@ Apache License
    See the License for the specific language governing permissions and
    limitations under the License.
 
+=== License text SHA-256: aaafba6c52867d64b95f9926d7bad5e64a61c4eb92063975fca0fefe970fd1ee ===
+/**
+ * @license lucide-react v1.46.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+import createLucideIcon from '../createLucideIcon.mjs';
+
+const __iconData = {
+  name: "copyright",
+  size: 24,
+  node: [
+    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+    ["path", { d: "M14.83 14.83a4 4 0 1 1 0-5.66", key: "1i56pz" }]
+  ]
+};
+__iconData.node;
+const Copyright = createLucideIcon(__iconData);
+
+export { __iconData, Copyright as default };
+//# sourceMappingURL=copyright.mjs.map
+
 === License text SHA-256: aacc68583a2ebef047784547317d915214d6a9a5abc580b72844eabbbac5e742 ===
 Apache License
                         Version 2.0, January 2004
@@ -15877,31 +15847,38 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 
+=== License text SHA-256: af59cea35d7f5e2777a713b8d155d65efa2c339eb43f3c14e868c6ac8506edad ===
+Copyright (c) 2017-2025 RustCrypto Developers
+Copyright (c) 2017 Artyom Pavlov
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
 === License text SHA-256: af76c60594af325c4efdcbcd27f5d34ff441c11f09b46b627b378d04d5aa1f1d ===
 MIT License
 
 Copyright (c) 2017 - Present The Tauri Programme in the Commons Conservancy
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-=== License text SHA-256: af85fff507d80e6c7ff242acfc4b0a7f5de9a72286bb3c883c782772ca4b4402 ===
-Copyright (c) 2023 Jacob Pratt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -17023,6 +17000,51 @@ license. In each case, the license info is at the top of the file.
 
 See src/polyfill/once_cell/LICENSE-APACHE and src/polyfill/once_cell/LICENSE-MIT
 for the license to code that was sourced from the once_cell project.
+
+=== License text SHA-256: b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57 ===
+ISC License
+
+Copyright (c) 2026 Lucide Icons and Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+---
+
+The following Lucide icons are derived from the Feather project:
+
+airplay, alert-circle, alert-octagon, alert-triangle, aperture, arrow-down-circle, arrow-down-left, arrow-down-right, arrow-down, arrow-left-circle, arrow-left, arrow-right-circle, arrow-right, arrow-up-circle, arrow-up-left, arrow-up-right, arrow-up, at-sign, calendar, cast, check, chevron-down, chevron-left, chevron-right, chevron-up, chevrons-down, chevrons-left, chevrons-right, chevrons-up, circle, clipboard, clock, code, columns, command, compass, corner-down-left, corner-down-right, corner-left-down, corner-left-up, corner-right-down, corner-right-up, corner-up-left, corner-up-right, crosshair, database, divide-circle, divide-square, dollar-sign, download, external-link, feather, frown, hash, headphones, help-circle, info, italic, key, layout, life-buoy, link-2, link, loader, lock, log-in, log-out, maximize, meh, minimize, minimize-2, minus-circle, minus-square, minus, monitor, moon, more-horizontal, more-vertical, move, music, navigation-2, navigation, octagon, pause-circle, percent, plus-circle, plus-square, plus, power, radio, rss, search, server, share, shopping-bag, sidebar, smartphone, smile, square, table-2, tablet, target, terminal, trash-2, trash, triangle, tv, type, upload, x-circle, x-octagon, x-square, x, zoom-in, zoom-out
+
+The MIT License (MIT) (for the icons listed above)
+
+Copyright (c) 2013-present Cole Bemis
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 === License text SHA-256: b4bf94a9fceb8846320fda938ee53fc16b506572609da5cf1d2d289a5597a8f8 ===
 Copyright (c) 2021 Jacob Pratt
@@ -18208,6 +18230,33 @@ freely, subject to the following restrictions:
    misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
+=== License text SHA-256: d2e7ec5355c96eeade56b09187ceb48a6a30299da3ce7531a66d3d11405ab963 ===
+Copyright (c) 2021-2026 RustCrypto Developers
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
 === License text SHA-256: d30047bca3b516639339a3c279bb84c3483124fb5a9dafe3c75056a85090e745 ===
 MIT License
 
@@ -18436,24 +18485,6 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
-
-=== License text SHA-256: da134a9801bb937213886856dc856a3b90d64a54f4479c3e279cec49e70f46ed ===
-/**
- * @license lucide-react v0.468.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-import createLucideIcon from '../createLucideIcon.js';
-
-const Copyright = createLucideIcon("Copyright", [
-  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-  ["path", { d: "M14.83 14.83a4 4 0 1 1 0-5.66", key: "1i56pz" }]
-]);
-
-export { Copyright as default };
-//# sourceMappingURL=copyright.js.map
 
 === License text SHA-256: da28ccc6b158fc2d8cccc74e99794b1cff1d29bd7bbeb019442fcf0c04c6cad9 ===
 Copyright (c) 2020 Andrew D. Straw
@@ -18869,6 +18900,27 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
+
+=== License text SHA-256: e2e245f2b566d0bfafb0f6a04c16b82d710c4e6e7d799e39bb4ef6e541b85b98 ===
+Copyright (c) Jacob Pratt
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 === License text SHA-256: e353f37b12aefbb9f9b29490e837cfee05d9bda70804b3562839a3285c1df1e5 ===
 MIT License
@@ -19475,6 +19527,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+=== License text SHA-256: f1f3f54ef8b20ee3e35a8e0821081d6f41486b8598ae30ca872e1bb047960446 ===
+{"version":3,"file":"copyright.mjs","sources":["../../../src/icons/copyright.ts"],"sourcesContent":["import createLucideIcon from '../createLucideIcon';\nimport type { LucideIconNode, LucideIconData } from '../types';\n\nexport const __iconData: LucideIconData = {\n  name: 'copyright',\n  size: 24,\n  node: [\n    ['circle', { cx: '12', cy: '12', r: '10', key: '1mglay' }],\n    ['path', { d: 'M14.83 14.83a4 4 0 1 1 0-5.66', key: '1i56pz' }],\n  ],\n};\n\n/**\n * @deprecated Access `__iconData` instead.\n */\nexport const __iconNode: LucideIconNode[] = __iconData.node;\n\n/**\n * @component @name Copyright\n * @description Lucide SVG icon component, renders SVG Element with children.\n *\n * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIgLz4KICA8cGF0aCBkPSJNMTQuODMgMTQuODNhNCA0IDAgMSAxIDAtNS42NiIgLz4KPC9zdmc+Cg==) - https://lucide.dev/icons/copyright\n * @see https://lucide.dev/guide/packages/lucide-react - Documentation\n *\n * @param {Object} props - Lucide icons props and any valid SVG attribute\n * @returns {JSX.Element} JSX Element\n *\n */\nconst Copyright = createLucideIcon(__iconData);\n\nexport default Copyright;\n"],"names":[],"mappings":";;;;;;;;;AAGO,CAAA,CAAA,CAAA,CAAA,CAAA,CAAM,UAAA,CAAA,CAAA,CAA6B;AAAA,CAAA,CACxC,CAAA,CAAA,CAAA,CAAA,EAAM,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA;AAAA,CAAA,CACN,CAAA,CAAA,CAAA,CAAA,EAAM,CAAA,CAAA;AAAA,CAAA,CACN,IAAA,CAAA,CAAM;AAAA,CAAA,CAAA,CAAA,CACJ,CAAC,QAAA,CAAA,CAAU,CAAA,CAAE,EAAA,CAAA,CAAI,CAAA,CAAA,CAAA,CAAA,EAAM,CAAA,CAAA,CAAA,CAAI,IAAA,CAAA,CAAM,CAAA,EAAG,CAAA,CAAA,CAAA,CAAA,CAAA,CAAM,GAAA,CAAA,CAAK,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,EAAU,CAAA;AAAA,CAAA,CAAA,CAAA,CACzD,CAAC,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAQ,CAAA,CAAE,GAAG,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAiC,CAAA,CAAA,CAAA,CAAA,CAAK,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,GAAU;AAAA,CAAA,CAAA;AAElE,CAAA;AAK4C,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAW,CAAA,CAAA,CAAA,CAAA;AAavD,CAAA,CAAA,CAAA,CAAA,CAAA,CAAM,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAY,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,EAAiB,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAU,CAAA;;"}
 
 === License text SHA-256: f1fa5f9e9d8f7827ae2235e742dd00bdf6106d4c5753df928e521d7541b7f9b6 ===
 This work is derived in part from the `linked-hash-map` crate, Copyright (c)
