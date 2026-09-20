@@ -1,5 +1,12 @@
 # Linty website
 
+Unlisted review documents in `gtm/` and their `robots.txt` rules are part of this
+website's deployed source. Keep them committed so a later deployment retains
+them. They use per-page `noindex` directives and path-scoped AI crawler opt-outs;
+keep them out of the public navigation and any sitemap. The current static host
+requires their explicit `.html` paths: a nested directory URL can fall back to
+the landing page instead of serving that directory's `index.html`.
+
 Static landing page for [linty.ai](https://linty.ai), hosted by Yofix. No runtime dependencies. Legal pages are generated from the same content bundled in the app: run `yarn legal:generate` after editing `src/content/legal.json`, then `yarn legal:check`.
 
 Run `yarn legal:check` before publishing to verify that the website and app notices match. This is a consistency check, not legal approval. See the [privacy implementation review](../docs/PRIVACY-RELEASE-REVIEW.md). Verify the live host as well as repository source: Yofix was observed injecting `/__yofix/analytics.js?v=2` on 20 September 2026. `privacy-guard.js` opts out of that observed implementation and the page CSP blocks fetch and beacon requests. These measures do not disable server logs or prove anything about historical collection. Disable injection at the host and verify retention and processing locations. Browser automation is insufficient by itself: the observed script skips `navigator.webdriver` sessions.
