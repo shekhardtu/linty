@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow, nosnippet, noimageindex" />
+  <meta name="googlebot" content="noindex, nofollow, nosnippet, noimageindex" />
+  <meta name="bingbot" content="noindex, nofollow, nosnippet" />
+  <meta name="color-scheme" content="light" />
+  <title>Linty · Architecture explained</title>
+  <link rel="icon" type="image/svg+xml" href="../brand/icon.svg?v=b97b744a3624" />
+  <script src="../privacy-guard.js?v=2afc4702a0c1"></script>
+  <link rel="stylesheet" href="guide.css?v=7e31556f1f14" />
+  <script src="guide.js?v=aa8cead06b4a" defer></script>
+  <link rel="stylesheet" href="architecture.css?v=02541c9db8de" />
+</head>
+<body class="architecture">
+<a class="skip" href="#main">Skip to the architecture guide</a>
+<div class="layout">
+<aside class="rail">
+<a class="brand" href="#overview" aria-label="Linty architecture overview"><img src="../brand/icon.svg?v=b97b744a3624" width="34" height="34" alt="" />Linty</a>
+<div><p class="rail-label">Inside the application</p><nav aria-label="Architecture chapters"><a href="#system"><span>01</span>System map</a>
+<a href="#interface"><span>02</span>Interface &amp; native core</a>
+<a href="#pipeline"><span>03</span>The dictation pipeline</a>
+<a href="#models"><span>04</span>Engines &amp; model lifecycle</a>
+<a href="#cleanup"><span>05</span>Cleanup &amp; learning</a>
+<a href="#storage"><span>06</span>History &amp; local data</a>
+<a href="#macos"><span>07</span>macOS &amp; delivery</a>
+<a href="#privacy"><span>08</span>Privacy &amp; networking</a>
+<a href="#recovery"><span>09</span>Concurrency &amp; recovery</a>
+<a href="#release"><span>10</span>Build, release &amp; tests</a>
+<a href="#source-map"><span>11</span>Repository map</a></nav><a class="back-link" href="https://linty.ai/gtm/index.html">← Back to the GTM guide</a></div>
+<div class="rail-note"><strong>Technical guide · Unlisted</strong>Source revision <code>e5688ac</code><br />21 September 2026</div>
+</aside>
+<main id="main">
+<div class="topbar"><span>ARCHITECTURE / SEPTEMBER 2026</span><div class="top-actions"><span class="badge">On-device by design</span><button class="plain-button" type="button" data-print hidden>Print / Save PDF</button></div></div>
+<section class="hero" id="overview" aria-labelledby="page-title">
+<p class="eyebrow">From a keypress to your next paragraph</p>
+<h1 id="page-title">Your voice.<br /><em>The system behind it.</em></h1>
+<p class="lead">How Linty records, recognizes, saves, and delivers your words. A complete tour of the interface, native pipeline, local models, data storage, and macOS integration.</p>
+<div class="gates" aria-label="Primary technology responsibilities"><div class="gate"><strong>React</strong><span>Interface and presentation</span></div><div class="gate"><strong>Rust</strong><span>Native ownership and processing</span></div><div class="gate"><strong>Swift</strong><span>FluidAudio and Core ML bridge</span></div></div>
+<p class="reading-note">11 chapters · Source-linked explanation · Approximately 25 minutes</p>
+<div class="reading-path"><a href="#system">See the system map ↓</a><a href="#pipeline">Follow a dictation ↓</a><a href="#source-map">Explore the source ↓</a></div>
+</section>
+<div class="notice"><p>Technical explanation prepared 21 September 2026. The runtime description is anchored to committed source revision <code>e5688ac41af303cb92d558a0dd65bffff848c59c</code>, the same baseline used for the GTM research. This explains the implementation, rather than claiming a new packaged-app validation. Work in progress, including changes to Mac architecture support, is outside this snapshot. The maintainer's local release policy is described separately in the release section.</p></div>
+<section class="chapter" id="system" aria-labelledby="system-title"><header class="chapter-header"><span class="chapter-number">01</span><h2 id="system-title">The system at a glance</h2></header><div class="prose"><p>Linty is a macOS desktop application that turns a microphone recording into text and inserts it into another application. Its interface is built with React and TypeScript, hosted in Tauri 2 webviews. Rust owns the native work: capture, model preparation, speech recognition, optional cleanup, storage, and delivery. A small Swift bridge makes the FluidAudio/Core ML speech engine available to Rust.</p>
+<p>The important boundary is <strong>presentation versus ownership</strong>. React asks for a dictation and shows its progress. A native coordinator owns the resulting work and its side effects. The app does not send a recording to a Linty transcription server. Downloads and update checks use the network; speech recognition and text cleanup use installed models on the Mac.</p>
+<figure class="architecture-map" aria-labelledby="system-system-map-caption">
+<div class="map-boundary"><p class="map-label">Inside the installed Mac application</p>
+<div class="map-pair"><div class="map-node"><strong>Main window</strong><span>React · TypeScript · Zustand<br />Settings, History, Dictionary, Overview</span></div><div class="map-node"><strong>Recording capsule</strong><span>Separate React webview<br />Native nonactivating NSPanel</span></div></div>
+<p class="map-arrow">↕ Tauri commands and events</p>
+<div class="map-node map-owner"><strong>Rust native coordinator</strong><span>One active dictation · configuration snapshot · generation identity<br />Capture → recognize → save → transform → save → deliver</span></div>
+<div class="map-branches"><div class="map-node"><strong>Local inference</strong><span>Whisper / whisper-rs<br />Parakeet / Swift / FluidAudio<br />S1-mini / Candle</span></div><div class="map-node"><strong>Local persistence</strong><span>SQLite history + optional audio<br />JSON settings + dictionary<br />Downloaded models + local logs</span></div><div class="map-node"><strong>macOS integration</strong><span>Microphone and hotkeys<br />Accessibility and clipboard<br />Menu bar, windows, notifications</span></div></div>
+</div>
+<div class="map-external"><strong>Outside the app</strong><span>Model hosts and GitHub supply downloads and updates. The destination app receives pasted text and applies its own storage or sync behavior.</span></div>
+<figcaption id="system-system-map-caption">A logical component map. Arrows represent local coordination; the webviews are not calling a hosted Linty API.</figcaption>
+</figure>
+
+<p>The product baseline is Apple Silicon on macOS 14 or later. Parakeet is specifically gated to supported Apple Silicon hardware and a build containing its bridge. An available Whisper backend is not, by itself, proof that a particular Intel package has been built, signed, tested, and released.</p>
+<p>Sources: <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/lib.rs">app entry and native command registration</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/tauri.conf.json">window configuration</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/App.tsx">frontend entry</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/state.rs">native state</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/swift/Package.swift">Swift package</a>.</p></div></section>
+<section class="chapter" id="interface" aria-labelledby="interface-title"><header class="chapter-header"><span class="chapter-number">02</span><h2 id="interface-title">Interface, state, and native boundaries</h2></header><div class="prose"><p>The main window contains onboarding, dictation settings, the transcript archive, the personal dictionary, local usage views, troubleshooting, and About. <code>App.tsx</code> composes these screens and starts the hooks that synchronize settings, hotkeys, models, the tray, and updates. Vite builds the frontend assets; the application packages them with the native executable.</p>
+<p>Zustand holds the interface's working state in slices: recording, transcription, settings, navigation, history, dictionary, updates, workspace, and toasts. It is a presentation cache, not the authoritative transcript database. Services coordinate persistence and shared operations so different screens do not start independent downloads or overwrite settings without coordination.</p>
+<p>The capsule has its own entry point and React component. On macOS it sits in an NSPanel configured not to take focus from the app receiving dictation. Its recording, preparation, progress, and recovery messages come from events. Closing the main window leaves the menu-bar app available; quitting Linty ends the process and its background work.</p>
+<div class="table-scroll" role="region" aria-label="Interface, state, and native boundaries table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>What crosses it</th>
+<th>Who owns the result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Main webview → native commands</td>
+<td>Start/stop requests, captured settings, model choices, archive queries</td>
+<td>Rust validates and performs the operation</td>
+</tr>
+<tr>
+<td>Native → main webview</td>
+<td>Recording generation, stage events, results, archive-change notifications</td>
+<td>React presents the result and refreshes its cache</td>
+</tr>
+<tr>
+<td>Native → capsule</td>
+<td>State, generation, progress, and correction feedback</td>
+<td>The capsule displays feedback without owning inference</td>
+</tr>
+<tr>
+<td>Rust → Swift</td>
+<td>Audio samples, model paths, vocabulary requests, opaque engine handles</td>
+<td>The native adapter manages lifetime and blocking work</td>
+</tr>
+<tr>
+<td>Native → macOS</td>
+<td>Audio capture, focus checks, clipboard publication, key posting</td>
+<td>The OS and destination application determine whether insertion succeeds</td>
+</tr>
+</tbody>
+</table></div>
+<p>The command surface is permissioned per window. The main window can manage models and history; the capsule has a much smaller native command list. The app's Content Security Policy restricts webview connections to the application and Tauri IPC. This limits the webview; it does not prevent approved native Rust code from downloading models or updates.</p>
+<p>Sources: <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/store/app.store.ts">state slices</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/hooks/useRecording.hook.ts">recording hook</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/hooks/useTranscription.hook.ts">transcription presentation</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/capsule-main.tsx">capsule entry</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/capsule.rs">capsule implementation</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/capabilities/default.json">window capabilities</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/permissions/application.toml">command permissions</a>.</p></div></section>
+<section class="chapter" id="pipeline" aria-labelledby="pipeline-title"><header class="chapter-header"><span class="chapter-number">03</span><h2 id="pipeline-title">One dictation, from keypress to insertion</h2></header><div class="prose"><p>The core pipeline is intentionally ordered. A successful speech result is persisted before cleanup, and the finished text is persisted before automatic delivery. This creates a recovery path when a later step fails.</p>
+<ol class="pipeline-map" aria-label="Dictation processing order">
+<li><strong>Capture</strong><span>Snapshot settings<br />Open microphone</span></li>
+<li><strong>Recognize</strong><span>Finish preparation<br />Run local speech model</span></li>
+<li><strong>Save original</strong><span>Persist raw text<br />Delivery: pending</span></li>
+<li><strong>Transform</strong><span>Optional cleanup<br />Validation + dictionary</span></li>
+<li><strong>Save final</strong><span>Persist finished text<br />Preserve original</span></li>
+<li><strong>Deliver once</strong><span>Paste and observe<br />Record the outcome</span></li>
+</ol>
+
+<h3 id="pipeline-1-capture-the-users-choices-once">1. Capture the user's choices once</h3>
+<p>The trigger hook translates key gestures into recording actions. Before <code>start_dictation</code>, the frontend builds a snapshot containing the speech model, selected language, allowed auto-detect languages, dictionary entries, cleanup settings, and the correction-observation and app-attribution preferences. Changing settings halfway through a dictation affects a later session.</p>
+<p>The native coordinator reserves one session. A recording generation identifies its audio and events. Stale callbacks and cancelled results cannot attach to the next recording. An overlapping start is rejected rather than creating a second independent paste pipeline.</p>
+<h3 id="pipeline-2-open-the-microphone-and-prepare-in-parallel">2. Open the microphone and prepare in parallel</h3>
+<p>A dedicated native thread owns the CPAL audio stream. The recording indicator follows successful device opening, rather than just the button press. Device-channel samples are mixed and resampled into 16 kHz mono floating-point audio. Samples remain in native memory; they are not encoded as a temporary WAV and sent through JavaScript for recognition.</p>
+<p>Capture starts without waiting for model warm-up. Native preparation can overlap the time the user spends speaking. When recording stops, the stream is closed and the captured samples remain available while processing waits for readiness. This moves some waiting out of the release-to-result interval; it does not eliminate model-loading work.</p>
+<h3 id="pipeline-3-recognize-and-save-the-original">3. Recognize and save the original</h3>
+<p><code>stop_dictation</code> starts the native processing worker once. <code>dictation_result</code> waits for that session's cached outcome; reading it again does not repeat recognition or paste. The selected engine produces text. Empty or blank-audio results end quietly.</p>
+<p>For a nonempty result, the pipeline creates a transcript with <code>rawText</code>, timing and model metadata, and a <code>pending</code> delivery status. If this first save fails, automatic paste is skipped and the text is returned for manual copying. A UI refresh failure is different from a failed database write: saved history remains recoverable.</p>
+<h3 id="pipeline-4-propose-changes-then-validate-them">4. Propose changes, then validate them</h3>
+<p>When enabled and applicable, S1-mini proposes cleaned-up English text. Deterministic preservation checks compare the proposal with the original; a rejected or incomplete result falls back to the original. Dictionary replacements then run with their own validation. User-approved spellings can intentionally change a name, without bypassing the other checks.</p>
+<h3 id="pipeline-5-save-the-final-text-and-attempt-delivery">5. Save the final text and attempt delivery</h3>
+<p>The finished text and transformation metadata are saved before any automatic paste. If that update fails, the pipeline again skips automatic delivery. A concurrent manual edit or deletion cannot be overwritten or recreated by a late pipeline update.</p>
+<p>Delivery owns the clipboard snapshot, publication, focus checks, one key-posting attempt, insertion observation, and restoration. Its outcome is written back to History. There is no automatic repeat of an uncertain paste.</p>
+<p>Sources: <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/services/dictation-options.service.ts">configuration snapshot</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/dictation.rs">native coordinator and pipeline</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/dictation/backend.rs">platform adapter</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/audio.rs">audio thread</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/docs/DICTATION-PIPELINE.md">pipeline design</a>.</p></div></section>
+<section class="chapter" id="models" aria-labelledby="models-title"><header class="chapter-header"><span class="chapter-number">04</span><h2 id="models-title">Speech engines and model lifecycle</h2></header><div class="prose"><p>Linty integrates existing model families rather than training its own speech foundation model. Language selection is mapped to a compatible model from the native catalog. Supported Parakeet languages prefer Parakeet when available; other languages and Auto-detect use Whisper. Explicit language selection bypasses automatic language guessing.</p>
+<div class="table-scroll" role="region" aria-label="Speech engines and model lifecycle table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Role and runtime</th>
+<th>Important boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Whisper Large v3 Turbo Q5</td>
+<td>Speech recognition through <code>whisper-rs</code> / whisper.cpp, with Metal acceleration in the baseline Mac build</td>
+<td>The selected artifact is about 574 MB; dictionary terms can contribute to a vocabulary prompt</td>
+</tr>
+<tr>
+<td>Parakeet TDT v3</td>
+<td>Speech recognition through a Rust C ABI wrapper, a Swift bridge, FluidAudio, and Core ML</td>
+<td>Apple Silicon capability gate; speech bundle estimate about 500 MB; supported language subset</td>
+</tr>
+<tr>
+<td>Silero speech-presence detector</td>
+<td>A cached local detector on the Parakeet path</td>
+<td>Suppresses some no-speech hallucinations; it is separate from the microphone inactivity safeguard</td>
+</tr>
+<tr>
+<td>Parakeet CTC vocabulary support</td>
+<td>Optional local keyword spotting/rescoring using additional CTC assets</td>
+<td>Helps integrate enabled vocabulary; it is not an unrestricted text prompt or model fine-tuning</td>
+</tr>
+<tr>
+<td>S1-mini</td>
+<td>Optional English text cleanup through Candle</td>
+<td>A separate model and tokenizer, about 496 MB combined; consumes transcript text, not audio</td>
+</tr>
+</tbody>
+</table></div>
+<p>The Swift bridge is compiled as a static library and linked into the app. It exposes a small C-compatible interface for checking support, downloading, loading, preparing, transcribing, and freeing resources. FluidAudio uses async operations; the bridge waits for them on the calling worker thread. Rust must call these blocking entry points away from the main thread. Opaque handles and returned strings have explicit release functions.</p>
+<h3 id="models-downloaded-loaded-and-ready-are-different-states">Downloaded, loaded, and ready are different states</h3>
+<p>The language-preparation service shares downloads and serializes activation. Only the latest confirmed language request may commit its settings/model pair. Downloading can continue during an active dictation, but changing the active model waits for that dictation to finish. Failed preparation preserves the previous confirmed choice.</p>
+<p>Readiness includes actual preparation inference: synthetic silence for speech paths, a warmed speech-presence detector, applicable vocabulary preparation, and installed S1 preparation for English or Auto-detect. Synthetic output is discarded. This avoids calling a model ready merely because its weight file exists. Installed S1 can stay prepared even while cleanup is disabled; warming it does not itself download or enable it.</p>
+<p>Only one main speech engine is selected and resident at a time. Locks serialize model loads; reference-counted handles keep in-flight work valid. The idle watchdog can release speech and cleanup models, with a baseline default of 15 minutes. A later dictation reloads and prepares them. Cached files stay on disk when runtime memory is released.</p>
+<p>Auto-detect uses a saved shortlist of one to three languages. With one candidate it skips detection; with multiple candidates Whisper's probabilities choose among them before transcription. It does not infer a language from the user's location or IP address. Short or noisy speech can still be misclassified.</p>
+<p>Whisper and S1 downloads use pinned artifacts with expected sizes and SHA-256 checks before completed files are accepted. Model identifiers and paths are validated natively, including rejection of symlinks in the supported model storage paths. Parakeet bundle handling is delegated to FluidAudio; do not assume it has the identical verification contract as the individually pinned Whisper/S1 files.</p>
+<p>Sources: <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/lib/languages.util.ts">language routing</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/services/language-preparation.service.ts">shared language preparation</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/transcribe.rs">speech runtime and catalog</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/model_store.rs">model storage checks</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/parakeet.rs">Rust Parakeet adapter</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/swift/Sources/LintyParakeet/Bridge.swift">Swift bridge</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/docs/DICTATION-READINESS.md">readiness details</a>.</p></div></section>
+<section class="chapter" id="cleanup" aria-labelledby="cleanup-title"><header class="chapter-header"><span class="chapter-number">05</span><h2 id="cleanup-title">Cleanup, dictionary, and learning</h2></header><div class="prose"><p>These are three distinct mechanisms. <strong>Speech recognition</strong> turns audio into text. <strong>Cleanup</strong> asks a local language model to normalize that text. <strong>The dictionary</strong> stores preferred spellings and replacements. “Learning a correction” updates dictionary data; it does not train the speech model or send feedback to a cloud training service.</p>
+<p>S1-mini is provided by Superwhisper and runs through Candle with Metal when available and a CPU fallback. Controls select writing style, layout, and lists. The result is plain text. Automatic email layout uses recognized Mail/Outlook/Spark application identifiers when app attribution is available; it does not read a conversation or project and pass that context to S1.</p>
+<p>Cleanup is English-only in this integration. Explicit non-English languages skip it; Auto-detect requires sufficiently confident English text. The base setting starts disabled, while the guided English setup can explicitly prepare and enable it. This distinction matters when describing onboarding defaults.</p>
+<p>Long inputs are processed in bounded chunks. Timeout, truncation, an incomplete chunk, or rejected output preserves the complete original. Per-request model caches are cleared; transcripts are not retained as a continuing conversation. A filler-only result can disappear quietly without pasting an empty string.</p>
+<p>Preservation checks cover details such as negation, uncertainty, currency/percentage markers, signs, names, and quoted/code/path literals. They do <strong>not</strong> prove semantic equivalence. Numeric values and calendar words are deliberately not protected on their own in this revision, which permits useful spoken corrections but also leaves room for unwanted changes. Both false acceptance and false rejection remain possible.</p>
+<h3 id="cleanup-optional-correction-observation">Optional correction observation</h3>
+<p>When enabled, a native Accessibility watcher binds a readable editable field and its selection around insertion. It tracks bounded, verified edits to the dictated span. A settled focus departure, or a verified submission followed by field clearing/replacement, can finish the session. Return alone is not enough because it can mean a newline.</p>
+<p>The native diff sends changed pairs and metadata to a conservative local classifier. The dictionary service serializes a batch save and supports Undo. Feedback is shown only after saving succeeds. Dictionary persistence and History correction records are separate stores, so the operation is not one transaction across both.</p>
+<p>This is limited application coverage. Unreadable terminals, unsupported text protocols, ambiguous insertion, stale edits, large rewrites, and composition can result in no learned correction. Field text is bounded and transient in the native observer; it is not a general keylogger, screen recorder, or continuous document index.</p>
+<p>Sources: <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/reformat.rs">cleanup runtime</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/text_validation.rs">text validation</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/dictation/dictionary.rs">dictionary application</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/corrections/session.rs">correction session</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/lib/correction-classifier.ts">classifier</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/services/dictionary.service.ts">dictionary persistence</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/docs/CORRECTION-CAPTURE-IMPLEMENTATION.md">coverage and limits</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/licenses/MODELS.md">model attribution</a>.</p></div></section>
+<section class="chapter" id="storage" aria-labelledby="storage-title"><header class="chapter-header"><span class="chapter-number">06</span><h2 id="storage-title">History, audio, and local metrics</h2></header><div class="prose"><p>The archive is a SQLite database managed by Rust through <code>rusqlite</code>. It lives under <code>~/Library/Application Support/ai.linty.desktop/</code>. Native commands run disk work on blocking workers. The frontend queries pages and summaries instead of reading the entire archive into its state store.</p>
+<div class="table-scroll" role="region" aria-label="History, audio, and local metrics table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Storage and lifetime</th>
+<th>Why it is separate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Transcripts, correction records, delivery metadata</td>
+<td><code>linty-history.sqlite3</code>; until deletion by default, or selected retention</td>
+<td>Durable recovery and queryable history</td>
+</tr>
+<tr>
+<td>Optional recordings</td>
+<td>WAV blobs in the same database, linked to transcript IDs</td>
+<td>Audio retention has its own explicit consent and deletion controls</td>
+</tr>
+<tr>
+<td>Settings</td>
+<td><code>linty-settings.json</code> through Tauri's store plugin</td>
+<td>Preferences outlive individual transcript deletion</td>
+</tr>
+<tr>
+<td>Dictionary</td>
+<td><code>linty-dictionary.json</code> through the store plugin</td>
+<td>Preferred terms and suggestions are independent of one recording</td>
+</tr>
+<tr>
+<td>Models</td>
+<td><code>models/</code> under application support</td>
+<td>Reusable downloaded assets, distinct from resident inference memory</td>
+</tr>
+<tr>
+<td>Diagnostics</td>
+<td>Rotating <code>~/Library/Logs/ai.linty.desktop/linty.log</code> files</td>
+<td>Local operational information; transcript/clipboard content is excluded by logging policy</td>
+</tr>
+</tbody>
+</table></div>
+<p>New transcript records distinguish the original <code>rawText</code>, accepted <code>reformattedText</code> when present, editable <code>finalText</code>, <code>attemptedText</code> when the paste command was posted, and <code>pastedText</code> when insertion was verified. Older records have legacy semantics; a historical <code>pasted</code> status does not prove observed insertion.</p>
+<p>SQLite writes are transactional, with full synchronization, a rollback journal, and secure deletion enabled. The old history/corrections JSON stores migrate together and are cleaned up after a committed import. A failed migration preserves its inputs. Downgrading the binary does not roll the database format back.</p>
+<p>History defaults to 50 records per page; native queries cap a page at 100. The recent-record cache holds 20 entries, while aggregate queries cover all retained history. Deletion and expiry change the totals. “All time” therefore means all retained records, not a separate lifetime usage counter.</p>
+<h3 id="storage-audio-is-transient-unless-saving-was-enabled">Audio is transient unless saving was enabled</h3>
+<p>Saving audio is off by default. Consent is captured at recording start and checked again when saving. An epoch invalidates in-flight retention after revocation or bulk deletion; switching saving off and on cannot retroactively authorize an earlier recording.</p>
+<p>Inference and optional archive storage share the same reference-counted sample allocation. A blocking worker encodes 16 kHz mono PCM16 WAV directly into an SQLite blob with a bounded scratch buffer. No temporary recording file is required. Audio and text commit together. Deleting a transcript cascades to its audio; Undo restores text and corrections, not the deleted recording.</p>
+<p>Selected-record playback is loaded on demand and begins only on Play. The in-app playback limit is 64 MiB; larger saved recordings can be exported. JSON history export excludes audio bytes. Exported files and OS backups have their own lifecycle, outside Linty's deletion controls. The archive is not separately encrypted by Linty.</p>
+<p>Optional retention runs at most once every 24 hours while the app is running, including with its window hidden. It installs no system daemon and cannot wake the Mac. Choosing a new retention period performs an immediate confirmed cleanup; scheduled expiry can wait until the next run or launch.</p>
+<p>Overview and Apps calculate usage locally from retained transcripts. App attribution records the foreground application's name and bundle ID at capture start; it is not continuous time tracking or website-level tracking. Estimated time saved uses a disclosed, editable typing-speed assumption and excludes later editing time, so it is not a measured productivity guarantee.</p>
+<p>Sources: <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/history_db.rs">database implementation</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/history.rs">archive commands</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/docs/HISTORY-STORAGE.md">storage design</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/docs/AUDIO-PRIVACY.md">audio lifecycle</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/services/settings-store.service.ts">settings store</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/docs/APPLICATION-USAGE.md">metric definitions</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/logging.rs">logging policy</a>.</p></div></section>
+<section class="chapter" id="macos" aria-labelledby="macos-title"><header class="chapter-header"><span class="chapter-number">07</span><h2 id="macos-title">macOS integration and delivery guarantees</h2></header><div class="prose"><p>Microphone permission allows capture. Accessibility access supports global modifier monitoring, checked key posting, and reading supported destination fields for verification/correction observation. The app also uses AppKit for foreground application identity, native menus, window behavior, and the menu-bar tray.</p>
+<p>The microphone preference is native and shared by Settings, the tray, and capture. Device names come from CPAL. If an explicitly selected device disappears, recording fails rather than silently using a different microphone. Duplicate names cannot be reliably distinguished by this API; System Default remains the alternative.</p>
+<h3 id="macos-a-posted-paste-is-not-always-a-verified-insertion">A posted paste is not always a verified insertion</h3>
+<p>Before posting Cmd+V, delivery checks cancellation and the captured destination. For readable controls, it compares the expected field after replacement of the captured UTF-16 selection with an observed value. A matching substring somewhere in the document is insufficient evidence.</p>
+<div class="table-scroll" role="region" aria-label="macOS integration and delivery guarantees table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Delivery status</th>
+<th>What it establishes</th>
+<th>Recovery behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pending</code></td>
+<td>No completed delivery result has been saved</td>
+<td>Inspect History and the destination before retrying</td>
+</tr>
+<tr>
+<td><code>verified</code></td>
+<td>The exact expected insertion was observed</td>
+<td>A success indication is justified</td>
+</tr>
+<tr>
+<td><code>unverified</code></td>
+<td>The paste command was posted, but insertion was not confirmed</td>
+<td>Keep the text; do not repeat automatically</td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>No successful delivery command was recorded</td>
+<td>Offer manual copying of the retained text</td>
+</tr>
+<tr>
+<td><code>skipped</code></td>
+<td>No text needed delivery</td>
+<td>Finish without changing the clipboard</td>
+</tr>
+</tbody>
+</table></div>
+<p>Insertion observation is bounded, so a slow or unreadable application can receive text while the record remains unverified. Clipboard restoration respects a newer user copy using pasteboard change counts, and generation checks prevent an old restoration timer from overwriting a newer publication. It waits at least 800 ms after posting, but cannot guarantee clipboard-read timing in every remote or slow application.</p>
+<p>App attribution at recording start and the actual delivery target are different concepts. Focus can change while the user speaks. The delivery layer's own target checks determine whether it may post; an Apps dashboard entry is not proof of where text was ultimately inserted.</p>
+<p>Sources: <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/delivery.rs">delivery owner</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/clipboard.rs">clipboard handling</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/paste.rs">checked key posting</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/corrections/accessibility.rs">Accessibility adapter</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/audio_input.rs">microphone selection</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/fnkey.rs">modifier monitoring</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/permissions.rs">permissions</a>.</p></div></section>
+<section class="chapter" id="privacy" aria-labelledby="privacy-title"><header class="chapter-header"><span class="chapter-number">08</span><h2 id="privacy-title">Privacy and network boundaries</h2></header><div class="prose"><p>There is no hosted Linty inference or account service in this runtime. The important network boundary is <strong>model/update acquisition versus processing user content</strong>.</p>
+<div class="table-scroll" role="region" aria-label="Privacy and network boundaries table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Where it happens</th>
+<th>What to expect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recording, recognition, cleanup, dictionary application</td>
+<td>On the Mac</td>
+<td>Installed models process audio/text locally</td>
+</tr>
+<tr>
+<td>History, local metrics, optional audio</td>
+<td>On the Mac</td>
+<td>User-controlled retention and export; no app usage telemetry pipeline</td>
+</tr>
+<tr>
+<td>Speech/cleanup model installation</td>
+<td>Native download code and upstream model hosts</td>
+<td>Network access and normal connection metadata are required</td>
+</tr>
+<tr>
+<td>Update checks and archive downloads</td>
+<td>GitHub Releases and its delivery infrastructure</td>
+<td>The updater requests release metadata and signed application assets</td>
+</tr>
+<tr>
+<td>Opening external links</td>
+<td>The user's browser</td>
+<td>The visited service applies its own data practices</td>
+</tr>
+<tr>
+<td>Pasting into another app</td>
+<td>Clipboard/OS, then the destination</td>
+<td>That app can store or sync the pasted text under its own rules</td>
+</tr>
+</tbody>
+</table></div>
+<p>“Offline after setup” describes dictation with the required local assets installed. It does not mean the entire application never opens a network connection. Local storage also does not replace device security, disk encryption, or backup controls.</p>
+<p>The static <code>website/</code> is a separate publication surface, hosted independently from the desktop runtime. The Mac app does not require a running website to perform local inference. Website hosting, GitHub download counters, and local app usage are separate systems; download counts cannot identify unique installations or retained users. This architecture page inherits the GTM area's indexing opt-outs, but those are crawler requests rather than authentication.</p>
+<p>Sources: <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/PRIVACY.md">privacy notice</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/transcribe.rs">model downloads</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/reformat.rs">cleanup downloads</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/updater.rs">native updater</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/website/README.md">website notes</a>.</p></div></section>
+<section class="chapter" id="recovery" aria-labelledby="recovery-title"><header class="chapter-header"><span class="chapter-number">09</span><h2 id="recovery-title">Concurrency, failure recovery, and limits</h2></header><div class="prose"><p>The native coordinator keeps one active dictation with a configuration snapshot, phase, cancellation flag, generation, and cached result. Audio capture has a dedicated thread. Blocking inference, Swift bridge calls, and disk operations run away from the UI; Tokio coordinates asynchronous waits. Locks and reference-counted handles protect shared models and recording buffers.</p>
+<div class="table-scroll" role="region" aria-label="Concurrency, failure recovery, and limits table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Failure or race</th>
+<th>Implemented response</th>
+<th>Remaining boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Model preparation still running at stop</td>
+<td>Close the microphone, keep samples, wait for shared readiness</td>
+<td>Cold setup and compilation can still take time</td>
+</tr>
+<tr>
+<td>Microphone disconnect or missing callbacks</td>
+<td>Cancel/reset capture; a later recording opens a fresh stream</td>
+<td>Quiet input and missing device callbacks are different conditions</td>
+</tr>
+<tr>
+<td>Preparation/recognition/cleanup timeout</td>
+<td>Abandon or fall back according to the stage, invalidate late results</td>
+<td>A timeout cannot forcibly unwind an arbitrary native hang</td>
+</tr>
+<tr>
+<td>Initial or pre-delivery storage failure</td>
+<td>Return text for copying and skip automatic paste</td>
+<td>Unsaved text is not durable over a crash</td>
+</tr>
+<tr>
+<td>Cancellation during processing</td>
+<td>Prevent later processing results from starting delivery</td>
+<td>Cancellation after Cmd+V cannot undo an insertion already posted</td>
+</tr>
+<tr>
+<td>Webview stops waiting</td>
+<td>Native processing can finish and preserve history</td>
+<td>Reloaded UI does not currently reattach live recording controls</td>
+</tr>
+<tr>
+<td>Process crashes after saving the original</td>
+<td>Original transcript remains with an incomplete outcome</td>
+<td>No automatic replay; unfinished in-memory audio is lost</td>
+</tr>
+</tbody>
+</table></div>
+<p>Preparation has a three-minute guard. Recognition allows at least 60 seconds, scaling with recording duration. Cleanup and archive operations also have bounded waits; archive waiting is capped at 20 seconds. A timed-out blocking write may finish later, but cannot resume the abandoned pipeline and trigger paste.</p>
+<p>The audio watchdog distinguishes a dead stream from ordinary silence: missing callbacks for eight seconds trigger recovery. A separate quiet-input safeguard warns after 20 seconds without input activity and closes capture at 30 seconds. It does not run continuous speech inference just to keep the microphone alive.</p>
+<p>The current inference runtime is not isolated inside a killable helper process. An external development supervisor exists for bounded crash restarts, but is not a bundled production recovery service. Hard-hang isolation would require a separate process and heartbeat design. These limits matter when interpreting a responsive UI or a passing mocked test as evidence of native reliability.</p>
+<p>Sources: <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/dictation.rs">coordinator</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/state.rs">shared state</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/watchdog.rs">watchdog</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/input_activity.rs">quiet-input policy</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/services/dictation-recovery.service.ts">frontend recovery</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/docs/DICTATION-RECOVERY.md">recovery limits</a>.</p></div></section>
+<section class="chapter" id="release" aria-labelledby="release-title"><header class="chapter-header"><span class="chapter-number">10</span><h2 id="release-title">Build, release, and verification</h2></header><div class="prose"><p>Vite compiles the React/TypeScript interface. Cargo compiles the Rust host and enabled inference backends. With the <code>parakeet</code> feature, <code>build.rs</code> builds and links the Swift package containing the FluidAudio bridge and its required Apple frameworks. Tauri packages the native host, frontend assets, capabilities, icons, and application metadata. Large model weights are acquired during setup rather than included in the small installer.</p>
+<p>The maintainer's current release policy is local: use synchronized <code>main</code>, perform checks and builds on the maintainer Mac, sign and notarize the application, and publish release assets to GitHub. The native app's updater uses the Tauri updater plugin's signed archive resource. An embedded public key verifies the update artifact; Apple signing/notarization and updater signature verification are distinct checks. This page does not initiate a release.</p>
+<p>GitHub's <code>latest.json</code> supplies version information and may contain <code>minimum_version</code>. The app checks at launch, on its periodic schedule, and after wake. A required update downloads and waits for a quiet dictation interval before installation and restart; an optional update is offered for the user to install. The minimum-version policy field is not itself the archive signature. It can request the latest release, but does not remove the requirement to verify the downloaded artifact.</p>
+<h3 id="release-what-each-test-layer-proves">What each test layer proves</h3>
+<div class="table-scroll" role="region" aria-label="Build, release, and verification table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Useful evidence</th>
+<th>What it cannot establish alone</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TypeScript/unit tests</td>
+<td>State transitions, language routing, dictionary logic, metric definitions, command contracts</td>
+<td>Real microphone or cross-app insertion behavior</td>
+</tr>
+<tr>
+<td>Native Rust pipeline tests</td>
+<td>Ordering, single delivery ownership, cancellation, storage failures, transformation fallback</td>
+<td>All real application Accessibility behavior</td>
+</tr>
+<tr>
+<td>Swift/model evaluation</td>
+<td>Actual detector/model preparation and repeatable recognition fixtures</td>
+<td>Universal accuracy or customer workflow reliability</td>
+</tr>
+<tr>
+<td>Browser UI tests with mocked IPC</td>
+<td>Onboarding, recovery, history, keyboard interaction, and visible feedback</td>
+<td>Native permission attribution or packaging correctness</td>
+</tr>
+<tr>
+<td>Packaged-app testing on macOS</td>
+<td>Finder launch, permissions, actual capture, target-app insertion, focus changes, clipboard preservation, update flow</td>
+<td>Every hardware configuration or third-party editor</td>
+</tr>
+</tbody>
+</table></div>
+<p>Benchmarks distinguish model loading, warm inference, cleanup, storage, delivery, and observed insertion. A fast offline-file inference number is not the latency of an entire dictation. Release-to-insertion timing starts at native stop-command entry, rather than the physical key release, and is absent when insertion is unverified.</p>
+<p>The application source is MIT-licensed; bundled dependencies and model assets keep their own licenses and notices. Linty's contribution is the application, sequencing, native integration, recovery, and user experience around those components. It should not present upstream speech or cleanup models as proprietary Linty inventions.</p>
+<p>Sources: <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/vite.config.ts">frontend build</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/Cargo.toml">native dependencies</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/build.rs">Swift build integration</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/dictation/tests.rs">native pipeline tests</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/updater.rs">updater client</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/hooks/useUpdater.hook.ts">update scheduling</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/CONTRIBUTING.md">packaged-app contribution requirements</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/licenses/MODELS.md">model notices</a>.</p></div></section>
+<section class="chapter" id="source-map" aria-labelledby="source-map-title"><header class="chapter-header"><span class="chapter-number">11</span><h2 id="source-map-title">Where to start in the repository</h2></header><div class="prose"><div class="table-scroll" role="region" aria-label="Where to start in the repository table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Start here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Who owns an entire dictation?</td>
+<td><a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/dictation.rs">dictation.rs</a> and <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/dictation/backend.rs">backend.rs</a></td>
+</tr>
+<tr>
+<td>What does the UI send to Rust?</td>
+<td><a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/services/dictation-options.service.ts">dictation-options.service.ts</a> and <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/hooks/useRecording.hook.ts">useRecording.hook.ts</a></td>
+</tr>
+<tr>
+<td>How is audio captured and invalidated?</td>
+<td><a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/audio.rs">audio.rs</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/state.rs">state.rs</a>, and <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/lib.rs">lib.rs</a></td>
+</tr>
+<tr>
+<td>How does language select an engine?</td>
+<td><a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/lib/languages.util.ts">languages.util.ts</a> and <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/services/language-preparation.service.ts">language-preparation.service.ts</a></td>
+</tr>
+<tr>
+<td>How are the models called?</td>
+<td><a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/transcribe.rs">transcribe.rs</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/parakeet.rs">parakeet.rs</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/swift/Sources/LintyParakeet/Bridge.swift">Bridge.swift</a>, and <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/reformat.rs">reformat.rs</a></td>
+</tr>
+<tr>
+<td>How is data saved and deleted?</td>
+<td><a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/history_db.rs">history_db.rs</a> and <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/history.rs">history.rs</a></td>
+</tr>
+<tr>
+<td>How do we avoid a duplicate or misplaced paste?</td>
+<td><a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/delivery.rs">delivery.rs</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/clipboard.rs">clipboard.rs</a>, and <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/paste.rs">paste.rs</a></td>
+</tr>
+<tr>
+<td>How are corrections learned?</td>
+<td><a href="https://github.com/shekhardtu/linty/tree/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/src/corrections">corrections/</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/lib/correction-classifier.ts">correction-classifier.ts</a>, and <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/services/dictionary.service.ts">dictionary.service.ts</a></td>
+</tr>
+<tr>
+<td>How is access restricted?</td>
+<td><a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/tauri.conf.json">tauri.conf.json</a>, <a href="https://github.com/shekhardtu/linty/tree/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/capabilities">capabilities/</a>, and <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/permissions/application.toml">application.toml</a></td>
+</tr>
+</tbody>
+</table></div>
+<p>All repository links on this page are pinned to the documented revision. The architecture should be reviewed when ownership, storage formats, model routing, permissions, or release behavior changes.</p></div></section>
+<footer class="footer"><span>Linty · Architecture explained<br />Source snapshot: e5688ac · 21 September 2026</span><span><a href="https://linty.ai/gtm/index.html">Return to the GTM guide</a><br />Unlisted; anyone with the direct link can read.</span></footer>
+</main></div>
+<p class="sr-only" role="status" aria-live="polite" data-copy-status></p>
+</body></html>
