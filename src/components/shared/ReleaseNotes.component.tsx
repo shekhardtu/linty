@@ -14,8 +14,8 @@ export function releaseUrl(version: string) {
 }
 
 /** Release text is rendered as text, never injected HTML or executable links. */
-export function ReleaseNotes({ notes }: { notes: string | null }) {
-  const highlights = releaseHighlights(notes);
+export function ReleaseNotes({ notes, limit }: { notes: string | null; limit?: number }) {
+  const highlights = releaseHighlights(notes).slice(0, limit);
   return highlights.length ? (
     <ul className="release-highlights">
       {highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}

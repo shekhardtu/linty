@@ -1,0 +1,170 @@
+.about-page {
+  padding-bottom: 20px;
+}
+.about-page > .page-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.about-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-content: center;
+  align-items: start;
+  gap: 40px;
+  padding-block: 16px 48px;
+}
+.about-summary {
+  min-width: 0;
+}
+.about-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.about-app-icon {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+.about-identity h1 {
+  font-size: 36px;
+  font-weight: 550;
+  line-height: 1.15;
+  letter-spacing: -0.05em;
+}
+.about-identity p {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.about-slogan {
+  margin-top: 28px;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.04em;
+}
+.about-slogan > span {
+  color: var(--color-accent);
+}
+.about-update {
+  margin-top: 26px;
+}
+.about-update-status {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+.about-update-status p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.about-update-status svg {
+  flex-shrink: 0;
+}
+.about-update-status .installed-update-status {
+  color: var(--color-accent);
+}
+.about-update-status .about-update-error {
+  color: var(--color-error);
+}
+.about-update-status .update-progress {
+  display: block;
+  max-width: 260px;
+  margin-top: 8px;
+}
+.about-update-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.about-update-actions .standard-button {
+  min-height: 38px;
+  padding: 7px 14px;
+}
+.about-release-card {
+  min-width: 0;
+  padding: 28px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 14px;
+}
+.about-release-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.about-release-heading h2 {
+  font-size: 18px;
+  font-weight: 550;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+.about-release-heading > span {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+.about-release-card .release-highlights {
+  margin-top: 22px;
+  padding-left: 17px;
+  gap: 16px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.about-release-card .release-highlights li::marker {
+  color: var(--color-accent);
+}
+.about-release-card > p {
+  margin-top: 22px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.65;
+}
+.about-release-card > .text-link {
+  margin-top: 26px;
+  font-size: 14px;
+}
+.about-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 24px;
+  margin-inline: calc(-1 * var(--page-padding));
+  border-top: 1px solid var(--color-border-subtle);
+  padding: 18px var(--page-padding) 0;
+}
+.about-links .legal-notice,
+.about-links .legal-notice-links {
+  display: contents;
+}
+.about-links > .text-link,
+.about-links .legal-notice-links > .text-link {
+  min-height: 24px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.about-links > .text-link:hover,
+.about-links .legal-notice-links > .text-link:hover {
+  color: var(--color-accent);
+}
+@container page (max-width: 620px) {
+  .about-main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    padding-block: 8px 32px;
+  }
+  .about-release-card {
+    padding: 24px;
+  }
+}

@@ -143,8 +143,7 @@
   right: 50%;
   transform: translate(50%, -50%) rotate(58deg);
 }
-.page-header,
-.about-identity {
+.page-header {
   position: relative;
   isolation: isolate;
   container: artwork-header / inline-size;
@@ -159,10 +158,6 @@
 .page-header:has(.page-header-actions) > .background-artwork {
   right: min(180px, 24%);
   width: min(360px, 44%);
-}
-.about-identity > .background-artwork {
-  inset: 0 0 0 auto;
-  width: 60%;
 }
 .widget-surface {
   position: relative;

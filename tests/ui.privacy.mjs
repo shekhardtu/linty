@@ -43,7 +43,7 @@ try {
   await page.keyboard.press('Escape');
   await dialog.waitFor({ state: 'hidden' });
   assert.equal(await link.evaluate(element => element === document.activeElement), true, 'Escape restores focus');
-  await page.getByRole('button', { name: 'License and responsible use', exact: true }).click();
+  await page.getByRole('button', { name: 'License & terms', exact: true }).click();
   await page.getByRole('dialog').getByRole('heading', { name: 'Recording and content', exact: true }).waitFor();
   await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
 

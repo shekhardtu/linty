@@ -5,7 +5,7 @@ import { useAppStore } from "@/store/app.store";
 import "./legal-notice.css";
 
 /** Bundled text: reading either notice makes no network request. */
-export function LegalNotice() {
+export function LegalNotice({ compact = false }: { compact?: boolean }) {
   const [selected, setSelected] = useState<"privacy" | "terms" | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const close = useRef<HTMLButtonElement>(null);
@@ -26,8 +26,8 @@ export function LegalNotice() {
   };
   return <div className="legal-notice">
     <div className="legal-notice-links">
-      <button type="button" className="text-link" onClick={(event) => { opener.current = event.currentTarget; setSelected("privacy"); }}>Privacy notice</button>
-      <button type="button" className="text-link" onClick={(event) => { opener.current = event.currentTarget; setSelected("terms"); }}>License and responsible use</button>
+      <button type="button" className="text-link" aria-label="Privacy notice" onClick={(event) => { opener.current = event.currentTarget; setSelected("privacy"); }}>{compact ? "Privacy" : "Privacy notice"}</button>
+      <button type="button" className="text-link" onClick={(event) => { opener.current = event.currentTarget; setSelected("terms"); }}>{compact ? "License & terms" : "License and responsible use"}</button>
     </div>
     <dialog ref={dialog} className="confirmation-dialog legal-notice-dialog" aria-labelledby={`${id}-title`}
       onCancel={(event) => { event.preventDefault(); setSelected(null); }}>

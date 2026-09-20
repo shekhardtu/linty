@@ -6,9 +6,10 @@ import { dictationPreparation } from "@/services/dictation-preparation.service";
 import { AUTO_LANGUAGE, modelSupportsLanguage, validAutoDetectLanguages } from "@/lib/languages.util";
 
 export function StatusBar() {
-  const { status, isRecording, error, loadedModelFilename, transcriptionLanguage, autoDetectLanguages, setSettingsSection } = useAppStore();
+  const { status, isRecording, error, loadedModelFilename, transcriptionLanguage, autoDetectLanguages, setSettingsSection, currentView } = useAppStore();
   const saveStatus = useSyncExternalStore(settingsSaveFeedback.subscribe, settingsSaveFeedback.getSnapshot);
   const preparation = useSyncExternalStore(dictationPreparation.subscribe, dictationPreparation.getSnapshot);
+  const showAboutCredit = currentView === "about" && (saveStatus === "idle" || saveStatus === "saved");
   const saveLabel = saveStatus === "saving" ? "Saving changes…" : saveStatus === "saved" ? "Changes saved locally" : saveStatus === "error" ? "Couldn't save changes. Try again." : "Changes are saved locally";
   const recording = isRecording || status === "recording";
   const preparing = status === "preparing" || preparation === "preparing";
@@ -26,7 +27,7 @@ export function StatusBar() {
     : activity;
   return (
     <footer className="status-bar">
-      <div className={`status-save is-${saveStatus}`} role="status" aria-atomic="true" title={saveLabel}>
+      {showAboutCredit ? <p className="status-save">Made with care.</p> : <div className={`status-save is-${saveStatus}`} role="status" aria-atomic="true" title={saveLabel}>
         <span className="status-save-indicator" aria-hidden="true">
           <HardDrive size={13} className={saveStatus === "idle" ? "is-active" : ""} />
           <Loader2 size={13} className={saveStatus === "saving" ? "is-active animate-spin" : ""} />
@@ -34,7 +35,7 @@ export function StatusBar() {
           <AlertCircle size={13} className={saveStatus === "error" ? "is-active" : ""} />
         </span>
         <span>{saveLabel}</span>
-      </div>
+      </div>}
       <div className="status-engine-region" role="status" aria-atomic="true">
         <button className={`status-engine is-${engineState}`} onClick={() => setSettingsSection("general")}
           aria-label={`${engine}: ${activity}. Configure dictation language`} title={`${engine}: ${detail}`}>

@@ -4,6 +4,7 @@
 @import "./brand.css";
 @import "./page-layout.css";
 @import "./overview.css";
+@import "./about.css";
 @import "./history.css";
 @import "./apps.css";
 @import "./select.css";
@@ -492,15 +493,11 @@ kbd { border: 1px solid var(--color-border); border-bottom-width: 2px; border-ra
 .update-required-dialog .update-error { color: var(--color-error); }
 .update-acknowledgment-dialog { width: min(480px, calc(100vw - 48px)); max-height: calc(100dvh - 48px); overflow-y: auto; }
 .update-acknowledgment-dialog .dialog-icon { color: var(--color-accent); }
-.update-acknowledgment-dialog .installed-update-status,
-.about-identity .installed-update-status { color: var(--color-accent); font-size: 12px; }
+.update-acknowledgment-dialog .installed-update-status { color: var(--color-accent); font-size: 12px; }
 .installed-release-notes { margin-top: 20px; }
 .installed-release-notes h3,
-.about-release-notes h2,
 .available-release-notes h2 { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
 .release-highlights { list-style: disc; padding-left: 18px; margin-top: 10px; display: grid; gap: 10px; font-size: 13px; line-height: 1.6; color: var(--color-text-secondary); overflow-wrap: anywhere; }
-.about-release-notes { padding: 20px; }
-.about-release-notes > button { margin-top: 16px; }
 .available-release-notes { padding: 0 16px 16px; }
 .update-acknowledgment-dialog .update-acknowledgment-error { color: var(--color-error); }
 .update-acknowledgment-dialog .dialog-actions { flex-wrap: wrap; }

@@ -1,7 +1,5 @@
 ## What's new
 
-- See your dictation speed multiplier beside Estimated time saved, with the comparison details available from the info button.
-- Read Recent transcriptions and Dictation by app from aligned headings in the Overview, with more room around your statistics.
-- Find your dictation shortcut in a more compact, readable sidebar hint, with a clear reminder to release the key to paste.
-- Explore refreshed website screenshots showing language selection and on-device text cleanup together in Dictation settings, in both light and dark themes.
-- Follow updated website setup instructions for changing languages and choosing up to three Auto-detect languages.
+- Find version and update controls together in About.
+- Read release highlights in a compact side panel.
+- Open privacy and license notices from the About footer.

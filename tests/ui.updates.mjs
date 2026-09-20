@@ -93,6 +93,19 @@ try {
     assert.equal(await notice(page).count(), 0, 'acknowledgment stays dismissed after restart');
     await about(page);
     await page.getByRole('heading', { name: 'What’s new in this version' }).waitFor();
+    await page.evaluate(() => { delete window.__QA__.failures['check_for_update']; });
+    await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+    await page.getByText('You’re up to date.', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Read full release notes', exact: true }).click();
+    assert.equal(await page.evaluate(() => window.__QA__.openedUrl), `https://github.com/shekhardtu/linty/releases/tag/v${version}`, 'About links to the installed release when current');
+    while (await page.getByRole('button', { name: 'Dismiss notification', exact: true }).count()) {
+      await page.getByRole('button', { name: 'Dismiss notification', exact: true }).first().click();
+    }
+    await page.setViewportSize({ width: 1240, height: 560 });
+    await page.getByRole('main').locator('..').screenshot({ path: `${output}/about-current-${theme}.png`, animations: 'disabled' });
+    await page.setViewportSize({ width: 640, height: 480 });
+    await page.screenshot({ path: `${output}/about-current-minimum-${theme}.png`, animations: 'disabled' });
+    await page.evaluate(() => { window.__QA__.failures['check_for_update'] = 'Offline'; });
     await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
     await page.getByText('Could not check for updates. Check your connection and try again.').waitFor();
     assert.equal(await page.getByText('You’re up to date.', { exact: true }).count(), 0);
@@ -126,6 +139,8 @@ try {
     } else {
       await about(page);
       await page.getByRole('heading', { name: `What’s new in v${version}` }).waitFor();
+      await page.getByRole('button', { name: 'Read full release notes', exact: true }).click();
+      assert.equal(await page.evaluate(() => window.__QA__.openedUrl), `https://github.com/shekhardtu/linty/releases/tag/v${version}`, 'Available-update highlights link to the offered release');
       await page.evaluate(() => { window.__QA__.failures['plugin:updater|install'] = 'Synthetic install failure'; });
       await page.getByRole('button', { name: 'Install', exact: true }).click();
       await page.getByText('Synthetic install failure', { exact: true }).waitFor();
