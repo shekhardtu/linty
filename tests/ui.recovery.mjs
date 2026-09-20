@@ -144,9 +144,9 @@ try {
   await capsule.locator('.capsule-message').getByText('Getting ready…', { exact: true }).waitFor();
   assert.equal(await capsule.locator('.capsule-recording').count(), 0, 'Preparation must not look like active microphone capture');
   await capsule.screenshot({ path: '/tmp/linty-preparing-capsule.png', animations: 'disabled' });
-  await capsule.evaluate(() => window.__QA__.emit('capsule-state',{state:'error',error:'Choose your dictation language in Settings → Language.'}));
+  await capsule.evaluate(() => window.__QA__.emit('capsule-state',{state:'error',error:'Choose your dictation language in Settings → Dictation.'}));
   await capsule.locator('.capsule-error').waitFor();
-  assert.equal(await capsule.locator('.capsule-error').innerText(), 'Choose your dictation language in Settings → Language.');
+  assert.equal(await capsule.locator('.capsule-error').innerText(), 'Choose your dictation language in Settings → Dictation.');
   await capsule.clock.runFor(300);
   await capsule.screenshot({path:'/tmp/linty-recovery-capsule.png',animations:'disabled'});
   await capsule.clock.runFor(6500);

@@ -1079,7 +1079,7 @@ async fn prepare_dictation(
                 .clone();
             let filename = filename
                 .or(selected.clone())
-                .ok_or("Choose your dictation language in Settings → Language.")?;
+                .ok_or("Choose your dictation language in Settings → Dictation.")?;
             let engine = if selected.as_ref() == Some(&filename) {
                 resident_local_engine(&state)?
             } else {
@@ -1108,7 +1108,7 @@ async fn prepare_dictation(
             #[cfg(not(feature = "parakeet"))]
             let _ = (engine, vocabulary);
         }
-        let result = if reformat::supports_language(language.as_deref().unwrap_or("auto")) {
+        let result = if language.as_deref() == Some("en") {
             prepare_installed_cleanup(&app, cleanup_required).await
         } else {
             Ok(())

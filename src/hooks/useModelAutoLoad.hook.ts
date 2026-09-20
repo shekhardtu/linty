@@ -9,7 +9,7 @@ export function useModelAutoLoad() {
   useEffect(() => {
     if (!settingsLoaded || !onboardingComplete) return;
     void prepareLanguage(useAppStore.getState().transcriptionLanguage).catch((error) => {
-      useAppStore.getState().addToast({ type: "error", message: `Could not prepare dictation. Open Settings → Language to retry. ${String(error)}` });
+      useAppStore.getState().addToast({ type: "error", message: `Could not prepare dictation. Open Settings → Dictation to retry. ${String(error)}` });
     });
   }, [settingsLoaded, onboardingComplete]);
 }

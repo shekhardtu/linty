@@ -39,6 +39,7 @@ button:not(:disabled):active { filter: none; }
 
 .select-trigger > svg,
 .cleanup-options > summary > svg,
+.dictation-advanced > summary > svg,
 .original-transcript summary > svg,
 .processing-details > summary > svg {
   transition: rotate var(--motion-control) var(--ease-out),

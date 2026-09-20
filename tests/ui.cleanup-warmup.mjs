@@ -92,14 +92,24 @@ try {
   await page.waitForFunction(()=>window.__QA__.warmups.length===3);
   await page.evaluate(()=>window.__QA__.warmups[2].resolve());
   await page.waitForFunction(()=>window.__QA__.stores[1].reformatEnabled===true);
-  // A non-English choice pauses cleanup without forgetting the English preference.
-  await store.evaluate(s=>s.setState({transcriptionLanguage:'hi',loadedModelFilename:'ggml-large-v3-turbo-q5_0.bin'}));
-  await page.getByRole('combobox',{name:'Text cleanup',exact:true}).filter({hasText:'(paused)'}).waitFor();
-  await page.getByRole('status').filter({hasText:'On-device cleanup is paused for Hindi'}).waitFor();
-  assert.equal(await store.evaluate(s=>s.getState().reformatEnabled),true);
+  // Selecting a language updates cleanup with it, including the captured native options.
+  const language = async (label, code) => {
+    await page.getByRole('combobox', {name:'Transcription language',exact:true}).click();
+    await page.getByRole('option', {name:label,exact:true}).click();
+    await page.waitForFunction(code => window.__QA__.stores[1].transcriptionLanguage === code, code);
+  };
+  await language('Hindi', 'hi');
+  await page.getByRole('combobox',{name:'Text cleanup',exact:true}).waitFor({state:'hidden'});
+  assert.equal(await store.evaluate(s=>s.getState().reformatEnabled),false);
+  assert.equal(await page.evaluate(async()=>(await import('/src/services/dictation-options.service.ts')).dictationOptions().cleanup),false);
   await page.waitForFunction(()=>window.__QA__.preparations.some(args=>args.language==='hi'&&args.cleanupRequired===false));
-  await store.evaluate(s=>s.setState({transcriptionLanguage:'en'}));
+  await language('English', 'en');
   await page.waitForFunction(()=>window.__QA__.preparations.at(-1)?.language==='en'&&window.__QA__.preparations.at(-1)?.cleanupRequired===true);
+  assert.equal(await page.getByRole('combobox',{name:'Text cleanup',exact:true}).textContent(),'Clean up on this Mac');
+  await language('Auto-detect', 'auto');
+  assert.equal(await store.evaluate(s=>s.getState().reformatEnabled),false);
+  assert.equal(await page.evaluate(async()=>(await import('/src/services/dictation-options.service.ts')).dictationOptions().cleanup),false);
+  await language('English', 'en');
   assert.equal(await page.getByRole('combobox',{name:'Text cleanup',exact:true}).textContent(),'Clean up on this Mac');
   await choose('Keep as spoken');await page.waitForFunction(()=>window.__QA__.stores[1].reformatEnabled===false);
   assert.equal(await page.evaluate(()=>window.__QA__.calls.includes('unload_s1_model')),false);

@@ -143,7 +143,7 @@ function LanguageStep({ onNext }: { onNext: () => void }) {
       <p className="text-[14px] text-text-secondary leading-relaxed mb-6">
         Select the language you speak most, or choose Auto-detect.
         <br />
-        You can change it anytime in Settings → Language.
+        You can change it anytime in Settings → Dictation.
       </p>
       <LanguagePicker label="Dictation language" value={language} disabled={saving}
         onChange={value => { setLanguage(value); setError(""); }} className="w-full max-w-[340px]" />
@@ -151,6 +151,9 @@ function LanguageStep({ onNext }: { onNext: () => void }) {
         <p className="text-[13px] text-text-secondary mb-3">Which languages do you speak most? Choose up to three. Auto-detect will try to identify the language of each recording using only these languages.</p>
         <FrequentLanguages value={languages} onChange={value => { setLanguages(value); setError(""); }} disabled={saving} />
       </div>}
+      {language === "en" && <p className="text-[12px] text-text-secondary mt-4 max-w-[380px]">
+        English includes on-device text cleanup. Linty prepares it automatically with a one-time download of about 496 MB.
+      </p>}
       <p className="text-[12px] text-text-muted mt-3 mb-6">
         App menus stay in English.
       </p>

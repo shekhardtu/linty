@@ -24,8 +24,16 @@ function setupBridge({ existing = [], parakeet = true, local = true, language = 
   qa.pendingDownloads = {};
   qa.pendingLoads = {};
   qa.holdNextLoad = false;
+  qa.cleanupDownloads = 0;
   const original = window.__TAURI_INTERNALS__.invoke;
   window.__TAURI_INTERNALS__.invoke = async (command, args = {}) => {
+    if (command === 'download_s1_model') {
+      qa.cleanupDownloads++;
+      if (qa.holdNextCleanupDownload) {
+        qa.holdNextCleanupDownload = false;
+        await new Promise((resolve, reject) => { qa.pendingCleanupDownload = { resolve, reject }; });
+      }
+    }
     if (command === 'is_local_stt_available') return local;
     if (command === 'check_model_exists') return qa.installed.has(args.filename);
     if (command === 'get_available_models') {
@@ -97,10 +105,11 @@ try {
     assert.equal(await page.getByRole('combobox', { name: 'Speech model', exact: true }).count(), 0);
   };
   const openLanguageSettings = async page => {
-    if (!await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Language', exact: true }).count()) {
+    if (!await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Dictation', exact: true }).count()) {
       await page.getByRole('button', { name: 'Settings', exact: true }).click();
     }
-    await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Language', exact: true }).click();
+    await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Dictation', exact: true }).click();
+    assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Language', exact: true }).count(), 0);
     assert.equal(await page.getByRole('button', { name: 'Speech engine', exact: true }).count(), 0);
   };
   const audit = async page => {
@@ -179,6 +188,7 @@ try {
     await reachLanguage(page);
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await waitLanguage(page, options.language);
+    assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), options.language === 'en', 'Onboarding sets cleanup from the selected language');
     assert.deepEqual(await page.evaluate(() => window.__QA__.downloads), []);
     assert.deepEqual(await page.evaluate(() => window.__QA__.loads), [options.expected]);
     await reachDone(page);
@@ -190,11 +200,19 @@ try {
 
   // Dictation settings edit the persisted shortlist and expose exactly what
   // Auto-detect uses. Failed saves keep the active list and captured options.
-  page = await open({ returning: true, language: 'auto', languages: ['en', 'hi'], existing: [WHISPER] });
+  page = await open({ returning: true, language: 'auto', languages: ['en', 'hi'], existing: [WHISPER, PARAKEET] });
   await waitLanguage(page, 'auto');
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Settings', exact: true }).click();
-  await page.getByText('Auto-detect currently uses: English, Hindi.', { exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Remove Hindi', exact: true }).waitFor();
+  assert.equal(await page.getByRole('combobox', { name: 'Text cleanup', exact: true }).count(), 0, 'Auto-detect only shows the language shortlist');
+  assert.equal(await page.getByRole('button', { name: 'Save languages', exact: true }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'Try dictation', exact: true }).isEnabled(), true);
   await addLanguage(page, 'Tamil');
+  assert.equal(await page.getByRole('button', { name: 'Try dictation', exact: true }).isDisabled(), true);
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Audio', exact: true }).click();
+  await openLanguageSettings(page);
+  assert.equal(await page.getByRole('button', { name: 'Remove Tamil', exact: true }).isVisible(), true, 'Leaving the section preserves an unfinished shortlist edit');
+  await page.getByText('Auto-detect currently uses: English, Hindi.', { exact: true }).waitFor();
   assert.equal(await page.getByRole('combobox', { name: 'Add spoken language', exact: true }).isDisabled(), true);
   await page.evaluate(() => { window.__QA__.failures['plugin:store|save'] = 'Disk full'; });
   await page.getByRole('button', { name: 'Save languages', exact: true }).click();
@@ -202,7 +220,9 @@ try {
   assert.deepEqual(await page.evaluate(() => window.__QA__.stores[1].autoDetectLanguages), ['en', 'hi']);
   await page.evaluate(() => { delete window.__QA__.failures['plugin:store|save']; });
   await page.getByRole('button', { name: 'Save languages', exact: true }).click();
-  await page.getByText('Auto-detect currently uses: English, Hindi, Tamil.', { exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Save languages', exact: true }).waitFor({ state: 'hidden' });
+  assert.equal(await page.getByRole('button', { name: 'Remove Tamil', exact: true }).isVisible(), true);
+  assert.equal(await page.getByRole('button', { name: 'Try dictation', exact: true }).isEnabled(), true);
   const captured = await page.evaluate(async () => (await import('/src/services/dictation-options.service.ts')).dictationOptions());
   assert.equal(captured.language, 'auto');
   assert.deepEqual(captured.autoDetectLanguages, ['en', 'hi', 'ta']);
@@ -211,17 +231,110 @@ try {
   await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.setState({ isRecording: false, status: 'idle' }));
   await audit(page);
   await page.screenshot({ path: `artifacts/language/${engine.name()}-dictation-languages.png` });
+  await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
+  await page.getByRole('heading', { name: 'Ready when you are', exact: true }).waitFor();
+  await page.getByRole('button', { name: /Configure dictation language$/ }).click();
+  await page.getByRole('heading', { name: 'Dictation', exact: true }).waitFor();
   await chooseLanguage(page, 'Hindi'); await waitLanguage(page, 'hi');
+  assert.equal(await page.getByRole('combobox', { name: 'Text cleanup', exact: true }).count(), 0, 'Hindi hides cleanup');
   assert.equal(await page.getByRole('group', { name: 'Frequently spoken languages' }).count(), 0);
   assert.deepEqual(await page.evaluate(() => window.__QA__.stores[1].autoDetectLanguages), ['en', 'hi', 'ta']);
   await chooseLanguage(page, 'Auto-detect'); await waitLanguage(page, 'auto');
-  await page.getByText('Auto-detect currently uses: English, Hindi, Tamil.', { exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Save languages', exact: true }).waitFor({ state: 'hidden' });
+  assert.equal(await page.getByRole('button', { name: 'Remove Tamil', exact: true }).isVisible(), true);
+  await page.getByRole('button', { name: 'Appearance', exact: true }).click();
+  await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  await openLanguageSettings(page);
+  await audit(page);
+  await page.screenshot({ path: `artifacts/language/${engine.name()}-dictation-languages-dark.png` });
+  await page.setViewportSize({ width: 640, height: 480 });
+  await page.getByRole('group', { name: 'Frequently spoken languages' }).scrollIntoViewIfNeeded();
+  assert.equal(await page.locator('.preferences-scroll').evaluate(el => el.scrollWidth > el.clientWidth + 1), false, 'The three-language list fits the minimum window');
+  await audit(page);
+  await page.screenshot({ path: `artifacts/language/${engine.name()}-dictation-languages-small.png` });
+  await chooseLanguage(page, 'English'); await waitLanguage(page, 'en');
+  assert.equal(await page.getByRole('group', { name: 'Frequently spoken languages' }).count(), 0);
+  assert.equal(await page.getByRole('combobox', { name: 'Text cleanup', exact: true }).innerText(), 'Clean up on this Mac');
+  await page.getByRole('combobox', { name: 'Text cleanup', exact: true }).click();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.preferences-scroll').evaluate(el => el.scrollWidth > el.clientWidth + 1), false, 'English cleanup fits the minimum window');
+  await page.screenshot({ path: `artifacts/language/${engine.name()}-dictation-english-small.png` });
+  await page.setViewportSize({ width: 1080, height: 820 });
+  for (const theme of ['light', 'dark']) {
+    await page.getByRole('button', { name: 'Appearance', exact: true }).click();
+    await page.getByRole('button', { name: theme === 'light' ? 'Light' : 'Dark', exact: true }).click();
+    await openLanguageSettings(page);
+    await audit(page);
+    await page.screenshot({ path: `artifacts/language/${engine.name()}-dictation-english-${theme}.png` });
+  }
+  await chooseLanguage(page, 'Tamil'); await waitLanguage(page, 'ta');
+  assert.equal(await page.getByRole('combobox', { name: 'Text cleanup', exact: true }).count(), 0, 'Tamil hides cleanup');
+  assert.equal(await page.getByRole('group', { name: 'Frequently spoken languages' }).count(), 0);
+  await page.close();
+
+  // A late English download cannot re-enable cleanup after choosing another
+  // language. Cached setup is reused, and an explicit English opt-out survives restart.
+  page = await open({ returning: true, language: 'hi', existing: [WHISPER, PARAKEET] });
+  await waitLanguage(page, 'hi'); await openLanguageSettings(page);
+  await page.evaluate(() => { window.__QA__.holdNextCleanupDownload = true; });
+  await chooseLanguage(page, 'English');
+  await page.getByText('Downloading English text cleanup', { exact: true }).waitFor();
+  await page.waitForFunction(() => !!window.__QA__.pendingCleanupDownload);
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].transcriptionLanguage), 'hi');
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), false);
+  await page.evaluate(() => window.__QA__.emit('s1-download-progress', 42));
+  assert.equal(await page.getByRole('progressbar', { name: 'Text cleanup download' }).getAttribute('value'), '42');
+  await chooseLanguage(page, 'Tamil'); await waitLanguage(page, 'ta');
+  await page.evaluate(() => window.__QA__.pendingCleanupDownload.resolve());
+  await page.waitForFunction(() => window.__QA__.calls.includes('download_s1_model'));
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].transcriptionLanguage), 'ta');
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), false);
+  await chooseLanguage(page, 'English'); await waitLanguage(page, 'en');
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), true);
+  assert.equal(await page.evaluate(() => window.__QA__.cleanupDownloads), 1);
+  await page.getByRole('combobox', { name: 'Text cleanup', exact: true }).click();
+  await page.getByRole('option', { name: 'Keep as spoken', exact: true }).click();
+  await page.waitForFunction(() => window.__QA__.stores[1].reformatEnabled === false);
+  // Startup preparation must preserve a user's manual opt-out.
+  await page.evaluate(async () => {
+    (await import('/src/services/dictation-preparation.service.ts')).dictationPreparation.invalidate();
+    await (await import('/src/services/language-preparation.service.ts')).prepareLanguage('en');
+  });
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), false);
+  await chooseLanguage(page, 'Hindi'); await waitLanguage(page, 'hi');
+  await chooseLanguage(page, 'English'); await waitLanguage(page, 'en');
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), true, 'Selecting English again restores its automatic default');
+  await page.close();
+
+  // Failed cleanup setup and failed preference writes preserve the confirmed
+  // language/cleanup pair. Retry keeps the user's automatic English selection.
+  page = await open({ returning: true, language: 'hi', existing: [WHISPER, PARAKEET] });
+  await waitLanguage(page, 'hi'); await openLanguageSettings(page);
+  await page.evaluate(() => { window.__QA__.failures.download_s1_model = 'Cleanup download interrupted'; });
+  await chooseLanguage(page, 'English');
+  await page.getByRole('alert').filter({ hasText: 'Cleanup download interrupted' }).waitFor();
+  assert.deepEqual(await page.evaluate(() => [window.__QA__.stores[1].transcriptionLanguage, window.__QA__.stores[1].reformatEnabled]), ['hi', false]);
+  await page.evaluate(() => { delete window.__QA__.failures.download_s1_model; });
+  await page.getByRole('button', { name: 'Retry preparation', exact: true }).click();
+  await waitLanguage(page, 'en');
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), true);
+  await page.evaluate(() => { window.__QA__.failures['plugin:store|save'] = 'Could not save language and cleanup'; });
+  await chooseLanguage(page, 'Hindi');
+  await page.getByRole('alert').filter({ hasText: 'Could not save language and cleanup' }).waitFor();
+  assert.deepEqual(await page.evaluate(() => [window.__QA__.stores[1].transcriptionLanguage, window.__QA__.stores[1].reformatEnabled]), ['en', true]);
+  await page.evaluate(() => { delete window.__QA__.failures['plugin:store|save']; });
+  await page.getByRole('button', { name: 'Retry preparation', exact: true }).click();
+  await waitLanguage(page, 'hi');
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), false);
   await page.close();
 
   // Upgraded users must choose their own shortlist; missing preferences cannot
   // silently fall back to all languages or guessed regional defaults.
   page = await open({ returning: true, language: 'auto', languages: [], existing: [WHISPER] });
   await waitLanguage(page, 'auto');
+  await openLanguageSettings(page);
+  assert.equal(await page.getByRole('button', { name: 'Try dictation', exact: true }).isDisabled(), true);
   const missingChoice = await page.evaluate(async () => {
     try { (await import('/src/services/dictation-options.service.ts')).dictationOptions(); }
     catch (error) { return error.message; }
