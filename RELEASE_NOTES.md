@@ -1,5 +1,7 @@
 ## What's new
 
+- Keep the unlisted GTM and architecture guides available across website deployments.
+
 - Use one Mac installer on Intel and Apple silicon, with Whisper dictation and CPU cleanup on Intel.
 
 - Count only DMG installer downloads across all releases on the website and GitHub.

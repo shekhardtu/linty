@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow, nosnippet, noimageindex" />
+  <meta name="googlebot" content="noindex, nofollow, nosnippet, noimageindex" />
+  <meta name="bingbot" content="noindex, nofollow, nosnippet" />
+  <meta name="color-scheme" content="light" />
+  <title>Linty · Organic launch field guide</title>
+  <link rel="icon" type="image/svg+xml" href="../brand/icon.svg?v=b97b744a3624" />
+  <script src="../privacy-guard.js?v=2afc4702a0c1"></script>
+  <link rel="stylesheet" href="guide.css?v=7e31556f1f14" />
+  <script src="guide.js?v=aa8cead06b4a" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the field guide</a>
+<div class="layout">
+  <aside class="rail">
+    <a class="brand" href="#overview" aria-label="Linty GTM guide overview"><img src="../brand/icon.svg?v=b97b744a3624" width="34" height="34" alt="" />Linty</a>
+    <div><p class="rail-label">The launch field guide</p>
+      <nav aria-label="In this document">
+        <a href="#overview" aria-current="location"><span>00</span> The recommendation</a>
+        <a href="#strategy"><span>01</span> The launch strategy</a>
+        <a href="#competitors"><span>02</span> Competitor research</a>
+        <a href="#launch-kit"><span>03</span> Copy &amp; creative kit</a>
+        <a href="https://linty.ai/gtm/architecture.html"><span>04</span> Linty architecture ↗</a>
+      </nav>
+    </div>
+    <div class="rail-note"><strong>For review · Unlisted</strong>A working plan for the first repeat users and a growing open-source community.<br /><br />Research: 21 September 2026<br />Budget: organic first</div>
+  </aside>
+  <main id="main">
+    <div class="topbar"><span>STRATEGY NOTE / SEPTEMBER 2026</span><div class="top-actions"><span class="badge">Organic first</span><button type="button" class="plain-button" data-print hidden>Print / Save PDF</button></div></div>
+    <section class="hero" id="overview" aria-labelledby="page-title">
+      <p class="eyebrow">A plan for Linty’s first repeat users</p>
+      <h1 id="page-title">A useful habit.<br /><em>Then a bigger audience.</em></h1>
+      <p class="lead">Make Linty the dictation app a small group of Mac developers chooses to use again. Let real workflow demos, founder conversations, and useful open-source work drive downloads and GitHub stars.</p>
+      <div class="decision">
+        <div><p class="eyebrow">The decision</p><h2>Launch the app we have.</h2><p>Start with developers and indie builders. Keep the core app free. Learn what stops adoption before building a separate Lite app.</p></div>
+        <div><p class="eyebrow">The message to test</p><h2>“Speak your next prompt.”</h2><p>Free, on-device dictation for your Mac. No account or API key. Optional local English cleanup. Show the complete workflow in a real recording.</p></div>
+      </div>
+      <div class="gates" aria-label="Proposed first-cohort launch gates">
+        <div class="gate"><strong>20</strong><span>target users in the first cohort</span></div>
+        <div class="gate"><strong>14</strong><span>first useful dictations without live help</span></div>
+        <div class="gate"><strong>8</strong><span>people using it on 3 days in week one</span></div>
+      </div>
+      <p class="caption">Proposed experiment gates, not measured results. Investigate every failed setup and any recurring loss of text.</p>
+      <div class="reading-path"><a href="#strategy">Read the 30-day plan ↓</a><a href="#competitors">Compare 10 alternatives ↓</a><a href="#launch-kit">Find the launch copy ↓</a><a href="https://linty.ai/gtm/architecture.html">How Linty works ↗</a></div>
+    </section>
+    <div class="notice"><strong>Research boundary.</strong> This guide reflects the product and public offers inspected on 21 September 2026, including Linty v0.0.67. Compatibility, prices, and counts are dated snapshots; recheck them before using campaign copy. There is no verified exclusive feature advantage yet. The next proof comes from observed use.</div>
+    <section class="chapter" id="strategy" aria-labelledby="strategy-title">
+<header class="chapter-header"><span class="chapter-number">01</span><div><h2 id="strategy-title">The launch strategy</h2><p class="chapter-intro">Positioning, audience, channels, measurement, and the first 30 days.</p></div></header>
+<div class="prose"><p>Prepared 21 September 2026. Budget: founder-led organic growth, with little or no paid spend. This is a strategy and content proposal. Campaign posts and outreach have not been sent; the assets below are drafts.</p>
+<p>Launch the existing Linty app to a narrow audience, learn whether they keep using it, and use that evidence to expand. Start with developers and indie builders on Apple Silicon who regularly write prompts, issue descriptions, and project updates. Keep the core app free during this experiment. A separate Lite app would split attention before we know what prevents adoption.</p>
+<p>The initial positioning to test is: <strong>“Turn spoken thoughts into text, right where you work. Free, on-device dictation for your Mac.”</strong> For developer channels, lead with <strong>“Speak your next prompt.”</strong> Follow with the actual workflow: choose a language, hold a key, speak, release to paste. The supporting reasons to try Linty are local speech recognition, optional local English cleanup, no account or API key, and free downloadable software with MIT-licensed application source.</p>
+<p>This is a credible offer, not a claim that Linty invented the category. There is no exclusive, defensible feature advantage established by this research. Handy, FluidVoice, and OpenWhispr already compete strongly on free local dictation; several paid products already target developers. Linty can earn preference through a focused, dependable experience, useful support, and publicly demonstrated results. “Simpler” and “more reliable” are hypotheses to test, not claims to publish yet. See the <a href="#competitors">competitor research</a>.</p>
+<h3 id="strategy-the-current-baseline-changes-what-we-should-optimize">The current baseline changes what we should optimize.</h3>
+<p>The public GitHub API reported 2 stars and 0 forks during this research. Across all 61 release records returned, assets had 1,329 downloads: 67 DMG downloads, 80 updater archive downloads, and 1,182 other asset downloads. The latest release was v0.0.67; its DMG was 12,899,522 bytes, approximately 12.9 MB. These are request counters, not unique people, completed installations, or retained users. The current all-assets badge should not become “1,329 users” in marketing. <a href="https://api.github.com/repos/shekhardtu/linty">Repository metadata</a>, <a href="https://api.github.com/repos/shekhardtu/linty/releases?per_page=100">release records</a>.</p>
+<p>The live site responds and has a clear direct download path. Its hero describes general dictation, and the HTML inspected did not contain an <code>og:image</code> social-preview image. The README gives substantial space to engine comparisons and synthetic file benchmarks before installation. These are useful technical details, but a short real workflow demonstration and obvious installation path should appear earlier. The existing comparison also omits the closest free alternatives. <a href="https://linty.ai">Live site</a>, <a href="https://github.com/shekhardtu/linty">public README</a>.</p>
+<h3 id="strategy-what-we-can-say-today-and-what-still-needs-proof">What we can say today, and what still needs proof</h3>
+<div class="table-scroll" role="region" aria-label="The launch strategy table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Message</th>
+<th>Evidence and boundary</th>
+<th>Marketing use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free app; no account, API key, or subscription required</td>
+<td>Documented installation flow and current source</td>
+<td>Put near the download button</td>
+</tr>
+<tr>
+<td>Dictation runs on the Mac after setup</td>
+<td>Speech and cleanup paths are local; model downloads and updates use the network</td>
+<td>Say “offline after setup,” and demonstrate it</td>
+</tr>
+<tr>
+<td>Choose a language; Linty prepares the model</td>
+<td>Implemented in the language preparation service</td>
+<td>Explain the user action; keep model names in technical detail</td>
+</tr>
+<tr>
+<td>Optional English text cleanup runs locally</td>
+<td>English setup prepares S1-mini; other selected languages skip cleanup</td>
+<td>Always preserve the English qualification</td>
+</tr>
+<tr>
+<td>History and personal dictionary</td>
+<td>Existing product features</td>
+<td>Show recovery and a real recurring term in a demo</td>
+</tr>
+<tr>
+<td>Small installer</td>
+<td>Current release DMG is about 12.9 MB</td>
+<td>Disclose model downloads alongside it; avoid implying a 13 MB total installation</td>
+</tr>
+<tr>
+<td>Faster, more accurate, lighter, or easier than competitors</td>
+<td>Not established by a comparative test</td>
+<td>Do not publish as fact</td>
+</tr>
+<tr>
+<td>Better support for Indian accents or Hinglish</td>
+<td>Not established by the inspected benchmarks</td>
+<td>A possible later research cohort, not an initial promise</td>
+</tr>
+</tbody>
+</table></div>
+<p>Product evidence: <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/README.md">README</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/PRIVACY.md">privacy notice</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/services/language-preparation.service.ts">language preparation</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src/pages/Onboarding.page.tsx">onboarding</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/licenses/MODELS.md">model attribution</a>. This was source and documentation research, not a fresh hands-on comparison of the apps.</p>
+<p>The cleanup model is S1-mini by Superwhisper. Credit the upstream work when discussing the architecture. The app's MIT license does not replace individual model licenses. Linty's present advantage is the experience it assembles; describing the model as proprietary Linty technology would be wrong.</p>
+<h3 id="strategy-start-with-a-reachable-group-who-have-a-repeated-job">Start with a reachable group who have a repeated job.</h3>
+<p>Recruit 20 Apple Silicon users, ideally 10 developers who already use dictation and 10 who write long prompts or updates but currently type. Include different Mac generations and English accents. Existing dictation users reveal switching costs; new users reveal whether onboarding teaches a useful habit. Select people with a place where speaking aloud is practical. Writers and general Mac productivity users are the next audience if this cohort retains.</p>
+<p>Ask each participant to do three ordinary tasks: describe a bug, dictate a prompt or project brief, and write a short update. Observe the initial installation without coaching, then help after documenting the obstacle. Do not ask for private code, prompts, or recordings. The same synthetic sample can be used for a published demo; personal workflow outcomes can be reported without sharing content.</p>
+<p>Record where they hesitate: permissions, model download, trigger key, text quality, paste destination, or remembering to use it tomorrow. At day 7 ask how many days they used it, whether it replaced typing or another product, and what made them stop. With 20 people, these findings are directional. Report counts and missing replies, not statistically conclusive percentages.</p>
+<h3 id="strategy-make-the-first-success-easier-before-adding-features">Make the first success easier before adding features.</h3>
+<p>English speech setup is about 500 MB plus roughly 496 MB for cleanup according to current app estimates. That makes first-run waiting more relevant than the DMG size. Measure total setup time, model-transfer time, and time from models-ready to first successful paste separately. If downloads are the main abandonment point, test allowing basic dictation before optional cleanup finishes. If paste reliability is the main problem, prioritize it ahead of new engines or another interface.</p>
+<p>For the first 20-person cohort, use these proposed launch gates: at least 14 complete a first useful dictation without live help, at least 8 report use on 3 separate days in their first week, and no unresolved recurring loss-of-text issue appears. Review every unsuccessful attempt. These thresholds are management choices for the experiment, not industry benchmarks or launch guarantees.</p>
+<h3 id="strategy-use-one-month-to-earn-the-first-repeat-users">Use one month to earn the first repeat users.</h3>
+<p>The following schedule assumes roughly 8–10 founder hours each week for distribution and research, plus engineering time for any discovered blockers. If that is too much, cut the number of channels before cutting follow-up with users.</p>
+<div class="table-scroll" role="region" aria-label="The launch strategy table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Period</th>
+<th>Work</th>
+<th>Output and decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Days 1–3</td>
+<td>Record the baseline; prepare one real 30–45 second demo; put compatibility and setup downloads beside the CTA; prepare an accurate social preview</td>
+<td>A shareable product someone can understand and install</td>
+</tr>
+<tr>
+<td>Days 4–7</td>
+<td>Recruit the 20-person cohort through existing relationships and appropriate community invitations; observe installations; collect the first workflow failures</td>
+<td>Prioritized activation problems, not a general feature wishlist</td>
+</tr>
+<tr>
+<td>Days 8–14</td>
+<td>Follow up with the cohort; fix the largest obstacle; publish 2–3 founder demos on existing X/LinkedIn accounts; share a disclosed maker post in one relevant community if its rules allow</td>
+<td>First repeat-use evidence and objections in users' own words</td>
+</tr>
+<tr>
+<td>Days 15–21</td>
+<td>If the gates are met, make one Show HN submission; publish one useful workflow article; approach 5–10 carefully selected small creators or newsletter authors</td>
+<td>Qualified visits, useful installs, technical discussion, voluntary stars</td>
+</tr>
+<tr>
+<td>Days 22–30</td>
+<td>Repeat the best-performing workflow/channel; publish what changed from user feedback; test one comparison page; decide whether Product Hunt is worth preparing</td>
+<td>A second cohort and a decision based on usage rather than launch-day traffic</td>
+</tr>
+</tbody>
+</table></div>
+<p>A launch date is movable if first-use problems remain. Product Hunt can wait until we have a working demonstration, a few permissioned user quotes, and time to respond. A directory listing or a one-day spike alone does not demonstrate product demand.</p>
+<h3 id="strategy-allocate-channels-by-the-job-they-do">Allocate channels by the job they do.</h3>
+<p>GitHub and Show HN are suited to technical inspection and project discovery. Founder videos and Mac communities let people see the workflow. Articles and comparisons help users who are already considering dictation. A small creator should be selected because their audience uses Macs and writes regularly, not because their follower count is large.</p>
+<div class="table-scroll" role="region" aria-label="The launch strategy table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Channel</th>
+<th>Specific contribution</th>
+<th>Primary signal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Existing relationships and founder accounts</td>
+<td>Invite a small trial cohort; show one real task per post</td>
+<td>Successful setup and repeat use</td>
+</tr>
+<tr>
+<td>1</td>
+<td>GitHub README and Discussions</td>
+<td>Put the demo and install first; maintain a clear roadmap and 3 genuinely bounded starter issues</td>
+<td>Useful issue reports, contributors, voluntary stars</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Relevant Mac/open-source communities</td>
+<td>Disclose that we make Linty; ask for feedback on a specific workflow; follow current community rules</td>
+<td>Qualified testers and actionable feedback</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Show HN</td>
+<td>Share the runnable product and personally explain the engineering and tradeoffs</td>
+<td>Installs, thoughtful discussion, stars</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Small Mac/developer creators</td>
+<td>Offer a concise demo and access to the maintainer; ask for independent evaluation</td>
+<td>Users who try the demonstrated workflow</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Search-oriented articles</td>
+<td>Publish one specific tutorial and one fair comparison that includes free alternatives</td>
+<td>Sustained qualified traffic over time</td>
+</tr>
+<tr>
+<td>Later</td>
+<td>Product Hunt, wider directories, paid promotion</td>
+<td>Broaden reach after activation works</td>
+<td>Incremental retained users</td>
+</tr>
+</tbody>
+</table></div>
+<p>Hacker News currently prohibits generated or AI-edited discussion text and solicitation of votes/comments. The founder should write the submission explanation and replies personally; the copy kit provides preparation topics only for this channel. <a href="https://news.ycombinator.com/newsguidelines.html">HN guidelines</a>, <a href="https://news.ycombinator.com/showhn.html">Show HN guidance</a>.</p>
+<p>Do not turn competitor issue trackers into promotional channels. Do not buy stars, exchange stars, or gate installation/features behind a star. A useful contribution, a good demo, and a courteous optional request are more consistent with the community we want.</p>
+<h3 id="strategy-treat-stars-and-usage-as-separate-outcomes">Treat stars and usage as separate outcomes.</h3>
+<p>The user path is: relevant demonstration → compatible Mac visitor → download → successful first dictation → repeated use → recommendation. The contributor path can begin with a technical article or benchmark → repository visit → star, issue, or contribution. Someone can star without installing, and someone can love the app without a GitHub account.</p>
+<div class="table-scroll" role="region" aria-label="The launch strategy table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Definition</th>
+<th>Collection during this month</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>New DMG downloads</td>
+<td>Change in DMG asset counters across all releases</td>
+<td>Public GitHub API snapshot; excludes updater files and metadata; still not unique installers</td>
+</tr>
+<tr>
+<td>Activation in the cohort</td>
+<td>First useful dictation pasted successfully within 24 hours / all cohort participants who begin installation</td>
+<td>Consented observation and follow-up; report raw counts</td>
+</tr>
+<tr>
+<td>First-week repeat use</td>
+<td>At least 5 successful dictations across at least 3 distinct days during days 1–7 / cohort participants who begin installation</td>
+<td>Voluntary day-7 report or user-reviewed local summary; missing replies reported separately</td>
+</tr>
+<tr>
+<td>Weekly repeat users in the cohort</td>
+<td>People with at least 5 successful dictations over 3 days in that calendar week</td>
+<td>Same voluntary method; no claim of whole-product active users</td>
+</tr>
+<tr>
+<td>New stars</td>
+<td>End-of-period minus start-of-period stars</td>
+<td>Public repository counter; no attribution to a particular install</td>
+</tr>
+<tr>
+<td>Recommendations</td>
+<td>People who voluntarily shared Linty with another relevant person</td>
+<td>Follow-up question; permission before quoting them</td>
+</tr>
+</tbody>
+</table></div>
+<p>Linty currently has no app usage telemetry. Do not silently add tracking to solve marketing measurement. Begin with a consented panel and aggregate download counters. If a later opt-in diagnostics or usage report is proposed, keep it separate from dictation content and explain the exact data and purpose before collection. Existing website privacy controls block browser fetch/beacon collection; UTM links alone do not create an analytics system. Campaign paths could support coarse host-side counts after the host's handling is understood, but they still would not identify successful installations. See the <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/PRIVACY.md#website-and-github">current website disclosure</a>.</p>
+<p>Illustrative 30-day planning targets are 100–300 additional DMG downloads, 50–150 additional stars, and at least 8 of the first 20 participants showing first-week repeat use. These are targets, not forecasts; no reliable conversion baseline exists yet. Reforecast after week 2. Do not derive an install-to-star conversion rate from these unrelated counters. The more important milestone is finding a small group who can explain why they keep using Linty.</p>
+<p>If posts get attention but few compatible users try the app, change targeting and the promise. If people download but cannot start, fix onboarding. If they start but do not return, investigate quality, latency, social setting, or weak need. If users retain but stars lag, improve the repository presentation and make a modest optional star request after value has been delivered. If stars grow but usage does not, do not call the GTM successful.</p>
+<h3 id="strategy-create-a-small-set-of-proof-led-assets">Create a small set of proof-led assets.</h3>
+<p>Prioritize one actual workflow video, a focused download page, a useful README, three social creatives derived from the same footage, a founder launch post, one tutorial, and one comparison. A poster alone cannot show that the app successfully captured and pasted someone's words. A real demonstration can become a GIF, screenshot, banner, short post, and article illustration. The <a href="#launch-kit">copy and creative kit</a> contains drafts and production instructions.</p>
+<h3 id="strategy-a-small-companion-tool-is-a-later-experiment">A small companion tool is a later experiment.</h3>
+<p>The best candidate is a “Type or dictate?” challenge on linty.ai: a sample task, local timers, editable text boxes, and a manual correction-time field. Users dictate using the installed Linty app, compare total task time including correction, and can explicitly export a result card. This measures their own experience; it is not an independent benchmark. It should have no browser speech-recognition engine, no automatic transcript upload, and no misleading preset speedup. Keep it within the existing site/repository. Build it only if the demo does not sufficiently explain the benefit and at least five testers want the comparison. Start with a written challenge first.</p>
+<p>A generic AI writing side-app or separate Lite installer would add maintenance and attract a less relevant audience. A browser transcription demo also would not prove system-wide Mac pasting. A second engine, new platform, or smaller model should follow observed adoption barriers, with accuracy and setup tradeoffs tested explicitly.</p>
+<h3 id="strategy-the-next-concrete-decision-is-to-run-the-cohort-and-record-the-demo">The next concrete decision is to run the cohort and record the demo.</h3>
+<p>Assign one owner to recruitment and follow-up, one to content and channel replies, and one to product fixes; one founder can hold all three roles with scheduled time blocks. Keep no-cost core dictation as the offer for this launch. Revisit sponsorship or paid support once repeat usage and maintenance needs are clearer. Publish only measured results and approved testimonials, and keep “dictation for Mac” beside the Linty name so first-time visitors do not mistake it for a code-linting tool.</p></div></section>
+<section class="chapter" id="competitors" aria-labelledby="competitors-title">
+<header class="chapter-header"><span class="chapter-number">02</span><div><h2 id="competitors-title">The competitive landscape</h2><p class="chapter-intro">Ten relevant products. What they offer, how they reach people, and what we can learn.</p></div></header>
+<div class="prose"><p>Research date: 21 September 2026. This covers ten relevant products or substitutes, rather than claiming exhaustive coverage of every dictation app. Product facts come primarily from vendor pages and repositories. “GTM interpretation” describes the strategy suggested by observable activity; private acquisition spend, conversion rates, retention, and channel profitability were not available. Prices are the public offers observed on this date and may change; annual equivalents are labeled.</p>
+<div class="table-scroll" role="region" aria-label="The competitive landscape table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Product</th>
+<th>Current offer relevant to Linty</th>
+<th>Observable distribution and positioning</th>
+<th>GTM interpretation for Linty</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wispr Flow</td>
+<td>Cloud dictation, cross-platform availability, free entry and Pro at $15/user/month or $12 with annual billing</td>
+<td>Creator partnerships, affiliate terms offering 25% for 12 months, usage-qualified referral credits, team expansion</td>
+<td>Demonstrate a concrete job and let users try it. Subscription-funded affiliate economics do not transfer directly to a free app. <a href="https://wisprflow.ai/pricing">Plans</a>, <a href="https://docs.wisprflow.ai/articles/7890073756-partnership-and-creator-collaboration-inquiries">partners and referrals</a>, <a href="https://wisprflow.ai/affiliates/terms">affiliate terms</a>, <a href="https://docs.wisprflow.ai/articles/4048537120-what-to-expect-from-flow-accuracy-and-known-limitations">cloud requirement</a></td>
+</tr>
+<tr>
+<td>Superwhisper</td>
+<td>Free tier, Pro displayed at $8.49/month, local and cloud model options, customizable workflows</td>
+<td>Detailed workflow videos and prominent developer testimonials; homepage explicitly demonstrates agentic coding</td>
+<td>The task demonstration makes the benefit legible. “Voice for coding assistants” is already contested. <a href="https://superwhisper.com/">Product, pricing, and tutorials</a></td>
+</tr>
+<tr>
+<td>VoiceInk</td>
+<td>Local Mac transcription; optional cloud text enhancement; packaged licenses displayed at $25/1 Mac, $39/2, $49/3</td>
+<td>Explicit one-time-price positioning, public source, founder identity, customer quotes, 30% affiliate program</td>
+<td>Founder trust and clear economics support trial. Free binaries distinguish Linty from this offer, but not from all alternatives. <a href="https://tryvoiceink.com/">Product and prices</a>, <a href="https://github.com/Beingpax/VoiceInk">source</a>, <a href="https://tryvoiceink.com/affiliate">affiliate program</a></td>
+</tr>
+<tr>
+<td>Handy</td>
+<td>Free MIT-licensed local dictation on macOS, Windows, Linux; Whisper and Parakeet options</td>
+<td>A concise demonstration, clear free/open-source message, public repository, sponsorship, package-manager installation</td>
+<td>Linty's closest challenge to a generic free/private message. Give a Mac user a tested reason to prefer Linty. <a href="https://handy.computer/">Site</a>, <a href="https://github.com/cjpais/Handy">repository and installation</a></td>
+</tr>
+<tr>
+<td>FluidVoice</td>
+<td>Free GPLv3 Mac app; local speech and optional local enhancement; the enhancement runtime is separately privately maintained</td>
+<td>Demonstrations in the README, Homebrew installation, voluntary star request, sponsorship, community update posts</td>
+<td>Local cleanup is not unique either. Publish Linty's actual setup and performance tradeoffs instead of competing through superlatives. <a href="https://github.com/altic-dev/FluidVoice">Repository</a>, <a href="https://altic.dev/fluid">repository-linked site</a>, <a href="https://www.reddit.com/r/macapps/comments/1paekae/i_promised_to_make_fluidvoice_the_best_free_open/">founder community update</a></td>
+</tr>
+<tr>
+<td>OpenWhispr</td>
+<td>MIT desktop app, unlimited free local dictation, optional cloud/BYOK; Pro displayed at $80/user/year, or $6.67/month equivalent</td>
+<td>Developer-specific landing page, multiple use-case pages, public source, visible Product Hunt-related testimonial, paid workflow expansion</td>
+<td>Open source and a free local tier can support distribution, but developer targeting alone is not a gap. <a href="https://openwhispr.com/pricing">Plans</a>, <a href="https://openwhispr.com/use-cases/developers">developer page</a>, <a href="https://github.com/OpenWhispr/openwhispr">repository</a></td>
+</tr>
+<tr>
+<td>Aqua Voice</td>
+<td>Technical-vocabulary-focused dictation, 1,000-word entry allowance; Pro $8/month with annual billing</td>
+<td>Coding demonstrations, proprietary-model benchmark positioning, creator program offering 25% for 12 months</td>
+<td>A narrowly demonstrated use case can carry the message. Vendor benchmark results are not evidence of Linty being better or worse. <a href="https://aquavoice.com/">Product and pricing</a>, <a href="https://aquavoice.com/creators">creator program</a></td>
+</tr>
+<tr>
+<td>MacWhisper</td>
+<td>Free tier and direct-download Pro displayed at €64 once; files, batch transcription, meetings, exports, and system-wide dictation</td>
+<td>Broad workflow pages, prominent press coverage, direct purchase distribution and a separate App Store offering</td>
+<td>Useful task-specific guides can attract durable demand. Do not claim it lacks dictation, or expand Linty into a transcription suite just to match a checklist. <a href="https://www.macwhisper.com/">Product and price</a>, <a href="https://docs.macwhisper.com/article/40-macwhisper-whisper-transcription-difference">distribution differences</a></td>
+</tr>
+<tr>
+<td>Monologue / Every</td>
+<td>Dictation, voice notes and meetings; trial, then $15/month or $144/year; included in Every's paid bundle</td>
+<td>Launch through Every's publication and existing subscriber base; bundled apps, workshops, and community</td>
+<td>Distribution through an existing audience is an asset. Partner with relevant audiences; an extra Linty product would not automatically create one. <a href="https://www.monologue.to/">Product</a>, <a href="https://every.to/on-every/introducing-monologue-effortless-voice-dictation">original launch</a>, <a href="https://every.to/pricing-all-plans">current bundle</a></td>
+</tr>
+<tr>
+<td>Apple Dictation</td>
+<td>Built into macOS; availability and whether processing is on-device depend on the configuration/language</td>
+<td>Distribution through the operating system itself</td>
+<td>The default alternative requires no extra app. Explain the additional workflow value and test it with users; “free” alone cannot win. <a href="https://support.apple.com/en-sg/guide/mac-help/mh40584/mac">Apple documentation</a></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="competitors-the-observable-patterns-suggest-four-routes-into-the-market">The observable patterns suggest four routes into the market.</h3>
+<p>Paid dictation vendors use product demonstrations, trials, creator relationships, and repeat billing to support acquisition. Open-source projects make the runnable product, repository, and contribution path easy to reach. Broader transcription products attract people through specific jobs such as meetings or subtitle exports. Every can introduce Monologue to an existing audience and bundle it with other products. These are descriptions of visible mechanisms, not proof of how much growth each mechanism caused.</p>
+<p>For Linty, the relevant combination is a free, easy-to-try app plus convincing workflow footage, founder participation, and useful public engineering work. Buying attention would be premature before knowing whether users return. Replicating a paid affiliate scheme makes little sense while Linty has no purchase to fund commissions.</p>
+<h3 id="competitors-public-project-size-shows-that-free-local-dictation-is-already-an-established-category">Public project size shows that free local dictation is already an established category.</h3>
+<p>The following counts were read from the GitHub REST API during this research; they are a dated snapshot, not current counters or active-user estimates.</p>
+<div class="table-scroll" role="region" aria-label="The competitive landscape table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Repository</th>
+<th style="text-align: right;">Stars observed</th>
+<th style="text-align: right;">Forks observed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://api.github.com/repos/shekhardtu/linty">Linty</a></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><a href="https://api.github.com/repos/cjpais/Handy">Handy</a></td>
+<td style="text-align: right;">31,936</td>
+<td style="text-align: right;">2,923</td>
+</tr>
+<tr>
+<td><a href="https://api.github.com/repos/altic-dev/FluidVoice">FluidVoice</a></td>
+<td style="text-align: right;">11,666</td>
+<td style="text-align: right;">835</td>
+</tr>
+<tr>
+<td><a href="https://api.github.com/repos/OpenWhispr/openwhispr">OpenWhispr</a></td>
+<td style="text-align: right;">8,393</td>
+<td style="text-align: right;">1,032</td>
+</tr>
+<tr>
+<td><a href="https://api.github.com/repos/Beingpax/VoiceInk">VoiceInk</a></td>
+<td style="text-align: right;">6,485</td>
+<td style="text-align: right;">924</td>
+</tr>
+</tbody>
+</table></div>
+<p>Project age, platform coverage, existing audiences, and cumulative exposure differ. These counts do not identify which product is best or what growth Linty should expect.</p>
+<h3 id="competitors-lintys-strongest-present-proposition-is-a-particular-combination-of-choices">Linty's strongest present proposition is a particular combination of choices.</h3>
+<p>It provides free signed/notarized downloads, local recognition and optional local English cleanup, language-based model preparation, local history, a dictionary, and MIT-licensed app source for Apple Silicon Macs. Those choices support a useful promise of accessible local dictation. They do not establish market exclusivity, superior accuracy, or superior onboarding. <a href="https://github.com/shekhardtu/linty">Linty documentation</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/licenses/MODELS.md">model notices</a>.</p>
+<p>Against a cloud-dependent workflow, demonstrate offline dictation after setup. Against a paid packaged app, make the free download and absence of account setup clear. Against Handy, FluidVoice, and OpenWhispr, acknowledge the overlap and invite a workflow comparison. Against built-in dictation, demonstrate history, the dictionary, and English cleanup in a task the prospective user actually performs. If those benefits do not matter to a particular person, they are not the first target customer.</p>
+<h3 id="competitors-a-credible-comparison-needs-measurements-beyond-inference-speed">A credible comparison needs measurements beyond inference speed.</h3>
+<p>Linty's published “30-minute file in 4.97 seconds” is a warm Parakeet inference result on one M3 Pro using synthetic English. It excludes setup, model loading, recording, UI, cleanup, and paste. It is interesting technical evidence, but cannot support “fastest dictation app,” “instant first run,” or a claim about real-world accent accuracy. <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/docs/TRANSCRIPTION-CAPACITY.md">Methodology</a>.</p>
+<p>Before publishing performance comparisons, use a repeatable set of real, consented or explicitly synthetic tasks, state which, and test the same tasks across the selected products. Include current versions/settings, microphone, Mac hardware, cold and warm starts, release-to-paste time, failed insertions, and correction time. Report multiple runs, medians and variability. Compare cleaned text on preserved meaning and usable output, because word error alone can penalize deliberate formatting. Network conditions matter for cloud products. Do not announce a win until the experiment is complete.</p>
+<h3 id="competitors-some-search-results-require-particular-care">Some search results require particular care.</h3>
+<p>Several comparison articles were competitor-owned or affiliate-supported, so they were used only for discovery, not as the basis for product facts. A FluidVoice-branded domain claimed official status, but the project metadata linked to altic.dev/fluid; this report uses the repository-linked destination. MacWhisper has dictation today even though some third-party summaries describe it as file-only. Old Monologue launch pricing differs from its current page. Verify prices and features again when publishing a comparison.</p>
+<p>The practical research conclusion is to compete through a specific, proven user experience and distribution discipline. No evidence here justifies building a second app to create a supposed feature gap. The next research investment should be conversations and observed use by the first 20 target users.</p></div></section>
+<section class="chapter" id="launch-kit" aria-labelledby="launch-kit-title">
+<header class="chapter-header"><span class="chapter-number">03</span><div><h2 id="launch-kit-title">The launch kit</h2><p class="chapter-intro">Messaging, creative briefs, social posts, outreach, and a complete first article.</p></div></header>
+<div class="prose"><p>Drafts prepared 21 September 2026 for an organic launch. These are proposed copy and production briefs, collected here for review. They have not been used in a public campaign or sent as outreach. Record the actual product behavior before using demonstration claims. Use existing Linty branding and real interface captures. No fabricated reviews, speedups, usage figures, or GitHub stars.</p>
+<h3 id="launch-kit-use-one-clear-core-message">Use one clear core message.</h3>
+<blockquote>
+<p>Turn spoken thoughts into text, right where you work.</p>
+<p>Free, on-device dictation for your Mac.</p>
+</blockquote>
+<p>Supporting copy:</p>
+<blockquote>
+<p>Choose your language, hold a key, and speak. Linty transcribes on your Mac and pastes your words into the app you're using. English text cleanup runs locally too and can be turned off.</p>
+<p>Free app. Open source. No account or API key.</p>
+</blockquote>
+<p>Primary button: <strong>Download for Mac</strong>. Secondary link: <strong>View on GitHub</strong>. Compatibility line: <strong>Apple Silicon · macOS 14+ · Offline after model setup</strong>. Near the setup explanation, state that speech models download separately and English cleanup adds a further download. Do not bury installation prerequisites in a FAQ.</p>
+<p>For developer audiences, test this alternate opening:</p>
+<blockquote>
+<p>Speak your next prompt.</p>
+<p>Use your voice to describe the bug, the feature, or the context. Linty turns it into text on your Mac, ready for the app you work in.</p>
+</blockquote>
+<p>Mention a named editor or terminal only after verifying the demonstrated app/version. Dictation is local; pasting the result into a cloud-connected assistant does not make that assistant local. Do not imply an official integration, sponsorship, or endorsement from an editor vendor.</p>
+<h3 id="launch-kit-record-one-useful-demonstration-and-derive-the-other-assets-from-it">Record one useful demonstration and derive the other assets from it.</h3>
+<div class="table-scroll" role="region" aria-label="The launch kit table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Asset</th>
+<th>Content</th>
+<th>Production brief</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Main video</td>
+<td>One real thought becomes editable text in a real app</td>
+<td>30–45 seconds, readable cursor and output, captions, audible speech, actual elapsed processing; disclose any cut</td>
+</tr>
+<tr>
+<td>Offline clip</td>
+<td>Dictation into a local text editor with network disconnected after setup</td>
+<td>One continuous take; demonstrate functionality offline, without presenting this alone as a network-security audit</td>
+</tr>
+<tr>
+<td>Social preview/banner</td>
+<td>Headline, actual recording pill and text result, clear Mac compatibility</td>
+<td>1200 × 630 master; use the existing wordmark, colors, and fonts; add <code>og:image</code> when the asset is implemented</td>
+</tr>
+<tr>
+<td>Square or portrait post</td>
+<td>A single workflow with a short caption</td>
+<td>1080 × 1080 or 1080 × 1350; derive from the real recording</td>
+</tr>
+<tr>
+<td>GitHub GIF/video</td>
+<td>Hold → speak → release → paste</td>
+<td>Short and readable; place before dense feature and benchmark material</td>
+</tr>
+<tr>
+<td>Article illustration</td>
+<td>A legible app capture supporting the tutorial</td>
+<td>Label illustrative data; avoid mock text presented as measured output</td>
+</tr>
+</tbody>
+</table></div>
+<p>Suggested main-video sequence: show a blank note and the headline for 3 seconds; hold the trigger and dictate a 10–15 second project brief; show release, processing, and actual paste at normal speed; show one small correction if needed; finish with the download URL and supported Mac requirements. If the action takes longer, let the video be longer. A good demo explains the experience rather than hiding its costs.</p>
+<p>Synthetic demo speech:</p>
+<blockquote>
+<p>“The settings window closes before my changes are saved. Please find the save handler, keep the window open if saving fails, and show a clear error message so I can try again.”</p>
+</blockquote>
+<p>This is sample input, not a promised transcript. Record the output that the current release actually produces. Use a local editor for the offline clip so the receiving app does not require a connection.</p>
+<h3 id="launch-kit-three-bannerposter-concepts-are-enough-to-start">Three banner/poster concepts are enough to start.</h3>
+<div class="table-scroll" role="region" aria-label="The launch kit table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Headline</th>
+<th>Supporting line</th>
+<th>Visual and CTA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Workflow</td>
+<td>Speak your next prompt.</td>
+<td>Free dictation for your Mac.</td>
+<td>Actual prompt capture; “Download Linty”</td>
+</tr>
+<tr>
+<td>Offline</td>
+<td>Your Mac can do the listening.</td>
+<td>Dictation works offline after setup.</td>
+<td>Real local-note result; “Try Linty”</td>
+</tr>
+<tr>
+<td>Open source</td>
+<td>A little less typing.</td>
+<td>Free app. Open source. Built for Apple Silicon.</td>
+<td>Actual product screen; “Explore Linty on GitHub”</td>
+</tr>
+</tbody>
+</table></div>
+<p>Use one primary CTA per creative. In download-focused posts, a GitHub link can appear in a follow-up. In engineering posts, link directly to the repository. Avoid feature grids, oversized model diagrams, and claims such as “the only private dictation app.”</p>
+<h3 id="launch-kit-founder-launch-post-for-linkedin-or-a-longer-social-post">Founder launch post for LinkedIn or a longer social post</h3>
+<blockquote>
+<p>We've built Linty: a free, open-source dictation app for Apple Silicon Macs.</p>
+<p>Choose your language, hold a key, speak, and release. Your words land in the app you're using. Speech recognition runs on your Mac, and English text cleanup can run locally too.</p>
+<p>No account, API key, or subscription. Setup downloads the models; dictation works offline afterward.</p>
+<p>We're starting with people who write a lot of prompts, bug reports, and project updates. The attached video shows one real workflow.</p>
+<p>Try it: https://linty.ai</p>
+<p>Source: https://github.com/shekhardtu/linty</p>
+<p>I'd value feedback on the first thing that feels confusing or interrupts your work. If the project is useful to you, a GitHub star is appreciated.</p>
+</blockquote>
+<p>Attach the completed recording before using this draft. Replace “we” with “I” if the maintainer prefers a personal voice.</p>
+<h3 id="launch-kit-short-social-post">Short social post</h3>
+<blockquote>
+<p>Speak your next prompt.</p>
+<p>Linty is free, open-source dictation for Apple Silicon Macs. Hold a key, speak, release to paste. Works offline after model setup.</p>
+<p>Try it: https://linty.ai</p>
+</blockquote>
+<p>Follow-up with a technical angle:</p>
+<blockquote>
+<p>Linty uses Whisper, Parakeet, and optional S1-mini English cleanup to turn speech into text locally. The app source is MIT-licensed, with upstream model terms documented separately.</p>
+<p>Code and methodology: https://github.com/shekhardtu/linty</p>
+</blockquote>
+<h3 id="launch-kit-community-post-draft-subject-to-that-communitys-current-rules">Community post draft, subject to that community's current rules</h3>
+<blockquote>
+<p>Title: I built Linty, a free local dictation app for Apple Silicon Macs</p>
+<p>I'm the maker of Linty. It records while you hold a key, transcribes on your Mac, and pastes at the cursor. English text cleanup is local too and can be switched off.</p>
+<p>It needs macOS 14+, an Apple Silicon Mac, Microphone and Accessibility permissions, and an initial model download. There's no account or API key.</p>
+<p>Handy, FluidVoice, and other projects already do valuable work here. Linty's focus is a simple Mac workflow: choose a language and let the app prepare the speech model. I'd like to learn where this flow works well and where it gets in your way.</p>
+<p>Download and demo: https://linty.ai</p>
+<p>Source: https://github.com/shekhardtu/linty</p>
+<p>If you try it, which part needs work first: setup, text quality, or getting the words into your app?</p>
+</blockquote>
+<p>Use a community-appropriate version, respond personally, and avoid repeatedly posting the same announcement. Do not post to competitors' support threads as unsolicited promotion.</p>
+<h3 id="launch-kit-hacker-news-preparation-is-a-fact-sheet-not-ready-to-paste-commentary">Hacker News preparation is a fact sheet, not ready-to-paste commentary.</h3>
+<p>The founder should write the title, introduction, and replies personally. Prepare to explain the personal motivation, the exact supported Macs, the runnable download, local processing and network boundaries, model attribution, how Linty compares with Handy, and a limitation you want help investigating. Be available for technical discussion. HN asks for runnable products and prohibits generated/AI-edited conversation text and vote solicitation. <a href="https://news.ycombinator.com/showhn.html">Show HN</a>, <a href="https://news.ycombinator.com/newsguidelines.html">HN guidelines</a>.</p>
+<h3 id="launch-kit-creator-outreach-draft-for-the-founder-to-personalize-and-send">Creator outreach draft for the founder to personalize and send</h3>
+<blockquote>
+<p>Subject: A free local Mac dictation app for a workflow you cover</p>
+<p>Hi [name],</p>
+<p>Your piece on [specific relevant workflow] made me think Linty might be useful to your audience. We built a free, open-source Mac dictation app that runs speech recognition and optional English cleanup locally.</p>
+<p>Here's a short real demo: [link to the completed recording]. The app runs on Apple Silicon with macOS 14 or later: https://linty.ai.</p>
+<p>If you'd like to try it, I'd be happy to help with setup and answer technical questions. An independent assessment, including anything that doesn't work well, would be useful to us.</p>
+<p>[Founder name]</p>
+</blockquote>
+<p>Choose a relevant recipient and personalize the reference. This is unpaid outreach, with no promise of affiliate earnings, favorable coverage, or reciprocal promotion. No messages have been sent.</p>
+<h3 id="launch-kit-use-a-modest-star-request-after-value-is-clear">Use a modest star request after value is clear.</h3>
+<p>Proposed website/README copy:</p>
+<blockquote>
+<p>If Linty is useful to you, star the project on GitHub. It helps people discover the work and lets you show your support.</p>
+</blockquote>
+<p>Potential in-app copy for a later product change:</p>
+<blockquote>
+<p>Enjoying Linty? You can support the project with a star on GitHub.</p>
+</blockquote>
+<p>Actions: <strong>Open GitHub</strong> and <strong>Dismiss</strong>. Show at most once after repeated successful use, keep it out of recording, and remember dismissal locally. Do not claim that starring subscribes the user to release notifications. This trigger and UI are proposals, not existing functionality.</p>
+<h3 id="launch-kit-first-blog-article-draft">First blog article draft</h3>
+<blockquote>
+<p>A little less typing: introducing Linty for Mac</p>
+<p>Sometimes you already know what you want to say. The work is getting it into the text box: describing a bug, explaining a feature, writing an update, or capturing a thought before you lose it.</p>
+<p>Linty is a free, open-source dictation app for Apple Silicon Macs. Hold a key, speak, and release. It turns your speech into text on your Mac and pastes the result where you're working.</p>
+<p>Start with one ordinary task</p>
+<p>You don't need to change your whole workflow to try dictation. Open a note and describe the next thing you need to do. Or explain a bug in plain language before editing the details. Start with a short paragraph, read the result, and make any corrections you need.</p>
+<p>Linty keeps a local history so you can find and copy previous transcriptions. Its personal dictionary lets you add recurring names or terms. For English, on-device text cleanup can help organize the output; you can switch it off if you prefer the direct transcription.</p>
+<p>What setup involves</p>
+<p>Linty supports macOS 14 and later on Apple Silicon. Download the app, move it into Applications, grant Microphone and Accessibility permissions, and choose your dictation language. Linty prepares the appropriate speech model. English setup also prepares the cleanup model.</p>
+<p>Those models are separate downloads. You need a connection for setup, and the app checks for updates. After the models are ready, speech recognition and cleanup work offline. No account or API key is required.</p>
+<p>What local means</p>
+<p>Linty does not upload your recordings or transcripts for speech recognition or cleanup. Your history stays on your Mac. The app you paste into may have its own syncing or cloud processing, so local dictation doesn't change how that app handles text.</p>
+<p>Why another dictation app?</p>
+<p>There are good alternatives, including Handy, FluidVoice, and paid tools with different workflows and platform support. Linty's focus is a straightforward Mac experience with a free download and open application source. We want to learn whether its everyday choices work for you, and improve the parts that don't.</p>
+<p>We build on upstream work including Whisper, Parakeet, FluidAudio, and S1-mini. The repository documents their attribution and the project's current limitations.</p>
+<p>Try it on your next paragraph</p>
+<p>Download Linty at https://linty.ai. The source is at https://github.com/shekhardtu/linty.</p>
+<p>Try one short task and tell us where the experience gets in your way. If you find the project useful, a GitHub star is a welcome way to support it.</p>
+</blockquote>
+<p>Editorial source: <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/README.md">current Linty README</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/PRIVACY.md">privacy notice</a>, <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/src-tauri/licenses/MODELS.md">model notices</a>. Add the real demonstration near the top before publishing.</p>
+<h3 id="launch-kit-follow-up-articles-should-answer-a-real-decision">Follow-up articles should answer a real decision.</h3>
+<p>First, a practical tutorial on dictating a clear bug report or project prompt; measure total completion time including edits if making a speed claim. Second, an honest comparison titled “Choosing free offline dictation for your Mac,” including Apple Dictation, Handy, FluidVoice, OpenWhispr, and Linty. Date the comparison and explain where another option is a better fit. Third, publish the first cohort's findings with permissioned quotations and explicit sample size. Avoid publishing an “everyone loves it” story based on downloads or illustrative dashboard data.</p></div></section>
+    <footer class="footer"><span>Linty · Organic launch field guide<br />Prepared 21 September 2026 · Strategy and campaign drafts</span><span>Unlisted; indexing opt-out directives applied.<br />Anyone with the direct link can read this page.</span></footer>
+  </main>
+</div>
+<p class="sr-only" role="status" aria-live="polite" data-copy-status></p>
+</body>
+</html>
