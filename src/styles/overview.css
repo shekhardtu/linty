@@ -1,0 +1,428 @@
+/* Quiet editorial: summary and recent words beside a supporting activity column. */
+.editorial-metrics {
+  margin-bottom: 0;
+}
+.editorial-supporting-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 20px;
+  margin-top: 26px;
+}
+.editorial-supporting-metrics .metric-value {
+  font-size: 25px;
+}
+.editorial-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 30px 36px;
+  align-items: start;
+}
+.overview-reading-column,
+.overview-support {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+}
+.overview-reading-column,
+.overview-transcripts,
+.overview-support,
+.overview-support-details {
+  min-width: 0;
+}
+.overview-support-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 30px;
+}
+.overview-support section {
+  min-width: 0;
+}
+.overview-support .dashboard-footnote {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.overview-support .dashboard-footnote > span {
+  display: block;
+}
+.overview-support .dashboard-footnote > span:first-child {
+  font-weight: 500;
+}
+.overview-support .dashboard-footnote > span + span {
+  margin-top: 4px;
+}
+.overview-transcripts .transcript-row {
+  border-bottom: 1px solid var(--color-border-subtle);
+  align-items: start;
+}
+.overview-transcripts .transcript-row:last-child {
+  border: 0;
+}
+.overview-transcripts .transcript-select {
+  padding: 19px 0;
+}
+.overview-transcripts .transcript-preview {
+  font-size: 14px;
+  line-height: 1.85;
+  min-block-size: 2lh;
+}
+.overview-transcripts .transcript-actions {
+  padding: 18px 0 0 8px;
+}
+.overview-transcripts .transcript-engine {
+  margin-left: 0;
+}
+.overview-transcripts,
+.overview-apps {
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 19px;
+}
+.overview-apps .app-usage-table td,
+.overview-apps .app-usage-table th {
+  padding: 10px 6px;
+}
+.overview-apps .app-usage-table td:first-child,
+.overview-apps .app-usage-table th:first-child {
+  padding-left: 0;
+}
+.overview-apps .app-usage-table th {
+  font-size: 10px;
+  border-top: 0;
+  background: transparent;
+}
+.overview-app-share {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+}
+.overview-app-share > span:last-child {
+  min-width: 5ch;
+}
+.overview-app-share .app-share-track {
+  width: 48px;
+  height: 3px;
+  margin: 0;
+  flex-shrink: 0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.overview-apps .app-avatar {
+  width: 23px;
+  height: 23px;
+}
+.overview-apps .app-empty {
+  padding: 8px 0;
+  text-align: left;
+}
+.overview-activity .chart-grid {
+  opacity: 0.65;
+}
+.overview-activity .chart-bar.is-latest {
+  background: var(--color-accent);
+}
+.overview-activity .chart-label {
+  font-size: 10px;
+}
+.overview-support .section-heading {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.overview-support .section-heading h2 {
+  font-size: 12px;
+}
+.overview-support .text-link {
+  font-size: 11px;
+}
+/* Overlapping slides share the tallest content's height, including hidden slides. */
+.widget-stack {
+  display: grid;
+}
+.widget-surface {
+  grid-area: 1 / 1;
+  min-width: 0;
+  container-type: inline-size;
+  visibility: hidden;
+  padding: 19px 20px 20px;
+  min-height: 213px;
+  background: var(--color-panel);
+  border-radius: 4px 12px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+.widget-surface.is-active {
+  visibility: visible;
+}
+.widget-copy {
+  width: 100%;
+  min-width: 0;
+}
+.widget-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  color: var(--color-accent);
+  min-height: 29px;
+}
+.widget-kicker > span {
+  font-size: 9px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.widget-kicker > kbd {
+  color: var(--color-accent);
+  background: transparent;
+  border-color: var(--color-accent);
+  font-size: 15px;
+}
+.widget-surface h3 {
+  font-size: clamp(15px, 7.5cqw, 22px);
+  font-weight: 450;
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+  white-space: nowrap;
+  margin: 15px 0 10px;
+}
+.widget-surface p {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.8;
+  margin-bottom: 17px;
+}
+.widget-surface > .text-link {
+  margin-top: auto;
+}
+.widget-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-top: 7px;
+}
+.widget-dots {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.widget-dots > button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 32px;
+}
+.widget-dots i {
+  height: 4px;
+  width: 4px;
+  border-radius: 3px;
+  background: var(--color-text-muted);
+}
+.widget-dots [aria-pressed="true"] i {
+  height: 3px;
+  width: 16px;
+  background: var(--color-accent);
+}
+.widget-controls > span {
+  margin-left: 8px;
+  margin-right: auto;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+@container page (max-width:680px) {
+  .overview-reading-column {
+    display: block;
+  }
+  .overview-reading-column,
+  .overview-support {
+    grid-row: auto;
+    grid-template-rows: none;
+  }
+  .overview-support-details {
+    display: contents;
+  }
+  .editorial-metrics {
+    margin-bottom: 30px;
+  }
+  .editorial-supporting-metrics {
+    margin-top: 25px;
+    gap: 18px;
+  }
+  .editorial-columns {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .metric-lead .metric-value {
+    font-size: 60px;
+  }
+  .editorial-supporting-metrics .metric-value {
+    font-size: 23px;
+  }
+  .overview-support {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+  .overview-widgets {
+    grid-column: 1/-1;
+  }
+  .overview-apps {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+@container page (max-width:460px) {
+  .overview-support {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Benefit first: a quiet accent rule, open typography, then evidence beneath it. */
+.payoff-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+.payoff-label::before {
+  content: "";
+  width: 18px;
+  height: 2px;
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+.payoff-info {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+.payoff-info:hover {
+  color: var(--color-accent);
+}
+.payoff-value {
+  font-size: clamp(40px, 7cqw, 68px);
+  letter-spacing: -0.06em;
+  line-height: 1.2;
+  min-height: 1.2em;
+}
+.payoff-caption {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-top: 10px;
+  min-block-size: 2lh;
+}
+.payoff-summary .editorial-supporting-metrics .metric > p {
+  min-block-size: 2lh;
+}
+.payoff-ratio {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--color-accent-glow);
+  color: var(--color-accent);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.activity-progress {
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border-subtle);
+  min-block-size: calc(2lh + 15px);
+}
+.activity-progress strong {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+.widget-source {
+  margin-top: auto;
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+.estimate-dialog {
+  width: min(410px, calc(100vw - 32px));
+}
+.estimate-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.estimate-heading h2 {
+  margin: 0;
+}
+.estimate-speed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 22px;
+  font-size: 12px;
+}
+.estimate-speed label span {
+  display: block;
+  margin-top: 3px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+.estimate-speed input {
+  width: 76px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  padding: 7px 9px;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.estimate-dialog .estimate-fine {
+  font-size: 11px;
+  line-height: 1.7;
+}
+.estimate-breakdown {
+  margin-top: 20px;
+  font-size: 12px;
+}
+.estimate-breakdown > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 6px 0;
+}
+.estimate-breakdown dt {
+  color: var(--color-text-secondary);
+}
+.estimate-breakdown dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.estimate-breakdown > div:last-child {
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 12px;
+  margin-top: 6px;
+}
+
+/* The benefit label carries the accent; the page title stays quiet. */
+.overview-page .heading-rule {
+  display: none;
+}
+.overview-page .page-header h1 {
+  font-size: 30px;
+}

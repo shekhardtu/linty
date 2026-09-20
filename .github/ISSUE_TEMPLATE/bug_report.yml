@@ -1,0 +1,41 @@
+name: Bug report
+description: Report a reproducible problem with Linty.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Please use synthetic examples and remove private text, audio, and credentials. Report security issues through private vulnerability reporting.
+  - type: input
+    id: version
+    attributes:
+      label: Linty version
+      placeholder: Find this in About.
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Mac and macOS version
+      placeholder: "Example: MacBook Air M2, 16 GB RAM, macOS 15."
+    validations:
+      required: true
+  - type: input
+    id: engine
+    attributes:
+      label: Spoken language and app
+      description: For dictation issues, include the language selected in Settings → Dictation and the app you were typing in. Model details from Advanced are optional.
+      placeholder: "Example: English, Apple Notes, holding fn."
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the actual behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include a short synthetic example if relevant.
+    validations:
+      required: true

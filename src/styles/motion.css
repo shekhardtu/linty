@@ -1,0 +1,185 @@
+/* Motion changes paint/compositing unless the user explicitly expands content. */
+button, a, select, input, textarea, summary,
+.transition-interaction, .search-field, .select-option,
+.transcript-row, .app-usage-table tbody tr, .widget-dots i,
+.onboarding-progress li, .theme-preview {
+  transition-property: background-color, color, border-color, box-shadow, opacity;
+  transition-duration: var(--motion-control);
+  transition-timing-function: var(--ease-out);
+}
+
+.standard-button, .history-page .standard-button, .icon-button, .transcript-action,
+.transition-interaction {
+  transition-property: background-color, color, border-color, box-shadow, opacity, transform, scale;
+}
+
+/* Keep press feedback inside each control's fixed hit area. */
+button:not(:disabled):active { filter: none; }
+.standard-button:not(:disabled):active,
+.icon-button:not(:disabled):active,
+.transcript-action:not(:disabled):active {
+  transform: none;
+  scale: 0.97;
+  transition-duration: var(--motion-fast);
+}
+.nav-button:not(:disabled):active,
+.segmented-control > button:not(:disabled):active,
+.select-trigger:not(:disabled):active,
+.setting-toggle:not(:disabled):active {
+  background-color: var(--color-bg-active);
+}
+.transcript-row:has(.transcript-select:active)::before {
+  background-color: var(--color-accent-glow-strong);
+}
+
+/* Switch geometry is constant; only the thumb moves. */
+.toggle-thumb, .mini-switch i {
+  transition: transform var(--motion-surface) var(--ease-out);
+}
+
+.select-trigger > svg,
+.cleanup-options > summary > svg,
+.dictation-advanced > summary > svg,
+.original-transcript summary > svg,
+.processing-details > summary > svg {
+  transition: rotate var(--motion-control) var(--ease-out),
+    transform var(--motion-control) var(--ease-out),
+    color var(--motion-control) var(--ease-out);
+}
+
+/* No transformed full-page ancestor or retained animation layer after settling. */
+@keyframes surface-appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes page-reveal {
+  from { opacity: 0.72; }
+  to { opacity: 1; }
+}
+.page-scroll, .history-page, .history-detail,
+.settings-pane > div:not([hidden]) {
+  animation: page-reveal var(--motion-control) var(--ease-out) backwards;
+}
+.navigation-results {
+  animation: surface-appear var(--motion-control) var(--ease-out) backwards;
+}
+.status-save { transition: color var(--motion-control) var(--ease-out); }
+@keyframes status-recording-pulse {
+  50% { opacity: 0.45; }
+}
+.status-recording-icon { animation: status-recording-pulse 1.2s ease-in-out infinite; }
+.status-engine-indicator { transition: color var(--motion-control) var(--ease-out); }
+.status-engine-indicator > svg, .status-save-indicator > svg { transition: opacity var(--motion-control) var(--ease-out); }
+.page-scroll, .history-list, .history-detail, .sidebar-navigation {
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+/* Native top-layer exits keep their last position until the fade completes.
+   Browsers without discrete transitions still open/close normally. */
+.select-list, .transcript-menu {
+  opacity: 0;
+  transform: translateY(-3px);
+  transition: opacity var(--motion-fast) var(--ease-out),
+    transform var(--motion-control) var(--ease-out),
+    display var(--motion-control) allow-discrete,
+    overlay var(--motion-control) allow-discrete;
+}
+.select-list:popover-open, .transcript-menu:popover-open {
+  opacity: 1;
+  transform: none;
+}
+.select-list:not(:popover-open), .transcript-menu:not(:popover-open) {
+  pointer-events: none;
+}
+.confirmation-dialog {
+  opacity: 0;
+  transform: translateY(4px) scale(0.99);
+  transition: opacity var(--motion-fast) var(--ease-out),
+    transform var(--motion-surface) var(--ease-out),
+    display var(--motion-surface) allow-discrete,
+    overlay var(--motion-surface) allow-discrete;
+}
+.confirmation-dialog[open] { opacity: 1; transform: none; }
+.confirmation-dialog:not([open]) { pointer-events: none; }
+.confirmation-dialog::backdrop {
+  background-color: rgb(0 0 0 / 0);
+  transition: background-color var(--motion-control) var(--ease-out),
+    display var(--motion-surface) allow-discrete,
+    overlay var(--motion-surface) allow-discrete;
+}
+.confirmation-dialog[open]::backdrop { background-color: rgb(0 0 0 / 0.25); }
+@starting-style {
+  .select-list:popover-open, .transcript-menu:popover-open {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  .confirmation-dialog[open] {
+    opacity: 0;
+    transform: translateY(4px) scale(0.99);
+  }
+  .confirmation-dialog[open]::backdrop { background-color: rgb(0 0 0 / 0); }
+}
+
+/* Cards already share a grid cell, so crossfading never changes their height. */
+.widget-surface {
+  opacity: 0;
+  transition: opacity var(--motion-control) var(--ease-out),
+    visibility 0s linear var(--motion-control);
+}
+.widget-surface.is-active { opacity: 1; transition-delay: 0s; }
+.floating-tooltip {
+  left: 0;
+  top: 0;
+  transition: none;
+  animation: surface-appear var(--motion-fast) var(--ease-out) backwards;
+}
+
+/* Progressive enhancement for native disclosures; instant fallback is usable. */
+@supports (interpolate-size: allow-keywords) and (content-visibility: hidden) {
+  details { interpolate-size: allow-keywords; }
+  details::details-content {
+    block-size: 0;
+    opacity: 0;
+    overflow: clip;
+    transition: block-size var(--motion-surface) var(--ease-out),
+      opacity var(--motion-control) var(--ease-out),
+      content-visibility var(--motion-surface) allow-discrete;
+  }
+  details[open]::details-content { block-size: auto; opacity: 1; }
+}
+
+.progress-fill {
+  width: 100%;
+  transform-origin: left center;
+  transition: transform var(--motion-surface) linear;
+}
+.waveform-bar {
+  transform-origin: center;
+  transition: transform 70ms linear, opacity 70ms linear;
+}
+.button-label-stack { display: grid; }
+.button-label-stack > span { grid-area: 1 / 1; }
+.button-label-stack > [aria-hidden="true"] { visibility: hidden; }
+.toast-slot {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows var(--motion-control) var(--ease-out),
+    opacity var(--motion-fast) var(--ease-out);
+}
+.toast-slot.is-exiting { grid-template-rows: 0fr; opacity: 0; }
+.toast-clip { min-height: 0; overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after, *::backdrop, *::details-content {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Even scale(1) creates a containing block and breaks stretched row buttons. */
+  button:active { scale: none !important; transform: none !important; }
+}

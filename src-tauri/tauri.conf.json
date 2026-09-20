@@ -1,0 +1,93 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicholasrice/tauri-schema/main/tauri.conf.json",
+  "productName": "Linty",
+  "version": "0.0.1",
+  "identifier": "ai.linty.desktop",
+  "build": {
+    "beforeDevCommand": "yarn dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "yarn build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "title": "Linty",
+        "width": 1080,
+        "height": 760,
+        "minWidth": 640,
+        "minHeight": 480,
+        "resizable": true,
+        "decorations": true,
+        "transparent": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "alwaysOnTop": false,
+        "visible": false,
+        "center": true,
+        "shadow": true
+      },
+      {
+        "title": "",
+        "label": "capsule",
+        "url": "/capsule.html",
+        "width": 280,
+        "height": 52,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "visible": false,
+        "shadow": false,
+        "skipTaskbar": true,
+        "focus": false
+      }
+    ],
+    "trayIcon": {
+      "iconPath": "icons/tray-icon.png",
+      "iconAsTemplate": true,
+      "tooltip": "Linty \u2014 Hold fn to record"
+    },
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' ipc: http://ipc.localhost; object-src 'none'; base-uri 'none'; frame-src 'none'; form-action 'none'",
+      "devCsp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' ipc: http://ipc.localhost ws:; object-src 'none'; base-uri 'none'; frame-src 'none'; form-action 'none'"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEU2MUE0OTQ1MDcwNUY5MzMKUldReitRVUhSVWthNW5GSkVMZFdBK0UrTms5QlZVOUhVQkZ2NWxUL0JmOXZKek9ZT3V0Y0VQKzUK",
+      "endpoints": [
+        "https://github.com/shekhardtu/linty/releases/latest/download/latest.json"
+      ]
+    }
+  },
+  "bundle": {
+    "createUpdaterArtifacts": true,
+    "active": true,
+    "targets": [
+      "app",
+      "dmg"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "14.0",
+      "signingIdentity": "Developer ID Application: Hari Shekhar (3RPKRQ84N3)",
+      "hardenedRuntime": true,
+      "entitlements": "../src-tauri/Entitlements.plist"
+    },
+    "resources": [
+      "licenses/THIRD_PARTY_NOTICES.txt",
+      "licenses/inventory.json",
+      "licenses/s1-mini/LICENSE",
+      "licenses/s1-mini/NOTICE",
+      "licenses/MODELS.md"
+    ]
+  }
+}

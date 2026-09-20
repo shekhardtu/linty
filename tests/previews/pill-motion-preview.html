@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Linty · Listening motion</title>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">LINTY · MOTION REVIEW</p>
+      <h1>A calmer listening rhythm.</h1>
+      <p class="intro">Small sounds stay small. Your voice has room to move.</p>
+    </header>
+    <section class="preview" aria-label="Actual dictation pill">
+      <div id="root"></div>
+      <span class="placement-hint">Hands-free listening · drag the pill to reposition</span>
+    </section>
+    <p id="input-description" class="input-description">A natural speaking rhythm, with space between phrases.</p>
+    <section class="inputs" aria-label="Input examples">
+      <button data-preset="quiet"><strong>Quiet room</strong><span>Almost still</span></button>
+      <button data-preset="background"><strong>Background noise</strong><span>Low movement</span></button>
+      <button data-preset="soft"><strong>Soft speech</strong><span>Small, readable</span></button>
+      <button data-preset="speech" aria-pressed="true"><strong>Conversation</strong><span>Varied, mid-height</span></button>
+      <button data-preset="emphasis"><strong>Emphasis</strong><span>Room for peaks</span></button>
+    </section>
+    <section class="adjustments" aria-label="Preview input controls">
+      <div class="strength-control">
+        <div><label for="strength">Input strength</label><output id="strength-value" for="strength">100%</output></div>
+        <input id="strength" type="range" min="0" max="200" step="5" value="100" />
+      </div>
+      <div class="height-readout"><span>Wave height</span><p><output id="wave-height" aria-live="off">2.0</output><span> / 20 px</span></p></div>
+      <button id="microphone" aria-pressed="false">Use my microphone</button>
+    </section>
+    <label class="lock-control"><input id="hands-free" type="checkbox" checked /> Hands-free · double-press to lock</label>
+    <p id="mic-note" class="note" role="status">Synthetic input. The microphone is off.</p>
+    <nav aria-label="Preview states">
+      <button data-state="recording">Listen</button>
+      <button data-state="transcribing">Process</button>
+      <button data-state="done">Done</button>
+      <button data-state="error">Error</button>
+      <span class="nav-divider" aria-hidden="true"></span>
+      <button id="play">Play sequence</button>
+      <button id="fast">Fast result</button>
+      <button id="theme">Switch theme</button>
+      <button id="reset-position">Reset position</button>
+    </nav>
+    <p class="caption">Actual app component · preview controls only adjust the demonstration<br />Recording and transcription sensitivity are unchanged.</p>
+  </main>
+  <script type="module" src="./pill-motion-preview.mjs"></script>
+  <style>
+    html, body { min-height: 100%; height: auto; overflow: auto; background: var(--color-bg-secondary); font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    body { display: grid; place-items: center; min-height: 100vh; }
+    main { width: min(860px, 100%); text-align: center; padding: 48px 30px; }
+    .eyebrow { font-size: 10px; font-weight: 600; letter-spacing: .18em; color: var(--color-accent); margin: 0 0 18px; }
+    h1 { font-size: 32px; font-weight: 500; letter-spacing: -.035em; margin: 0 0 10px; }
+    .intro { font-size: 14px; color: var(--color-text-muted); margin: 0; }
+    .preview { position: relative; height: 190px; margin: 18px 0 0; border-radius: 14px; background: radial-gradient(ellipse at 25% 30%, color-mix(in srgb, var(--color-accent) 18%, transparent), transparent 65%), repeating-linear-gradient(135deg, transparent 0 24px, color-mix(in srgb, var(--color-border) 14%, transparent) 24px 44px), var(--color-bg-secondary); }
+    #root { position: absolute; left: 50%; top: 50%; width: 380px; max-width: calc(100vw - 60px); height: 52px; transform: translate(calc(-50% + var(--drag-x, 0px)), calc(-50% + var(--drag-y, 0px))); }
+    #root.is-dragging, #root.is-dragging * { cursor: grabbing !important; }
+    .placement-hint { position: absolute; bottom: 10px; left: 0; right: 0; pointer-events: none; font-size: 10px; color: var(--color-text-muted); opacity: .75; }
+    .input-description { min-height: 20px; font-size: 12px; color: var(--color-text-secondary); margin: 20px 0; }
+    button { border: 1px solid var(--color-border-subtle); border-radius: 9px; color: var(--color-text-secondary); background: var(--color-bg); font: inherit; font-size: 12px; cursor: pointer; transition: background 150ms ease, border-color 150ms ease; }
+    button:hover { background: var(--color-bg-hover); }
+    button:focus-visible, input:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+    button[aria-pressed="true"] { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 8%, var(--color-bg)); color: var(--color-text-primary); }
+    .inputs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .inputs button { min-height: 66px; padding: 12px 8px; }
+    .inputs strong { display: block; font-size: 11px; font-weight: 500; }
+    .inputs span { display: block; font-size: 10px; color: var(--color-text-muted); margin-top: 6px; }
+    .adjustments { display: flex; align-items: center; justify-content: center; gap: 32px; margin: 28px 0 12px; }
+    .strength-control { width: 200px; }
+    .strength-control > div { display: flex; justify-content: space-between; font-size: 11px; color: var(--color-text-secondary); }
+    #strength { width: 100%; accent-color: var(--color-accent); margin-top: 10px; cursor: pointer; }
+    output { font-variant-numeric: tabular-nums; }
+    .height-readout { text-align: left; width: 96px; font-size: 11px; color: var(--color-text-muted); }
+    .height-readout p { margin: 4px 0 0; font-size: 11px; }
+    #wave-height { color: var(--color-text-primary); font-size: 18px; font-weight: 500; }
+    #microphone { min-height: 36px; padding: 8px 14px; }
+    .note { color: var(--color-text-muted); font-size: 11px; min-height: 16px; margin: 0 0 26px; }
+    .lock-control { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: var(--color-text-secondary); margin: 16px 0 12px; cursor: pointer; }
+    .lock-control input { accent-color: var(--color-accent); }
+    nav { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 7px; padding-top: 22px; border-top: 1px solid var(--color-border-subtle); }
+    nav button { padding: 8px 11px; font-size: 11px; }
+    .nav-divider { width: 1px; height: 16px; margin: 0 4px; background: var(--color-border-subtle); }
+    .caption { margin: 20px 0 0; font-size: 10px; line-height: 1.7; color: var(--color-text-muted); }
+    @media (max-width: 650px) { main { padding: 30px 20px; } h1 { font-size: 27px; } .inputs { grid-template-columns: repeat(2, 1fr); } .inputs button:last-child { grid-column: span 2; } .adjustments { gap: 18px; flex-wrap: wrap; } .preview { height: 130px; } }
+  </style>
+</body>
+</html>

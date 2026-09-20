@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Linty — A little less typing. Dictation for your Mac.</title>
+  <meta name="description" content="Linty prepares English dictation automatically on your Mac. Hold Right Command, speak, and release to paste. Free and open source for Intel and Apple silicon Macs." />
+  <meta property="og:title" content="Linty — A little less typing." />
+  <meta property="og:description" content="Choose your language and speak into the apps you already use. Dictation and optional text cleanup run on your Mac. Free and open source." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://linty.ai" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" type="image/svg+xml" href="brand/icon.svg?v=b97b744a3624" />
+  <link rel="icon" type="image/png" sizes="32x32" href="brand/favicon.png?v=36c2c759f331" />
+  <link rel="apple-touch-icon" href="brand/apple-touch-icon.png?v=c8e6c0066772" />
+  <script src="privacy-guard.js?v=2afc4702a0c1"></script>
+  <script src="theme.js?v=87c2c8532cc6"></script>
+  <link rel="stylesheet" href="brand/theme.css?v=934b29bfa881" />
+  <link rel="stylesheet" href="styles.css?v=b85c46bc8294" />
+  <link rel="stylesheet" href="demo.css?v=fda4e9434173" />
+  <link rel="stylesheet" href="motion.css?v=744e41a2b6b2" />
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="wordmark" href="#top" aria-label="Linty home" data-icon-motion><span class="brand-mark" aria-hidden="true"></span><span class="wordmark-name">Linty</span><span class="wordmark-note">for Mac</span></a>
+      <nav class="main-nav" aria-label="Main">
+        <a href="#the-app">The app</a>
+        <a href="#how">How it works</a>
+        <a href="#privacy">Privacy</a>
+      </nav>
+      <div class="header-actions">
+        <div class="theme-switch" role="group" aria-label="Page theme">
+          <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+        </div>
+        <a class="button button-small" data-download href="https://github.com/shekhardtu/linty/releases/latest/download/linty.dmg"><span class="download-label"><span>Get Linty</span><span class="download-starting" aria-hidden="true">Starting…</span></span><span class="download-symbol" aria-hidden="true">↓</span></a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero container" aria-labelledby="hero-title">
+      <div class="hero-intro">
+        <span class="ambient-artwork ambient-hero" aria-hidden="true"><span class="ambient-motif motif-flow"></span></span>
+        <div>
+          <p class="eyebrow"><span class="accent-rule" aria-hidden="true"></span>A little less typing</p>
+          <h1 id="hero-title">Your voice.<br /><span>Right where you type.</span></h1>
+        </div>
+        <div class="hero-detail">
+          <p>Hold <kbd>Right ⌘</kbd>, say what’s on your mind, and release. Linty puts your words into the app you’re already using.</p>
+          <div class="actions">
+            <a class="button" data-download href="https://github.com/shekhardtu/linty/releases/latest/download/linty.dmg"><span class="download-label"><span>Download for macOS</span><span class="download-starting" aria-hidden="true">Starting…</span></span><span class="download-symbol" aria-hidden="true">↓</span></a>
+            <a class="text-link" href="#how">See it in action <span aria-hidden="true">↗</span></a>
+          </div>
+          <p class="fine-print" data-download-note>Free &amp; open source · Intel &amp; Apple silicon · macOS 14+</p>
+          <!-- dmg-downloads:start -->
+          <p class="fine-print" data-dmg-download-count><a href="https://github.com/shekhardtu/linty/releases">0 DMG downloads</a> · Checked <time datetime="2026-09-20T20:22:58.281Z">2026-09-20</time></p>
+          <!-- dmg-downloads:end -->
+          <a class="text-link" data-mac-download hidden href="https://github.com/shekhardtu/linty/releases/latest/download/linty.dmg">Download for a Mac <span class="download-symbol" aria-hidden="true">↓</span></a>
+          <a class="text-link request-shortcut" href="#requests">Want another platform or feature? <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+
+      <div class="product-stage" id="the-app" role="region" aria-roledescription="carousel" aria-label="Explore Linty">
+        <div class="product-toolbar">
+          <span class="product-label"><span class="brand-mark" aria-hidden="true"></span>Meet your new writing habit.</span>
+          <div class="product-controls">
+            <div class="screen-switch" role="group" aria-label="Product screens">
+              <button type="button" data-screen="history" aria-pressed="false">History</button>
+              <button type="button" data-screen="overview" aria-pressed="true">Overview</button>
+              <button type="button" data-screen="dictation" aria-pressed="false">Dictation</button>
+            </div>
+            <button type="button" class="product-playback" id="product-playback" aria-label="Pause screen slideshow" title="Pause screen slideshow" hidden><span class="product-playback-icon" aria-hidden="true"></span></button>
+          </div>
+        </div>
+        <figure class="product-figure">
+          <div class="product-window" id="product-window">
+            <div class="product-slide" data-product-slide="history" data-caption="Find, copy, and edit the words you’ve already said." data-sample="Actual interface · example data" role="group" aria-roledescription="slide" aria-label="1 of 3: History" aria-hidden="true" hidden inert>
+              <img src="images/history-light.png?v=fe9bab70a187" data-light="images/history-light.png?v=fe9bab70a187" data-dark="images/history-dark.png?v=d295b7f05529" width="1200" height="800" alt="Linty’s History screen with an example project update selected for review and editing." draggable="false" decoding="async" />
+            </div>
+            <div class="product-slide" data-product-slide="overview" data-caption="An example week: 3,048 words, about 52 minutes back." data-sample="Example data · 40 wpm typing baseline" role="group" aria-roledescription="slide" aria-label="2 of 3: Overview" aria-hidden="false">
+              <img id="product-image" src="images/overview-light.png?v=7c38d2f92d60" data-light="images/overview-light.png?v=7c38d2f92d60" data-dark="images/overview-dark.png?v=77d0870a5aeb" width="1200" height="800" alt="Linty’s Overview with a plausible week of example dictations, words transcribed, and estimated time saved." draggable="false" decoding="async" fetchpriority="high" />
+            </div>
+            <div class="product-slide" data-product-slide="dictation" data-caption="Your language and text cleanup, together in Dictation settings." data-sample="Actual interface · example data" role="group" aria-roledescription="slide" aria-label="3 of 3: Dictation" aria-hidden="true" hidden inert>
+              <img src="images/language-light.png?v=6ff8a1dd6072" data-light="images/language-light.png?v=6ff8a1dd6072" data-dark="images/language-dark.png?v=40629f5fae46" width="1200" height="800" alt="Linty’s Dictation settings with English selected, on-device text cleanup, and writing style, layout, and list controls." draggable="false" decoding="async" />
+            </div>
+          </div>
+          <figcaption><span id="screen-caption">An example week: 3,048 words, about 52 minutes back.</span><span class="sample-label" id="sample-label">Example data · 40 wpm typing baseline</span></figcaption>
+        </figure>
+        <p class="sr-only" id="product-status" role="status" aria-atomic="true"></p>
+      </div>
+      <ul class="facts" aria-label="At a glance">
+        <li><span class="app-icons" aria-hidden="true"><img src="images/mail-icon.png?v=917c0d855734" width="22" height="22" alt="" /><img src="images/notes-icon.png?v=db183c102d45" width="22" height="22" alt="" /><img src="images/safari-icon.png?v=666940593498" width="22" height="22" alt="" /></span>In your existing apps</li>
+        <li><span class="fact-symbol fact-cpu" aria-hidden="true"></span><span>Offline after setup</span></li>
+        <li><span class="fact-symbol fact-command" aria-hidden="true"></span><span>For Intel &amp; Apple silicon Macs</span></li>
+        <li><a href="https://github.com/shekhardtu/linty">Open source on GitHub <span aria-hidden="true">↗</span></a></li>
+      </ul>
+    </section>
+
+    <section class="section container workflow" id="how" aria-labelledby="workflow-title">
+      <span class="ambient-artwork ambient-workflow" aria-hidden="true"><span class="ambient-motif motif-contour"></span></span>
+      <div class="section-copy">
+        <p class="eyebrow">01 / In the flow</p>
+        <h2 id="workflow-title">The thought stays.<br />The typing goes.</h2>
+        <p>A reply in Mail. A note before you forget. A few lines in your editor. Start with your cursor where you want the words to land.</p>
+        <ol class="workflow-steps">
+          <li><span class="step-number">1</span><div><h3>Hold a key.</h3><p>Use <kbd>Right ⌘</kbd>, or choose your own shortcut. Double-press to dictate hands-free.</p></div></li>
+          <li><span class="step-number">2</span><div><h3>Say it in your own words.</h3><p>Linty records while you hold the key.</p></div></li>
+          <li><span class="step-number">3</span><div><h3>Release. Carry on.</h3><p>Your transcription is pasted at the cursor.</p></div></li>
+        </ol>
+      </div>
+      <figure class="workflow-demo" aria-label="Dictation across your apps" aria-roledescription="carousel">
+        <div class="demo-app-picker">
+          <div class="demo-app-buttons" role="group" aria-label="Choose an example app">
+            <button type="button" data-demo-scene="notes" aria-pressed="true" aria-controls="demo-scenes"><img src="images/notes-icon.png?v=db183c102d45" width="18" height="18" alt="" />Notes</button>
+            <button type="button" data-demo-scene="email" aria-pressed="false" aria-controls="demo-scenes"><img src="images/mail-icon.png?v=917c0d855734" width="18" height="18" alt="" />Email</button>
+            <button type="button" data-demo-scene="code" aria-pressed="false" aria-controls="demo-scenes"><span class="demo-code-icon" aria-hidden="true">{ }</span>Code</button>
+          </div>
+          <div class="demo-arrows" role="group" aria-label="Switch example">
+            <button type="button" id="demo-previous" aria-label="Previous app example" aria-controls="demo-scenes">←</button>
+            <button type="button" id="demo-next" aria-label="Next app example" aria-controls="demo-scenes">→</button>
+          </div>
+        </div>
+        <p class="demo-scene-description" id="demo-scene-description">Capture a thought. Give it a little structure.</p>
+        <div class="demo-stage" id="demo-stage">
+          <div class="demo-viewport" id="demo-scenes" aria-live="off">
+            <div class="demo-track" id="demo-track">
+              <section class="demo-scene demo-notes" data-demo-panel="notes" data-detail="Illustrated workflow. List formatting uses optional on-device text cleanup for English." data-description="Capture a thought. Give it a little structure." role="group" aria-roledescription="slide" aria-label="1 of 3: Notes">
+                <div class="demo-window-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>Notes</span><span class="notes-tools" aria-hidden="true">▤ &nbsp; Aa &nbsp; ⊕</span></div>
+                <div class="notes-layout">
+                  <aside class="notes-sidebar" aria-hidden="true"><span class="notes-folder">On My Mac <span>3</span></span><span class="notes-day">Today</span><div class="notes-selected"><strong>Launch checklist</strong><span>9:41 AM · A small plan…</span></div><div class="notes-preview"><strong>A good idea</strong><span>Yesterday · A thought…</span></div><div class="notes-preview"><strong>Reading list</strong><span>Monday · Save for later</span></div></aside>
+                  <div class="notes-page">
+                    <p class="notes-date">Today at 9:41 AM</p>
+                    <h3>Launch checklist</h3>
+                    <p class="demo-output" data-example="A small plan for tomorrow.&#10;&#10;• Review the onboarding flow&#10;• Send the preview to Maya&#10;• Publish the release notes"><span class="demo-text" id="demo-notes-output" data-demo-output><span class="placeholder">Your words will appear here.</span></span></p>
+                  </div>
+                </div>
+              </section>
+              <section class="demo-scene demo-email" data-demo-panel="email" data-detail="Illustrated workflow. Email formatting uses optional on-device text cleanup for English." data-description="A greeting, clear paragraphs, and a proper sign-off." role="group" aria-roledescription="slide" aria-label="2 of 3: Email" aria-hidden="true" inert>
+                <div class="demo-window-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>New Message</span><span class="mail-tools" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m21 3-7 18-4-7-7-4 18-7Z M10 14 21 3" /></svg></span></div>
+                <div class="mail-envelope"><div><span>To:</span><span class="mail-recipient">Maya Chen</span></div><div><span>Subject:</span><strong>A quick look before tomorrow?</strong></div></div>
+                <div class="mail-page"><p class="demo-output" data-example="Hi Maya,&#10;&#10;The new preview is ready. Could you review the onboarding flow before our call tomorrow?&#10;&#10;Thanks,&#10;Alex"><span class="demo-text" id="demo-email-output" data-demo-output><span class="placeholder">Your message will appear here.</span></span></p></div>
+                <div class="mail-formatting" aria-hidden="true"><span>Aa &nbsp; <b>B</b> &nbsp; <i>I</i> &nbsp; <u>U</u></span><span>Draft saved</span></div>
+              </section>
+              <section class="demo-scene demo-code" data-demo-panel="code" data-detail="Illustrated workflow. Dictate comments inside your editor." data-description="Explain the intent in a comment, right beside your code." role="group" aria-roledescription="slide" aria-label="3 of 3: Code editor" aria-hidden="true" inert>
+                <div class="demo-window-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>linty-demo — Code</span><span aria-hidden="true">⌘ K</span></div>
+                <div class="code-layout">
+                  <div class="code-activity" aria-hidden="true"><span>▱</span><span>⌕</span><span>⑂</span><span>▷</span></div>
+                  <aside class="code-explorer" aria-hidden="true"><span>EXPLORER</span><strong>⌄ LINTY-DEMO</strong><span>⌄ src</span><span class="code-file-selected"><b>TS</b> dictate.ts</span><span>&nbsp; README.md</span></aside>
+                  <div class="code-editor">
+                    <div class="code-tab"><span><b>TS</b> dictate.ts <span aria-hidden="true">×</span></span></div>
+                    <div class="code-breadcrumb" aria-hidden="true">src &nbsp;›&nbsp; dictate.ts &nbsp;›&nbsp; dictate</div>
+                    <div class="code-lines" aria-label="A dictated comment inside example TypeScript">
+                      <div class="code-line"><span class="code-line-number" aria-hidden="true">1</span><code><span class="syntax-keyword">async function</span> <span class="syntax-function">dictate</span>() {</code></div>
+                      <div class="code-line code-comment-line"><span class="code-line-number" aria-hidden="true">2</span><code class="code-comment" data-example="Keep transcription on this device, then paste the words at the cursor.">  // <span class="demo-text" id="demo-code-output" data-demo-output><span class="placeholder">Your comment will appear here.</span></span></code></div>
+                      <div class="code-line"><span class="code-line-number" aria-hidden="true">3</span><code>  <span class="syntax-keyword">const</span> text = <span class="syntax-keyword">await</span> <span class="syntax-function">transcribe</span>();</code></div>
+                      <div class="code-line"><span class="code-line-number" aria-hidden="true">4</span><code>  <span class="syntax-keyword">await</span> <span class="syntax-function">pasteAtCursor</span>(text);</code></div>
+                      <div class="code-line"><span class="code-line-number" aria-hidden="true">5</span><code>}</code></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="code-status" aria-hidden="true"><span>⑂ main &nbsp; ✓</span><span>UTF-8 &nbsp; TypeScript</span></div>
+              </section>
+            </div>
+          </div>
+          <div class="dictation-capsule" id="demo-capsule" aria-hidden="true"><svg class="demo-wave" viewBox="0 0 14 16" width="14" height="16"><rect x="0" y="4" width="3" height="8" rx="1.5" /><rect x="5.5" y="0" width="3" height="16" rx="1.5" /><rect x="11" y="2" width="3" height="12" rx="1.5" /></svg><span id="capsule-label">Ready when you are</span><kbd>R⌘</kbd></div>
+        </div>
+        <div class="demo-controls">
+          <button type="button" class="text-link" id="play-demo" aria-controls="demo-scenes" aria-describedby="demo-help"><span class="demo-toggle-icon" aria-hidden="true"></span><span id="demo-play-label">Play example</span></button>
+          <span id="demo-status" aria-live="off">Hold → Speak → Release</span>
+        </div>
+        <figcaption id="demo-help">Examples rotate automatically. Hover over a window to pause.<br /><span id="demo-detail">Illustrated workflow. List formatting uses optional on-device text cleanup for English.</span></figcaption>
+        <span class="sr-only" id="demo-scene-status" role="status" aria-atomic="true"></span>
+      </figure>
+    </section>
+
+    <section class="utility-section" aria-labelledby="utility-title">
+      <div class="container utility-layout">
+        <div class="section-copy">
+          <p class="eyebrow">02 / Useful after the sentence</p>
+          <h2 id="utility-title">Your words don’t<br />end at paste.</h2>
+          <p>A quiet place to find an earlier thought, fix a name, and see how dictation fits into your day.</p>
+          <a class="text-link" href="#the-app" data-open-screen="history">Explore the interface <span aria-hidden="true">↗</span></a>
+        </div>
+        <dl class="utility-list">
+          <div><dt><span>01</span>Find it again.</dt><dd>Search your saved transcriptions. Copy a sentence or open it to make an edit.</dd></div>
+          <div><dt><span>02</span>Keep the names right.</dt><dd>Add names and specialist terms to your dictionary. Review suggestions from the corrections you make.</dd></div>
+          <div><dt><span>03</span>See what you get back.</dt><dd>Track your words, dictation pace, and estimated time saved. The typing baseline is yours to adjust.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="section container privacy-layout" id="privacy" aria-labelledby="privacy-title">
+      <div class="section-copy">
+        <p class="eyebrow">03 / Privacy first</p>
+        <h2 id="privacy-title">Your Mac does<br />the listening.</h2>
+        <p>Speech recognition and optional text cleanup run on your Mac. Choose your language once, let Linty prepare it, and dictate offline.</p>
+        <p>Read the <a href="privacy.html">privacy notice</a> for local storage, permissions, downloads, updates, and website hosting.</p>
+        <a class="text-link" href="https://github.com/shekhardtu/linty">Read the code for yourself <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="privacy-ledger">
+        <div class="ledger-header"><span class="brand-mark" aria-hidden="true"></span><span>Local processing. Clear choices.</span></div>
+        <dl>
+          <div><dt>On-device transcription</dt><dd>Linty automatically prepares the right speech support for your language. Your audio stays on your Mac.</dd><dd class="ledger-label">Local</dd></div>
+          <div><dt>Optional text cleanup</dt><dd>Keep your words as spoken, or tidy English grammar, punctuation, and lists on your Mac. English selects cleanup automatically; choose Keep as spoken in Dictation settings to turn it off.</dd><dd class="ledger-label">On-device</dd></div>
+          <div><dt>History you manage</dt><dd>History stays until deleted by default. Audio saving is opt-in. Use Settings to export, delete, or choose retention.</dd><dd class="ledger-label">Your choice</dd></div>
+        </dl>
+        <p class="ledger-footer">No account or subscription required.</p>
+      </div>
+    </section>
+
+    <section class="section container getting-started" aria-labelledby="setup-title">
+      <div class="section-heading"><p class="eyebrow">Before your first sentence</p><h2 id="setup-title">A little setup.<br />Then it’s just a key.</h2></div>
+      <div class="faq-list">
+        <details open><summary>Will it run on my Mac?<span aria-hidden="true">+</span></summary><p>Linty works on Intel and Apple silicon Macs running macOS 14 or later. One download supports both. Intel Macs use Whisper for dictation and CPU-based text cleanup; Apple silicon Macs can also use Parakeet. Processing speed depends on your Mac, language, and recording length.</p></details>
+        <details><summary>How do I install Linty?<span aria-hidden="true">+</span></summary><p>Download the Mac installer, open the .dmg file, and drag Linty into Applications. Open Linty from Applications to begin setup. Official releases are signed and notarized by Apple.</p></details>
+        <details><summary>What do I need to set up?<span aria-hidden="true">+</span></summary><p>English and Right Command are selected automatically. Open Linty, grant Microphone and Accessibility access, and wait for the initial downloads: about 500–574 MB for speech and 496 MB for English text cleanup. Guided setup is optional. You can change languages and shortcuts anytime, or try a recording in System Check.</p></details>
+        <details><summary>Can I change languages later?<span aria-hidden="true">+</span></summary><p>Yes. In Settings → Dictation, search 100 languages by English or native name, or choose Auto-detect and save up to three languages you use. Linty reuses downloaded speech support and downloads more only when needed. Your current language stays active until the new one is ready. App menus stay in English; recognition accuracy varies by language.</p></details>
+        <details><summary>Does dictation need an internet connection?<span aria-hidden="true">+</span></summary><p>Internet access is needed to download speech support, optional text cleanup, and app updates. Once speech support is ready, dictation works offline. Your audio and transcripts stay on your Mac.</p></details>
+        <details><summary>Is it free?<span aria-hidden="true">+</span></summary><p>Linty is free and open source under the MIT license. No account or subscription is needed for dictation or optional text cleanup.</p></details>
+        <details><summary>What if my words don’t appear?<span aria-hidden="true">+</span></summary><p>Open History to find and copy your transcript. In System Check, check Accessibility access, then place your cursor in an editable text field and try again. For setup, microphone, or download problems, read the <a href="https://github.com/shekhardtu/linty/blob/main/SUPPORT.md">troubleshooting guide</a>.</p></details>
+        <details><summary>What if a transcription isn’t right?<span aria-hidden="true">+</span></summary><p>Review and edit it in History, add unfamiliar names to your dictionary, and check that your spoken language is selected in Settings → Dictation. Use System Check to try your microphone. Audio quality and background noise can affect results.</p></details>
+      </div>
+    </section>
+
+    <section class="section container feature-requests" id="requests" aria-labelledby="requests-title">
+      <div class="section-copy">
+        <p class="eyebrow">Help shape Linty</p>
+        <h2 id="requests-title">What would you<br />like next?</h2>
+        <p>A new feature, a better workflow, or Linty on your operating system. Tell us what would help you.</p>
+      </div>
+      <div class="request-options">
+        <p>Want Linty on another platform?</p>
+        <nav class="platform-requests" aria-label="Platform requests">
+          <a class="text-link" href="https://github.com/shekhardtu/linty/issues/59">Request Windows <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="https://github.com/shekhardtu/linty/issues/60">Request Linux <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="https://github.com/shekhardtu/linty/issues/new?template=feature_request.yml&amp;title=%5BPlatform+request%5D+&amp;problem=Tell+us+which+operating+system+you+use.&amp;suggestion=Describe+how+you+would+use+Linty+on+this+platform.">Another OS <span aria-hidden="true">↗</span></a>
+        </nav>
+        <div class="actions">
+          <a class="button" href="https://github.com/shekhardtu/linty/issues/new?template=feature_request.yml">Request a feature <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="https://github.com/shekhardtu/linty/issues?q=is%3Aissue%20label%3Aenhancement">View requests <span aria-hidden="true">↗</span></a>
+        </div>
+        <p class="fine-print">On GitHub, add 👍 to the Windows or Linux issue to vote, or comment with your requirements. Requests are public; sign-in required.</p>
+      </div>
+    </section>
+
+    <section class="container closing" aria-labelledby="closing-title">
+      <span class="ambient-artwork ambient-closing" aria-hidden="true"><span class="ambient-motif motif-contour"></span></span>
+      <div class="closing-brand"><a class="app-icon-link" data-icon-motion data-download href="https://github.com/shekhardtu/linty/releases/latest/download/linty.dmg" aria-label="Download Linty for macOS"><span class="icon-surface" aria-hidden="true"><img src="brand/icon.svg?v=b97b744a3624" width="88" height="88" alt="" loading="lazy" /></span></a><div><p class="eyebrow">A little less typing</p><h2 id="closing-title">Give your next thought<br />a little room.</h2></div></div>
+      <div><a class="button" data-download href="https://github.com/shekhardtu/linty/releases/latest/download/linty.dmg"><span class="download-label"><span>Download Linty</span><span class="download-starting" aria-hidden="true">Starting…</span></span><span class="download-symbol" aria-hidden="true">↓</span></a><p class="fine-print" data-download-note>macOS 14+ · Intel &amp; Apple silicon</p><p class="fine-print"><a href="privacy.html">Privacy notice</a> · <a href="terms.html">License and responsible use</a></p><a class="release-link" href="https://github.com/shekhardtu/linty/releases">Release notes <span aria-hidden="true">↗</span></a></div>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <div class="footer-brand"><a class="wordmark" href="#top" data-icon-motion><span class="brand-mark" aria-hidden="true"></span><span>Linty</span></a><p>Made for the words you haven’t typed yet.</p></div>
+    <nav aria-label="Footer"><a href="privacy.html">Privacy notice</a><a href="terms.html">License and responsible use</a><a href="https://github.com/shekhardtu/linty">Source code ↗</a><a href="#requests">Feature requests ↗</a><a href="https://github.com/shekhardtu/linty/blob/main/SUPPORT.md">Get help ↗</a><a href="https://github.com/shekhardtu/linty/issues/new/choose">Report an issue ↗</a><a href="https://github.com/shekhardtu/linty/blob/main/LICENSE">MIT License ↗</a></nav>
+    <button type="button" class="motion-toggle" id="motion-toggle" aria-pressed="false">Pause motion</button>
+  </footer>
+  <p class="sr-only" id="download-status" role="status" aria-atomic="true"></p>
+  <script src="platform.js?v=690f331d2801" defer></script>
+  <script src="main.js?v=2a500dec32aa" defer></script>
+  <script src="motion.js?v=6ab6e495d19e" defer></script>
+  <script src="product.js?v=03ca73002820" defer></script>
+  <script src="demo.js?v=4fc71e885990" defer></script>
+</body>
+</html>

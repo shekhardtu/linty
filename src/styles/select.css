@@ -1,0 +1,110 @@
+/* Shared dropdown geometry and states; menus live in the native top layer. */
+.select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: var(--select-width, 180px);
+  max-width: 100%;
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+.select-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.select-trigger > svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+.select-trigger:not(:disabled):hover {
+  border-color: var(--color-border);
+  background: var(--color-bg-elevated);
+}
+.select-trigger[aria-expanded="true"] {
+  border-color: var(--color-accent);
+  background: var(--color-bg-elevated);
+}
+.select-trigger[aria-expanded="true"] > svg {
+  rotate: 180deg;
+  color: var(--color-accent);
+}
+.select-trigger:active {
+  filter: none;
+  transform: none;
+}
+.select-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.select-list {
+  position: fixed;
+  right: auto;
+  bottom: auto;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  box-shadow: 0 8px 28px
+    color-mix(in srgb, var(--color-shadow) 65%, transparent);
+}
+.select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 34px;
+  padding: 7px 9px;
+  border-left: 2px solid transparent;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.select-option > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.select-option > svg {
+  visibility: hidden;
+  flex-shrink: 0;
+}
+.select-option[data-active] {
+  background: var(--color-bg-hover);
+}
+.select-option[aria-selected="true"] {
+  color: var(--color-accent);
+  background: var(--color-accent-glow);
+  border-left-color: var(--color-accent);
+}
+.select-option[aria-selected="true"] > svg {
+  visibility: visible;
+}
+.select-option[data-active][aria-selected="true"] {
+  background: var(--color-accent-glow-strong);
+}
+.select-option[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.sort-control .select-trigger {
+  --select-width: 142px;
+  font-size: 11px;
+}

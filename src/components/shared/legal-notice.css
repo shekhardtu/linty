@@ -1,0 +1,7 @@
+.legal-notice-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 20px; padding-block: 12px; }
+.confirmation-dialog.legal-notice-dialog { width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow-y: auto; text-align: left; }
+.legal-notice-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.legal-notice-dialog section { margin-top: 28px; }
+.legal-notice-dialog h3 { font-size: 15px; font-weight: 600; }
+.legal-notice-dialog p { overflow-wrap: anywhere; }
+.legal-notice-dialog .text-link { text-align: left; white-space: normal; }

@@ -1,0 +1,207 @@
+/* Three strokes, one short rule, and a quiet sound pattern. */
+.brand-mark {
+  display: inline-block;
+  width: 26px;
+  height: 32px;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+.brand-mark::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: currentColor;
+  mask: url("../assets/linty-mark.svg") center / contain no-repeat;
+  -webkit-mask: url("../assets/linty-mark.svg") center / contain no-repeat;
+}
+.nav-signal {
+  margin-left: auto;
+  width: 15px;
+  height: 18px;
+}
+.nav-button[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: var(--color-accent);
+  border-radius: 2px;
+}
+.sidebar-brand p {
+  font-size: 9px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+.sidebar-breathing-space {
+  flex: 1;
+  min-height: 24px;
+}
+.sound-pattern {
+  position: absolute;
+  display: block;
+  color: var(--color-sidebar-pattern);
+  opacity: 0.2;
+  pointer-events: none;
+}
+.app-sidebar {
+  position: relative;
+  isolation: isolate;
+  z-index: 1;
+}
+.app-sidebar > .sound-pattern {
+  inset: auto 0 16px;
+  width: 100%;
+  height: min(360px, 70%);
+  mask-image: linear-gradient(to top, #000 10%, #0009 50%, transparent 95%);
+  z-index: -1;
+}
+/* The sidebar header's mineral wash fades before the search field. */
+.sidebar-header {
+  position: relative;
+  flex-shrink: 0;
+  isolation: isolate;
+}
+.sidebar-header-artwork {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 100% 0%, var(--color-sidebar-header) 30%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+}
+.sidebar-tip kbd {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  border-color: var(--color-border);
+  background: transparent;
+  color: var(--color-accent);
+}
+.onboarding-shell > .sound-pattern {
+  position: fixed;
+  inset: auto 20px 20px auto;
+  width: min(240px, 40vw);
+  height: min(360px, 70vh);
+  z-index: 0;
+}
+.setup-brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 550;
+  font-size: 18px;
+  letter-spacing: -0.04em;
+  z-index: 1;
+}
+.heading-rule {
+  display: block;
+  width: 28px;
+  height: 2px;
+  background: var(--color-accent);
+  margin-top: 18px;
+}
+.heading-stop {
+  color: var(--color-accent);
+}
+/* Static, fading artwork sits beneath content and never takes layout space. */
+.background-artwork {
+  position: absolute;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+  color: var(--color-artwork-line);
+  mask-image: radial-gradient(ellipse at 50% 50%, #000 5%, transparent 70%);
+}
+.background-artwork::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 65% 45%, var(--color-artwork-wash), transparent 72%);
+}
+.background-artwork > svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  opacity: 1;
+}
+.background-artwork > .sound-pattern {
+  width: 240px;
+  height: 360px;
+  top: 50%;
+  right: 50%;
+  transform: translate(50%, -50%) rotate(58deg);
+}
+.page-header {
+  position: relative;
+  isolation: isolate;
+  container: artwork-header / inline-size;
+}
+.page-header > .background-artwork {
+  top: -24px;
+  right: -12px;
+  width: min(420px, 56%);
+  height: calc(100% + 48px);
+  max-height: 200px;
+}
+.page-header:has(.page-header-actions) > .background-artwork {
+  right: min(180px, 24%);
+  width: min(360px, 44%);
+}
+.widget-surface {
+  position: relative;
+  isolation: isolate;
+}
+.widget-surface > .background-artwork {
+  right: 0;
+  bottom: 0;
+  width: 135px;
+  height: 130px;
+  opacity: 0.65;
+  mask-image: linear-gradient(135deg, transparent 12%, #000);
+}
+.widget-surface > .background-artwork > .sound-pattern {
+  width: 115px;
+  height: 170px;
+}
+.app-sidebar::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 55%;
+  z-index: -2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 40% 90%, var(--color-artwork-wash), transparent 72%);
+}
+@container artwork-header (max-width: 460px) {
+  .background-artwork {
+    display: none;
+  }
+}
+@media (forced-colors: active) {
+  .background-artwork,
+  .sound-pattern,
+  .sidebar-header-artwork,
+  .app-sidebar::after {
+    display: none;
+  }
+}
+@media (max-height: 640px) {
+  .sidebar-breathing-space {
+    min-height: 0;
+  }
+  .setup-brand {
+    margin-bottom: 12px;
+  }
+}

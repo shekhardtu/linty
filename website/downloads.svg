@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="20" role="img" aria-label="DMG downloads: 0; checked 2026-09-20">
+  <title>DMG downloads: 0; checked 2026-09-20. All published releases, including prereleases. Not unique users.</title>
+  <path fill="#555" d="M0 0h104v20H0z"/>
+  <path fill="#28756f" d="M104 0h36v20H104z"/>
+  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
+    <text x="52" y="14">DMG downloads</text>
+    <text x="122" y="14">0</text>
+  </g>
+</svg>

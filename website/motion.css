@@ -1,0 +1,58 @@
+/* Shared application artwork, with restrained website-only motion. */
+.hero-intro,.workflow,.closing { position: relative; isolation: isolate; }
+.ambient-artwork { position: absolute; z-index: -1; display: block; overflow: hidden; pointer-events: none; user-select: none; color: color-mix(in srgb, var(--accent) 28%, transparent); }
+.ambient-motif { position: absolute; display: block; background: currentColor; animation: voice-drift 18s ease-in-out infinite alternate; animation-play-state: paused; }
+.motif-flow { mask: url('brand/flow.svg') center / 100% 100% no-repeat; -webkit-mask: url('brand/flow.svg') center / 100% 100% no-repeat; }
+.motif-contour { mask: url('brand/contour.svg') center / contain no-repeat; -webkit-mask: url('brand/contour.svg') center / contain no-repeat; animation-name: contour-drift; animation-duration: 24s; }
+.ambient-hero { inset: -48px -24px -28px 25%; mask-image: radial-gradient(ellipse at 55% 45%, #000 20%, transparent 73%); -webkit-mask-image: radial-gradient(ellipse at 55% 45%, #000 20%, transparent 73%); }
+.ambient-hero .ambient-motif { width: 105%; height: 100%; left: -2%; top: -20%; }
+.ambient-workflow { inset: 16px 0 0 43%; mask-image: radial-gradient(ellipse at 82% 52%, #000 24%, transparent 70%); -webkit-mask-image: radial-gradient(ellipse at 82% 52%, #000 24%, transparent 70%); }
+.ambient-workflow .ambient-motif { width: 78%; height: 100%; right: -2%; top: 2%; transform-origin: 55% 48%; }
+.ambient-closing { inset: 0; border-radius: inherit; mask-image: linear-gradient(90deg, transparent 40%, #000 76%, transparent 100%); -webkit-mask-image: linear-gradient(90deg, transparent 40%, #000 76%, transparent 100%); }
+.ambient-closing .ambient-motif { right: 10%; top: -68%; width: 42%; height: 230%; animation-delay: -8s; }
+:root[data-motion='on']:not(.document-hidden) .ambient-artwork.is-in-view .ambient-motif { animation-play-state: running; }
+@keyframes voice-drift {
+  from { transform: translate3d(-9px, 6px, 0) rotate(-1.5deg); opacity: .65; }
+  to { transform: translate3d(9px, -6px, 0) rotate(1.5deg); opacity: 1; }
+}
+@keyframes contour-drift {
+  from { transform: translate3d(0, 5px, 0) rotate(-6deg) scale(.98); opacity: .7; }
+  to { transform: translate3d(0, -5px, 0) rotate(6deg) scale(1.025); opacity: 1; }
+}
+/* Small marks stay anchored: a single light pass acknowledges hover or focus. */
+.wordmark[data-icon-motion] .brand-mark { position: relative; }
+.wordmark[data-icon-motion] .brand-mark::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 20%, rgb(255 255 255 / .65) 50%, transparent 80%); opacity: 0; transform: translateX(-110%); pointer-events: none; }
+@keyframes mark-light {
+  0% { transform: translateX(-110%); opacity: 0; }
+  25% { opacity: .8; }
+  75% { opacity: .8; }
+  100% { transform: translateX(110%); opacity: 0; }
+}
+:root[data-motion='on'] .wordmark[data-icon-motion]:focus-visible .brand-mark::after { animation: mark-light 700ms var(--ease-out) both; }
+@media (hover: hover) and (pointer: fine) {
+  :root[data-motion='on'] .wordmark[data-icon-motion]:hover .brand-mark::after { animation: mark-light 700ms var(--ease-out) both; }
+}
+/* A fixed click target surrounds the responsive surface; no roll or lateral drift. */
+.app-icon-link { position: relative; display: inline-block; width: 88px; height: 88px; flex: 0 0 auto; border-radius: 20px; }
+.icon-surface { display: block; position: relative; width: 100%; height: 100%; pointer-events: none; transform: perspective(600px) translateY(calc(var(--icon-lift, 0) * -2px)) rotateX(var(--icon-rx, 0deg)) rotateY(var(--icon-ry, 0deg)) scale(calc(1 - var(--icon-press, 0) * .025)); filter: drop-shadow(0 calc(var(--icon-lift, 0) * 5px) calc(var(--icon-lift, 0) * 5px) var(--color-shadow)); }
+.icon-surface img { width: 100%; height: 100%; }
+.icon-surface::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at var(--icon-light-x, 50%) var(--icon-light-y, 40%), rgb(255 255 255 / .22), transparent 65%); opacity: var(--icon-lift, 0); mask: url('brand/icon.svg') center / contain no-repeat; -webkit-mask: url('brand/icon.svg') center / contain no-repeat; }
+.motion-toggle { padding: 5px 0; border: 0; background: none; color: var(--muted); font-size: 11px; min-width: 86px; white-space: nowrap; text-align: right; }
+.motion-toggle:hover:not(:disabled) { color: var(--accent); }
+.motion-toggle:disabled { color: var(--color-text-muted); }
+@media (max-width: 760px) {
+  .ambient-hero { inset: -24px 0 -12px 15%; }
+  .ambient-hero .ambient-motif { top: -25%; height: 70%; }
+  .ambient-workflow { inset: 38% 0 0 0; }
+  .ambient-closing { mask-image: linear-gradient(110deg, transparent 18%, #000 90%); -webkit-mask-image: linear-gradient(110deg, transparent 18%, #000 90%); }
+  .ambient-closing .ambient-motif { right: -18%; top: 3%; width: 80%; height: 100%; }
+  .app-icon-link { width: 60px; height: 60px; }
+  .motion-toggle { text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ambient-motif { animation: none; }
+  .icon-surface { transform: none; filter: none; }
+  .icon-surface::after,.wordmark[data-icon-motion] .brand-mark::after { display: none; }
+}
+@media (forced-colors: active) { .ambient-artwork,.icon-surface::after,.wordmark[data-icon-motion] .brand-mark::after { display: none; }
+  .icon-surface { filter: none; } }

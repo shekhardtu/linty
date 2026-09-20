@@ -1,0 +1,48 @@
+{
+  "date": "2026-09-19",
+  "machine": {
+    "chip": "Apple M3 Pro",
+    "memoryBytes": 19327352832,
+    "macOS": "26.5",
+    "build": "25F71"
+  },
+  "method": "One optimized-process run per duration, constant synthetic PCM, temporary SQLite archive. Read/export measurements reuse the warm database connection. No microphone, models, network, webview, or real history. Peak RSS is process high-water mark; differences measure the save phase above the pre-existing capture buffer, not total full-app memory.",
+  "results": [
+    {
+      "audioSeconds": 60,
+      "captureHandoffMicroseconds": 0.20900000000000002,
+      "deleteWallMs": 5.908458,
+      "encodingScratchBytes": 32768,
+      "exportWallMs": 7.3666670000000005,
+      "maxReadChunkBytes": 1048576,
+      "microphoneUsed": false,
+      "modelCalls": 0,
+      "networkUsed": false,
+      "peakRssAfterSaveBytes": 9895936,
+      "peakRssBeforeSaveBytes": 7225344,
+      "readAllChunksMs": 0.44616700000000004,
+      "saveCpuMs": 2.8339999999999996,
+      "saveWallMs": 3.165166,
+      "savedWavBytes": 1920044,
+      "sharedCaptureBytes": 3840000
+    },
+    {
+      "audioSeconds": 1800,
+      "captureHandoffMicroseconds": 2.542,
+      "deleteWallMs": 130.655625,
+      "encodingScratchBytes": 32768,
+      "exportWallMs": 49.080042,
+      "maxReadChunkBytes": 1048576,
+      "microphoneUsed": false,
+      "modelCalls": 0,
+      "networkUsed": false,
+      "peakRssAfterSaveBytes": 121339904,
+      "peakRssBeforeSaveBytes": 118603776,
+      "readAllChunksMs": 224.39525,
+      "saveCpuMs": 123.872,
+      "saveWallMs": 144.062625,
+      "savedWavBytes": 57600044,
+      "sharedCaptureBytes": 115200000
+    }
+  ]
+}

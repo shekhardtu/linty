@@ -1,0 +1,3132 @@
+{
+  "date": "2026-09-18",
+  "hardware": "Apple M3 Pro",
+  "scope": "Readiness waits for model inference preparation before microphone capture. These native measurements use cached installed weights in an isolated models directory, not a timed clean-machine installation.",
+  "detector_first_second_comparison": {
+    "hardware": "Apple M3 Pro",
+    "method": "40 fresh benchmark processes using the cached model and production SpeechPresenceDetector. OS/model caches were not purged; not a first-install compilation measurement. Each process calls the detector 10 times on the same clip. Prewarm runs one silent 4096-sample inference on the same instance first.",
+    "results": [
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 4.014375,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.400916,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.389416,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.486791,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.460209,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.412708,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.380166,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.404417,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.477458,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.385667,
+            "speech": true
+          }
+        ],
+        "load_ms": 280.250083,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no.wav",
+        "iteration": 0
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.272667,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.437125,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.500083,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.435666,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.442125,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.461125,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.442208,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.425917,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.451208,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.481917,
+            "speech": true
+          }
+        ],
+        "load_ms": 22.080334,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no-very-quiet.wav",
+        "iteration": 0
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.490916,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.411791,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.466,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.413458,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.421458,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.434417,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.395084,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.424209,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.399333,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.418625,
+            "speech": true
+          }
+        ],
+        "load_ms": 25.801917,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.958833,
+        "wav": "no.wav",
+        "iteration": 0
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.528875,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.434875,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.464375,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.4485,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.4415,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.411416,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.424416,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.420458,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.426584,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.424333,
+            "speech": true
+          }
+        ],
+        "load_ms": 22.335125,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.95325,
+        "wav": "no-very-quiet.wav",
+        "iteration": 0
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.492083,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.411334,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.460666,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.411125,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.425459,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.448667,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.430167,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.453709,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.421667,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.408291,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.859209,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.919833,
+        "wav": "no.wav",
+        "iteration": 1
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.524,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.422875,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.485834,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.454208,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.44225,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.426041,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.431667,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.429083,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.421917,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.409417,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.924417,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.9635,
+        "wav": "no-very-quiet.wav",
+        "iteration": 1
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.182459,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.498042,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.470916,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.449959,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.487416,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.4195,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.41025,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.447291,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.417792,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.42,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.92475,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no.wav",
+        "iteration": 1
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.223625,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.428375,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.465959,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.425291,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.479084,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.433583,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.425541,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.4485,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.426084,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.396541,
+            "speech": true
+          }
+        ],
+        "load_ms": 22.136959,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no-very-quiet.wav",
+        "iteration": 1
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.232417,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.433541,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.450333,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.425042,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.48075,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.414166,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.437584,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.415417,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.425958,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.410792,
+            "speech": true
+          }
+        ],
+        "load_ms": 22.014209,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no.wav",
+        "iteration": 2
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.260167,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.440042,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.490833,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.497,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.400167,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.442,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.414791,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.44475,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.453791,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.404958,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.857292,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no-very-quiet.wav",
+        "iteration": 2
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.474833,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.402875,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.475416,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.432917,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.443,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.427458,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.455833,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.418875,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.45625,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.428708,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.772625,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.94875,
+        "wav": "no.wav",
+        "iteration": 2
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.46725,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.406291,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.451708,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.463541,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.449167,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.452583,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.444084,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.424958,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.447709,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.438792,
+            "speech": true
+          }
+        ],
+        "load_ms": 22.00375,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.996667,
+        "wav": "no-very-quiet.wav",
+        "iteration": 2
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.493709,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.418917,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.456333,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.458416,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.409458,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.429917,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.405,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.414375,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.417333,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.40575,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.8485,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.967833,
+        "wav": "no.wav",
+        "iteration": 3
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.494833,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.42075,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.436917,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.422292,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.438167,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.45675,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.411958,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.438666,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.43,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.4315,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.849166,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.90625,
+        "wav": "no-very-quiet.wav",
+        "iteration": 3
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.180958,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.431375,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.432417,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.53425,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.441792,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.43575,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.409375,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.412,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.45,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.431292,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.765209,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no.wav",
+        "iteration": 3
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.264542,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.426334,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.444875,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.43875,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.435541,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.46675,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.469417,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.438,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.434583,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.412042,
+            "speech": true
+          }
+        ],
+        "load_ms": 22.04275,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no-very-quiet.wav",
+        "iteration": 3
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.174792,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.426959,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.450083,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.440625,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.428916,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.449167,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.4105,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.427875,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.445084,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.418292,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.954708,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no.wav",
+        "iteration": 4
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.177542,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.44775,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.434,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.4395,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.457667,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.426958,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.456,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.413042,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.448,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.4085,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.864875,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no-very-quiet.wav",
+        "iteration": 4
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.498083,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.425792,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.455,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.498375,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.427541,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.426042,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.421625,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.435209,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.443375,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.439125,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.944125,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.936459,
+        "wav": "no.wav",
+        "iteration": 4
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.502792,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.46625,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.464333,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.425792,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.409458,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.437709,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.455583,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.414333,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.440042,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.433875,
+            "speech": true
+          }
+        ],
+        "load_ms": 22.28975,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.982125,
+        "wav": "no-very-quiet.wav",
+        "iteration": 4
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.477417,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.405042,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.469,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.446167,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.446458,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.42175,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.432792,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.429084,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.413584,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.464208,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.940083,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.930709,
+        "wav": "no.wav",
+        "iteration": 5
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.490541,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.427291,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.458334,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.420666,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.510875,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.445708,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.437125,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.436792,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.431,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.443541,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.9465,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.936875,
+        "wav": "no-very-quiet.wav",
+        "iteration": 5
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.243625,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.420416,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.437,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.470042,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.430542,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.42725,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.4385,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.410167,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.412583,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.425166,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.866666,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no.wav",
+        "iteration": 5
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.17475,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.451541,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.475959,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.430667,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.45425,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.428417,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.399291,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.41575,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.469583,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.420333,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.966166,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no-very-quiet.wav",
+        "iteration": 5
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.118,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.42325,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.451625,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.410834,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.463125,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.419458,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.44925,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.404833,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.412792,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.426666,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.613542,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no.wav",
+        "iteration": 6
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.235791,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.431625,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.442791,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.425625,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.44525,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.414959,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.445291,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.482583,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.433375,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.420125,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.966584,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no-very-quiet.wav",
+        "iteration": 6
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.500833,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.425292,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.470834,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.445125,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.406708,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.429166,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.413542,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.405458,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.405042,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.44875,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.933875,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.923083,
+        "wav": "no.wav",
+        "iteration": 6
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.475292,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.410167,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.4585,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.411167,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.443583,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.430333,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.3985,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.42825,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.399709,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.418,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.988833,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.916042,
+        "wav": "no-very-quiet.wav",
+        "iteration": 6
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.517083,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.426667,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.476834,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.463375,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.430834,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.435291,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.4265,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.419583,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.422625,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.4415,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.908667,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.836125,
+        "wav": "no.wav",
+        "iteration": 7
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.542666,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.403834,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.422125,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.434709,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.446292,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.4095,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.39825,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.426417,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.445459,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.442375,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.678875,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.888,
+        "wav": "no-very-quiet.wav",
+        "iteration": 7
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.226334,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.418875,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.443,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.446666,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.398792,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.41125,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.452791,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.410292,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.445708,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.419209,
+            "speech": true
+          }
+        ],
+        "load_ms": 22.015083,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no.wav",
+        "iteration": 7
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.227709,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.434708,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.433375,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.447542,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.406583,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.420542,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.403042,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.423459,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.42275,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.414125,
+            "speech": true
+          }
+        ],
+        "load_ms": 22.00725,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no-very-quiet.wav",
+        "iteration": 7
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.173542,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.4635,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.469791,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.438,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.426833,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.439917,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.453958,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.424,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.4505,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.432584,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.755417,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no.wav",
+        "iteration": 8
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.228292,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.444583,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.490042,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.455333,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.441583,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.395166,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.45275,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.419458,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.450042,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.443084,
+            "speech": true
+          }
+        ],
+        "load_ms": 22.199333,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no-very-quiet.wav",
+        "iteration": 8
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.519541,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.438417,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.445042,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.406584,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.455833,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.403292,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.422875,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.44975,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.417625,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.442,
+            "speech": true
+          }
+        ],
+        "load_ms": 43.273417,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 3.109833,
+        "wav": "no.wav",
+        "iteration": 8
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.49825,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.41775,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.463458,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.470708,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.410042,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.438,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.421166,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.409584,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.442292,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.407666,
+            "speech": true
+          }
+        ],
+        "load_ms": 22.452333,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 2.916583,
+        "wav": "no-very-quiet.wav",
+        "iteration": 8
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.552542,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.416166,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.446125,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.426583,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.424083,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.416208,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.4115,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.405708,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.403292,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.429625,
+            "speech": true
+          }
+        ],
+        "load_ms": 23.328166,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 3.089667,
+        "wav": "no.wav",
+        "iteration": 9
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 0.566709,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.429,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.476417,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.494125,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.434459,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.422791,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.440792,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.448125,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.423959,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.499292,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.8895,
+        "mode": "prewarm",
+        "seconds": 0.458125,
+        "warmup_ms": 3.08525,
+        "wav": "no-very-quiet.wav",
+        "iteration": 9
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.214958,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.47775,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.47,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.448208,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.464542,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.429416,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.445,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.437542,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.418083,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.401125,
+            "speech": true
+          }
+        ],
+        "load_ms": 21.984792,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no.wav",
+        "iteration": 9
+      },
+      {
+        "calls": [
+          {
+            "index": 1,
+            "milliseconds": 3.247708,
+            "speech": true
+          },
+          {
+            "index": 2,
+            "milliseconds": 0.424292,
+            "speech": true
+          },
+          {
+            "index": 3,
+            "milliseconds": 0.424708,
+            "speech": true
+          },
+          {
+            "index": 4,
+            "milliseconds": 0.410208,
+            "speech": true
+          },
+          {
+            "index": 5,
+            "milliseconds": 0.41425,
+            "speech": true
+          },
+          {
+            "index": 6,
+            "milliseconds": 0.40775,
+            "speech": true
+          },
+          {
+            "index": 7,
+            "milliseconds": 0.468584,
+            "speech": true
+          },
+          {
+            "index": 8,
+            "milliseconds": 0.43825,
+            "speech": true
+          },
+          {
+            "index": 9,
+            "milliseconds": 0.463583,
+            "speech": true
+          },
+          {
+            "index": 10,
+            "milliseconds": 0.412916,
+            "speech": true
+          }
+        ],
+        "load_ms": 22.033542,
+        "mode": "cold",
+        "seconds": 0.458125,
+        "warmup_ms": 0,
+        "wav": "no-very-quiet.wav",
+        "iteration": 9
+      }
+    ],
+    "summary": [
+      {
+        "mode": "cold",
+        "wav": "no.wav",
+        "seconds": 0.458125,
+        "processes": 10,
+        "load_ms": {
+          "median": 21.939729,
+          "min": 21.613542,
+          "max": 280.250083
+        },
+        "warmup_ms": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "first_call_ms": {
+          "median": 3.1987085000000004,
+          "min": 3.118,
+          "max": 4.014375
+        },
+        "second_call_ms": {
+          "median": 0.42916699999999997,
+          "min": 0.400916,
+          "max": 0.498042
+        },
+        "later_calls_ms": {
+          "median": 0.43133350000000004,
+          "min": 0.380166,
+          "max": 0.53425
+        },
+        "all_calls_accept_speech": true
+      },
+      {
+        "mode": "cold",
+        "wav": "no-very-quiet.wav",
+        "seconds": 0.458125,
+        "processes": 10,
+        "load_ms": {
+          "median": 22.020395999999998,
+          "min": 21.857292,
+          "max": 22.199333
+        },
+        "warmup_ms": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "first_call_ms": {
+          "median": 3.2320415000000002,
+          "min": 3.17475,
+          "max": 3.272667
+        },
+        "second_call_ms": {
+          "median": 0.4359165,
+          "min": 0.424292,
+          "max": 0.451541
+        },
+        "later_calls_ms": {
+          "median": 0.4363955,
+          "min": 0.395166,
+          "max": 0.500083
+        },
+        "all_calls_accept_speech": true
+      },
+      {
+        "mode": "prewarm",
+        "wav": "no.wav",
+        "seconds": 0.458125,
+        "processes": 10,
+        "load_ms": {
+          "median": 21.936979,
+          "min": 21.772625,
+          "max": 43.273417
+        },
+        "warmup_ms": {
+          "median": 2.9426045,
+          "min": 2.836125,
+          "max": 3.109833
+        },
+        "first_call_ms": {
+          "median": 0.495896,
+          "min": 0.474833,
+          "max": 0.552542
+        },
+        "second_call_ms": {
+          "median": 0.4175415,
+          "min": 0.402875,
+          "max": 0.438417
+        },
+        "later_calls_ms": {
+          "median": 0.42662500000000003,
+          "min": 0.395084,
+          "max": 0.498375
+        },
+        "all_calls_accept_speech": true
+      },
+      {
+        "mode": "prewarm",
+        "wav": "no-very-quiet.wav",
+        "seconds": 0.458125,
+        "processes": 10,
+        "load_ms": {
+          "median": 21.9676665,
+          "min": 21.678875,
+          "max": 22.452333
+        },
+        "warmup_ms": {
+          "median": 2.9450625,
+          "min": 2.888,
+          "max": 3.08525
+        },
+        "first_call_ms": {
+          "median": 0.500521,
+          "min": 0.46725,
+          "max": 0.566709
+        },
+        "second_call_ms": {
+          "median": 0.42181250000000003,
+          "min": 0.403834,
+          "max": 0.46625
+        },
+        "later_calls_ms": {
+          "median": 0.43416699999999997,
+          "min": 0.39825,
+          "max": 0.510875
+        },
+        "all_calls_accept_speech": true
+      }
+    ]
+  },
+  "prepared_model_runs": {
+    "parakeet": {
+      "engine": "parakeet",
+      "load_and_preparation_ms": 425.073666,
+      "manifest": "artifacts/vad-v6/warmup-manifest.json",
+      "results": [
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 62.211625,
+          "language": "en",
+          "name": "no-0",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "very-quiet",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 60.521084,
+          "language": "en",
+          "name": "no-very-quiet-0",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Yeah",
+          "inference_ms": 60.01225,
+          "language": "en",
+          "name": "yeah-0",
+          "seconds": 0.5016875,
+          "speech_presence_correct": true,
+          "text": "Yeah.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Thanks",
+          "inference_ms": 62.156417,
+          "language": "en",
+          "name": "thanks-0",
+          "seconds": 0.66,
+          "speech_presence_correct": true,
+          "text": "Thanks.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 58.074167,
+          "language": "en",
+          "name": "no-1",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "very-quiet",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 59.076875,
+          "language": "en",
+          "name": "no-very-quiet-1",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Yeah",
+          "inference_ms": 62.715375,
+          "language": "en",
+          "name": "yeah-1",
+          "seconds": 0.5016875,
+          "speech_presence_correct": true,
+          "text": "Yeah.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Thanks",
+          "inference_ms": 62.826083000000004,
+          "language": "en",
+          "name": "thanks-1",
+          "seconds": 0.66,
+          "speech_presence_correct": true,
+          "text": "Thanks.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 60.986875000000005,
+          "language": "en",
+          "name": "no-2",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "very-quiet",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 58.113749999999996,
+          "language": "en",
+          "name": "no-very-quiet-2",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Yeah",
+          "inference_ms": 60.357291000000004,
+          "language": "en",
+          "name": "yeah-2",
+          "seconds": 0.5016875,
+          "speech_presence_correct": true,
+          "text": "Yeah.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Thanks",
+          "inference_ms": 63.837875000000004,
+          "language": "en",
+          "name": "thanks-2",
+          "seconds": 0.66,
+          "speech_presence_correct": true,
+          "text": "Thanks.",
+          "vad": []
+        }
+      ],
+      "ungated": false,
+      "vad_model": null,
+      "vocabulary_entry_point": false
+    },
+    "vocabulary": {
+      "engine": "parakeet",
+      "load_and_preparation_ms": 15015.014917,
+      "manifest": "artifacts/vad-v6/warmup-manifest.json",
+      "results": [
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 188.479833,
+          "language": "en",
+          "name": "no-0",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "very-quiet",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 176.684167,
+          "language": "en",
+          "name": "no-very-quiet-0",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Yeah",
+          "inference_ms": 183.96212500000001,
+          "language": "en",
+          "name": "yeah-0",
+          "seconds": 0.5016875,
+          "speech_presence_correct": true,
+          "text": "Yeah.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Thanks",
+          "inference_ms": 181.619209,
+          "language": "en",
+          "name": "thanks-0",
+          "seconds": 0.66,
+          "speech_presence_correct": true,
+          "text": "Thanks.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 206.282917,
+          "language": "en",
+          "name": "no-1",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "very-quiet",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 243.02870800000002,
+          "language": "en",
+          "name": "no-very-quiet-1",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Yeah",
+          "inference_ms": 195.209,
+          "language": "en",
+          "name": "yeah-1",
+          "seconds": 0.5016875,
+          "speech_presence_correct": true,
+          "text": "Yeah.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Thanks",
+          "inference_ms": 215.387542,
+          "language": "en",
+          "name": "thanks-1",
+          "seconds": 0.66,
+          "speech_presence_correct": true,
+          "text": "Thanks.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 209.214666,
+          "language": "en",
+          "name": "no-2",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "very-quiet",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 306.714542,
+          "language": "en",
+          "name": "no-very-quiet-2",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Yeah",
+          "inference_ms": 263.38466700000004,
+          "language": "en",
+          "name": "yeah-2",
+          "seconds": 0.5016875,
+          "speech_presence_correct": true,
+          "text": "Yeah.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Thanks",
+          "inference_ms": 224.497959,
+          "language": "en",
+          "name": "thanks-2",
+          "seconds": 0.66,
+          "speech_presence_correct": true,
+          "text": "Thanks.",
+          "vad": []
+        }
+      ],
+      "ungated": false,
+      "vad_model": null,
+      "vocabulary_entry_point": true
+    },
+    "whisper": {
+      "engine": "whisper",
+      "load_and_preparation_ms": 1624.4396669999999,
+      "manifest": "artifacts/vad-v6/warmup-manifest.json",
+      "results": [
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 1154.948791,
+          "language": "en",
+          "name": "no-0",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "very-quiet",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 1107.947667,
+          "language": "en",
+          "name": "no-very-quiet-0",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Yeah",
+          "inference_ms": 1112.0947919999999,
+          "language": "en",
+          "name": "yeah-0",
+          "seconds": 0.5016875,
+          "speech_presence_correct": true,
+          "text": "Yeah.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Thanks",
+          "inference_ms": 1096.874459,
+          "language": "en",
+          "name": "thanks-0",
+          "seconds": 0.66,
+          "speech_presence_correct": true,
+          "text": "Thanks.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 1095.493375,
+          "language": "en",
+          "name": "no-1",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "very-quiet",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 1111.48675,
+          "language": "en",
+          "name": "no-very-quiet-1",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Yeah",
+          "inference_ms": 1120.445334,
+          "language": "en",
+          "name": "yeah-1",
+          "seconds": 0.5016875,
+          "speech_presence_correct": true,
+          "text": "Yeah.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Thanks",
+          "inference_ms": 1162.647833,
+          "language": "en",
+          "name": "thanks-1",
+          "seconds": 0.66,
+          "speech_presence_correct": true,
+          "text": "Thanks.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 1239.0307919999998,
+          "language": "en",
+          "name": "no-2",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "very-quiet",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "No",
+          "inference_ms": 1138.6637500000002,
+          "language": "en",
+          "name": "no-very-quiet-2",
+          "seconds": 0.458125,
+          "speech_presence_correct": true,
+          "text": "No.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Yeah",
+          "inference_ms": 1108.522542,
+          "language": "en",
+          "name": "yeah-2",
+          "seconds": 0.5016875,
+          "speech_presence_correct": true,
+          "text": "Yeah.",
+          "vad": []
+        },
+        {
+          "category": "spoken",
+          "error": null,
+          "exact_normalized_match": true,
+          "expected_speech": true,
+          "expected_text": "Thanks",
+          "inference_ms": 1150.7887079999998,
+          "language": "en",
+          "name": "thanks-2",
+          "seconds": 0.66,
+          "speech_presence_correct": true,
+          "text": "Thanks.",
+          "vad": []
+        }
+      ],
+      "ungated": false,
+      "vad_model": null,
+      "vocabulary_entry_point": false
+    }
+  },
+  "speech_noise_regression": [
+    {
+      "corpus": "expanded",
+      "cases": 41,
+      "changed_text_or_error": 0,
+      "before_sha256": "cc3e6b5694399c803012a2cb65bb41814383d649d932a3f33bb8c2549fb7d147",
+      "after_sha256": "4d1914a9121578cd2b81764db728f2875cce74fe40e06ad13c4dc39e7e22d29f"
+    },
+    {
+      "corpus": "challenge",
+      "cases": 136,
+      "changed_text_or_error": 0,
+      "before_sha256": "1a46c79c3a2da348aa6486bdd463ed0b06258d14b4fc6e4d696a3e39614f057f",
+      "after_sha256": "c6ef13dcc376f1471eca8db0b4af0cfa25dcd46995a195f163ddeadd4a7e508c"
+    },
+    {
+      "corpus": "holdout",
+      "cases": 474,
+      "changed_text_or_error": 0,
+      "before_sha256": "8b68ba42f3bcc9dd64c04f22dc93d23e1514c61a258569bf2ed7f65358ae125b",
+      "after_sha256": "8049bd5e736c2c22ab64b95f2aa587191fcb81189f073203998238936d9f31bf"
+    }
+  ],
+  "s1_real_model_test": {
+    "name": "warmup_is_retryable_idempotent_and_does_not_change_real_output",
+    "result": "passed",
+    "seconds": 4.56
+  },
+  "limits": [
+    "Wall-clock latency can still differ under contention and for different audio lengths.",
+    "The new CTC test location incurred approximately 15 seconds of first preparation; this is not a normal per-dictation cost.",
+    "Battery and processor utilization percentages were not profiled.",
+    "No user microphone recordings, settings, history, or clipboard were used by native model tests."
+  ],
+  "verification": {
+    "frontend_unit_tests": {
+      "passed": 39,
+      "failed": 0
+    },
+    "native_unit_tests_including_installed_s1": {
+      "passed": 52,
+      "failed": 0,
+      "ignored": 0
+    },
+    "swift_installed_detector_tests": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "ui_preparation": "passed; includes installed but disabled S1, capture gating, idle reload and changing selection",
+    "ui_recovery": "passed; includes preparation capsule",
+    "web_release_build": "passed",
+    "ui_onboarding": "passed; includes waiting for first preparation and retry without downloading again",
+    "native_release_build": "passed"
+  }
+}

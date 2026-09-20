@@ -1,0 +1,16 @@
+# Python 3.12+. Isolate these from the app in a virtual environment.
+jiwer==4.0.0
+whisper-normalizer==0.1.15
+soundfile==0.14.0
+numpy==2.5.3
+scipy==1.18.1
+# Transitive dependencies are pinned so normalization/alignment stays reproducible.
+cffi==2.1.1
+click==8.5.0
+indic-numtowords==1.1.0
+more-itertools==11.1.0
+pycparser==3.0
+rapidfuzz==3.14.6
+regex==2026.9.10
+text2num==3.1.0
+typing-extensions==4.16.0

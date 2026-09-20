@@ -1,0 +1,196 @@
+/* App usage pairs an editorial lead with one distribution bar and an open data table. */
+.apps-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 0.85fr);
+  align-items: end;
+  gap: 28px;
+  margin: 6px 0 28px;
+}
+.apps-summary > div {
+  min-width: 0;
+}
+.apps-lead-value {
+  font-size: 39px;
+  font-weight: 450;
+  line-height: 1.3;
+  letter-spacing: -0.05em;
+  margin-top: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.apps-summary-value {
+  font-size: 28px;
+  font-weight: 450;
+  line-height: 1.3;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.apps-summary p {
+  margin-top: 8px;
+  min-block-size: 1.7em;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+.apps-summary-metric:last-child {
+  text-align: right;
+}
+.application-share {
+  margin-bottom: 38px;
+}
+.application-share [data-share-tone="accent"] {
+  --share-color: var(--color-accent);
+}
+.application-share [data-share-tone="chart"] {
+  --share-color: var(--color-chart);
+}
+.application-share [data-share-tone="secondary"] {
+  --share-color: var(--color-text-secondary);
+}
+.application-share [data-share-tone="other"] {
+  --share-color: var(--color-border-subtle);
+}
+.application-share [data-share-tone="unattributed"] {
+  --share-color: var(--color-border);
+}
+.app-share-bar {
+  display: flex;
+  gap: 2px;
+  height: 14px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.app-share-bar > span {
+  flex-basis: 0;
+  min-width: 0;
+  background: var(--share-color);
+}
+.app-share-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-top: 12px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+.app-share-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.app-share-legend i {
+  width: 5px;
+  height: 5px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--share-color);
+}
+.app-share-legend li > span {
+  font-variant-numeric: tabular-nums;
+}
+.applications-section {
+  min-width: 0;
+}
+.apps-page .section-heading {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+}
+.apps-page .sort-control {
+  gap: 10px;
+  font-size: 11px;
+}
+.apps-page .app-table-scroll {
+  max-width: 100%;
+}
+.apps-page .app-usage-table {
+  min-width: 660px;
+  font-size: 12px;
+}
+.apps-page .app-usage-table th {
+  border-top: 0;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 12px 8px;
+}
+.apps-page .app-usage-table td {
+  padding: 19px 8px;
+}
+.apps-page .app-usage-table th:first-child,
+.apps-page .app-usage-table td:first-child {
+  padding-left: 0;
+  width: 24%;
+}
+.apps-page .app-usage-table th:last-child,
+.apps-page .app-usage-table td:last-child {
+  padding-right: 0;
+}
+.apps-page .app-usage-table tr:last-child td {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.apps-page .app-usage-table .app-name {
+  gap: 8px;
+}
+.apps-page .app-usage-table .app-name strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.apps-page .app-usage-table .app-name:hover strong {
+  color: var(--color-accent);
+}
+.apps-page .app-usage-table .app-name:active {
+  filter: none;
+}
+.apps-page .app-usage-table td:not(:first-child) {
+  color: var(--color-text-secondary);
+}
+.apps-page .app-usage-table td.app-word-count {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+.apps-privacy-note {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 32px;
+  padding-top: 22px;
+  border-top: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.8;
+}
+.apps-privacy-note > svg {
+  flex-shrink: 0;
+}
+.apps-privacy-note > div {
+  flex: 1;
+  min-width: 0;
+}
+.apps-privacy-note p + p {
+  margin-top: 2px;
+}
+.apps-page .dashboard-footnote {
+  margin-top: 14px;
+}
+@container page (max-width: 580px) {
+  .apps-summary {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+  }
+  .apps-most-used {
+    grid-column: 1 / -1;
+  }
+  .apps-lead-value {
+    font-size: 34px;
+  }
+  .apps-summary-value {
+    font-size: 25px;
+  }
+  .apps-privacy-note {
+    flex-wrap: wrap;
+  }
+  .apps-privacy-note > .text-link {
+    margin-left: 32px;
+  }
+}

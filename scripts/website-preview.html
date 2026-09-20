@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Linty · website example data</title></head><body><div id="root"></div><script type="module">
+import { fixture } from '/tests/ui.fixture.mjs';
+import { websitePreviewData } from '/scripts/website-preview-data.mjs';
+import { version } from '/package.json';
+// An illustrative workday keeps captures consistent regardless of export time.
+const previewClock = new Date();
+previewClock.setHours(16, 45, 0, 0);
+Date.now = () => previewClock.getTime();
+fixture({ theme: new URLSearchParams(location.search).get('theme') || 'light' });
+window.__QA__.stores[1].transcriptionLanguage = "en";
+window.__QA__.stores[1].reformatEnabled = true;
+window.__QA__.stores[1].updateHistory = { lastRunVersion: version, notice: null };
+window.__QA__.stores[2].transcripts = websitePreviewData();
+window.__QA__.stores[3].corrections = [];
+const icons = Object.fromEntries(await Promise.all([
+  ['com.apple.mail', 'mail'], ['com.apple.Notes', 'notes'], ['com.apple.Safari', 'safari'],
+].map(async ([id, name]) => {
+  const bytes = new Uint8Array(await (await fetch(`/website/images/${name}-icon.png`)).arrayBuffer());
+  return [id, `data:image/png;base64,${btoa(String.fromCharCode(...bytes))}`];
+})));
+const invoke = window.__TAURI_INTERNALS__.invoke;
+window.__TAURI_INTERNALS__.invoke = (command, ...args) => {
+  if (command === 'plugin:app|version') return Promise.resolve(version);
+  if (command === 'get_app_icons') return Promise.resolve(icons);
+  if (command === 's1_model_status') return Promise.resolve({ downloaded: true, loaded: true, downloading: false, progress: 100, downloadBytes: 495642462 });
+  return invoke(command, ...args);
+};
+await import('/src/main.tsx');
+</script></body></html>

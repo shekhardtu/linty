@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+release/
+src-tauri/target/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+
+# Signing artifacts
+*.certSigningRequest
+*.cer
+*.key
+*.p12
+
+# Logs
+firebase-debug.log
+*-fnkey.log
+
+# Claude Code
+.claude/*
+!.claude/skills/
+
+# Tauri
+src-tauri/gen/
+src-tauri/swift/.build/
+scripts/benchmarks/vad-v6/.build/
+
+# Generated interface test screenshots
+artifacts/
+
+# Local benchmark Python bytecode
+__pycache__/

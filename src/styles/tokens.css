@@ -1,0 +1,148 @@
+/* Linty's mineral palette. The window, capsule, controls and theme previews share these foundations. */
+:root {
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --font-code: "SF Mono", ui-monospace, Menlo, monospace;
+  --motion-fast: 100ms;
+  --motion-control: 160ms;
+  --motion-surface: 220ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --palette-light-page: #f7fafc;
+  --palette-light-sidebar: #eaf1f5;
+  --palette-light-accent: #006f68;
+  --palette-dark-page: #131d26;
+  --palette-dark-sidebar: #0e1720;
+  --palette-dark-accent: #68d5c8;
+}
+
+@theme {
+  /* Ink surfaces: increasing lightness communicates elevation. */
+  --color-bg: var(--palette-dark-page);
+  --color-bg-secondary: var(--palette-dark-sidebar);
+  --color-bg-elevated: #1c2a35;
+  --color-bg-hover: #253945;
+  --color-bg-input: #192832;
+  --color-bg-active: #2b414c;
+
+  --color-border: #48616f;
+  --color-border-subtle: #2d414f;
+  --color-border-focus: var(--color-accent);
+
+  --color-text-primary: #eef5f8;
+  --color-text-secondary: #b7c9d3;
+  --color-text-muted: #9cb2bf;
+  --color-text-inverted: #082b2a;
+
+  /* Sea-glass accent: purposeful emphasis, separate from success green. */
+  --color-accent: var(--palette-dark-accent);
+  --color-accent-soft: #94e5dc;
+  --color-accent-glow: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  --color-accent-glow-strong: color-mix(
+    in srgb,
+    var(--color-accent) 18%,
+    transparent
+  );
+
+  --color-success: #8bd4a1;
+  --color-success-glow: color-mix(
+    in srgb,
+    var(--color-success) 12%,
+    transparent
+  );
+  --color-warning: #eac16a;
+  --color-warning-glow: color-mix(
+    in srgb,
+    var(--color-warning) 12%,
+    transparent
+  );
+  --color-error: #ff9aaa;
+  --color-error-glow: color-mix(in srgb, var(--color-error) 12%, transparent);
+  --color-info: #85b9f4;
+  --color-info-glow: color-mix(in srgb, var(--color-info) 12%, transparent);
+
+  --color-scrollbar: rgba(156, 178, 191, 0.18);
+  --color-scrollbar-hover: rgba(156, 178, 191, 0.32);
+  --color-shadow: rgba(3, 12, 20, 0.55);
+  --color-shimmer: rgba(238, 245, 248, 0.04);
+  --color-dropdown-bg: var(--color-bg-elevated);
+  --color-dropdown-active: var(--color-accent-glow-strong);
+  --color-dropdown-hover: var(--color-bg-hover);
+
+  --color-panel: #1c343b;
+  --color-sidebar-selected: #223b43;
+  --color-sidebar-pattern: #6298aa;
+  --color-sidebar-header: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  --color-artwork-line: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  --color-artwork-wash: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  --color-chart: #537989;
+
+  --page-padding: 36px;
+  --content-width: 1120px;
+  --sidebar-width: 212px;
+  --spacing-unit: 4px;
+  --radius-control: 6px;
+  --radius-surface: 10px;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+/* Cool porcelain surfaces with dark teal emphasis. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-bg: var(--palette-light-page);
+  --color-bg-secondary: var(--palette-light-sidebar);
+  --color-bg-elevated: #ffffff;
+  --color-bg-hover: #e5eef2;
+  --color-bg-input: #f0f5f8;
+  --color-bg-active: #d7e7eb;
+
+  --color-border: #a6bbc7;
+  --color-border-subtle: #d6e2e8;
+  --color-border-focus: var(--color-accent);
+
+  --color-text-primary: #172a34;
+  --color-text-secondary: #465d69;
+  --color-text-muted: #536b76;
+  --color-text-inverted: #ffffff;
+
+  --color-accent: var(--palette-light-accent);
+  --color-accent-soft: #005c57;
+  --color-accent-glow: color-mix(in srgb, var(--color-accent) 7%, transparent);
+  --color-accent-glow-strong: color-mix(
+    in srgb,
+    var(--color-accent) 12%,
+    transparent
+  );
+
+  --color-success: #2b7a46;
+  --color-success-glow: color-mix(
+    in srgb,
+    var(--color-success) 8%,
+    transparent
+  );
+  --color-warning: #99620d;
+  --color-warning-glow: color-mix(
+    in srgb,
+    var(--color-warning) 8%,
+    transparent
+  );
+  --color-error: #bb3e51;
+  --color-error-glow: color-mix(in srgb, var(--color-error) 8%, transparent);
+  --color-info: #286cb2;
+  --color-info-glow: color-mix(in srgb, var(--color-info) 8%, transparent);
+
+  --color-scrollbar: rgba(70, 93, 105, 0.2);
+  --color-scrollbar-hover: rgba(70, 93, 105, 0.34);
+  --color-shadow: rgba(23, 42, 52, 0.14);
+  --color-shimmer: rgba(23, 42, 52, 0.03);
+
+  --color-panel: #e6f1f0;
+  --color-sidebar-selected: #ffffff;
+  --color-sidebar-pattern: #7197a8;
+  --color-sidebar-header: color-mix(in srgb, var(--color-accent) 24%, transparent);
+  --color-artwork-line: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  --color-artwork-wash: color-mix(in srgb, var(--color-accent) 4%, transparent);
+  --color-chart: #9eb8c4;
+}

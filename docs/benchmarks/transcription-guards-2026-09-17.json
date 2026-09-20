@@ -1,0 +1,1175 @@
+{
+  "evaluated_at": "2026-09-17 Asia/Kolkata",
+  "models": {
+    "whisper": "ggml-large-v3-turbo-q5_0.bin",
+    "parakeet": "parakeet-tdt-0.6b-v3",
+    "vad": "ggml-silero-v5.1.2.bin",
+    "vad_sha256": "29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf"
+  },
+  "sources": {
+    "synthetic": "macOS say: Samantha, Anna, Monica; generated noise/tone/silence",
+    "human": "https://github.com/ggml-org/whisper.cpp/blob/master/samples/jfk.wav"
+  },
+  "summary": {
+    "whisper": {
+      "speech_cases": 22,
+      "speech_retained": 22,
+      "exact_speech_matches": 19,
+      "non_speech_cases": 4,
+      "non_speech_empty": 2
+    },
+    "parakeet": {
+      "speech_cases": 22,
+      "speech_retained": 22,
+      "exact_speech_matches": 19,
+      "non_speech_cases": 4,
+      "non_speech_empty": 4
+    }
+  },
+  "cases": [
+    {
+      "name": "i",
+      "wav": "i.wav",
+      "text": "i",
+      "speech": true,
+      "category": "spoken",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 0.400875,
+      "sha256": "335c9dc5efbd85e1434cd3754ac343c3392c78f2129559b05d9b3386b9d99d5a",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9893447756767273,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9893447756767273,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "I",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1360.9309999999998
+        },
+        "parakeet": {
+          "text": "I",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 100.29566700000001
+        }
+      }
+    },
+    {
+      "name": "hi",
+      "wav": "hi.wav",
+      "text": "Hi",
+      "speech": true,
+      "category": "spoken",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 0.4671875,
+      "sha256": "c40f7ed3ce295c11b76d6343e41637ef3d4e55b64f9e08926679f04f377f99b9",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9992417097091675,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9992417097091675,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "Hi.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1139.984083
+        },
+        "parakeet": {
+          "text": "Hi.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 58.957625
+        }
+      }
+    },
+    {
+      "name": "no",
+      "wav": "no.wav",
+      "text": "No",
+      "speech": true,
+      "category": "spoken",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 0.458125,
+      "sha256": "5cecaff495973d2473079376c990ef205f8fccf25af7cb60694d32f76f468627",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9890400171279907,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9890400171279907,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "No.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1182.4260419999998
+        },
+        "parakeet": {
+          "text": "No.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 57.365041999999995
+        }
+      }
+    },
+    {
+      "name": "no-quiet",
+      "wav": "no-quiet.wav",
+      "text": "No",
+      "speech": true,
+      "category": "quiet",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 0.458125,
+      "sha256": "b8d4996ee145683beb8fab62f680b71475f7ef0b6c2373ed6706606ab87b7d63",
+      "old_audio_gate_passed": false,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.8396814465522766,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.8396814465522766,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "No.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1235.544625
+        },
+        "parakeet": {
+          "text": "No, no.",
+          "exact_normalized_match": false,
+          "speech_presence_correct": true,
+          "inference_ms": 59.3375
+        }
+      }
+    },
+    {
+      "name": "no-very-quiet",
+      "wav": "no-very-quiet.wav",
+      "text": "No",
+      "speech": true,
+      "category": "very-quiet",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 0.458125,
+      "sha256": "bc5c6d567b0ef410183bc7eff62188f09514b04e109b0650cfbdcb73a45ee91c",
+      "old_audio_gate_passed": false,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.01791570894420147,
+          "would_pass": false,
+          "would_drop_valid_speech": true
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.01791570894420147,
+          "would_pass": false,
+          "would_drop_valid_speech": true
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "No.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1171.716083
+        },
+        "parakeet": {
+          "text": "No.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 57.265
+        }
+      }
+    },
+    {
+      "name": "okay",
+      "wav": "okay.wav",
+      "text": "Okay",
+      "speech": true,
+      "category": "spoken",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 0.629875,
+      "sha256": "a1c780a6e8f9e7e8990f5c392759366718ad6b25547c6dc5a732bed4b2764724",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9994280934333801,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9994280934333801,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "Okay.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1153.303042
+        },
+        "parakeet": {
+          "text": "Okay.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 56.323625
+        }
+      }
+    },
+    {
+      "name": "thanks",
+      "wav": "thanks.wav",
+      "text": "Thanks",
+      "speech": true,
+      "category": "spoken",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 0.66,
+      "sha256": "41c24a28d87e771ea51077915e1b87c51fc1acf8b475eeceee9424085b7bae74",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9985436201095581,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9985436201095581,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "Thanks.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1118.7298329999999
+        },
+        "parakeet": {
+          "text": "Thanks.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 59.220292
+        }
+      }
+    },
+    {
+      "name": "thank-you",
+      "wav": "thank-you.wav",
+      "text": "Thank you",
+      "speech": true,
+      "category": "spoken",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 0.7075625,
+      "sha256": "b33ea30eb6d9f52073806e63d2b13201b34b38bcb706c7b0bc4cae38d853ebdb",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.999853253364563,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.999853253364563,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "Thank you.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1090.322542
+        },
+        "parakeet": {
+          "text": "Thank you.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 58.421959
+        }
+      }
+    },
+    {
+      "name": "thank-you-quiet",
+      "wav": "thank-you-quiet.wav",
+      "text": "Thank you",
+      "speech": true,
+      "category": "quiet",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 0.7075625,
+      "sha256": "2113da814eadb5e3e5cab44d3e215ff33ff9e3bd2878a010c9c36bb805edfbdd",
+      "old_audio_gate_passed": false,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9953317046165466,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9953317046165466,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "Thank you.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1086.965625
+        },
+        "parakeet": {
+          "text": "Thank you.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 56.438708
+        }
+      }
+    },
+    {
+      "name": "thank-you-very-quiet",
+      "wav": "thank-you-very-quiet.wav",
+      "text": "Thank you",
+      "speech": true,
+      "category": "very-quiet",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 0.7075625,
+      "sha256": "fa4e5192c41980adaeede04cf2ad2141971348df3f09e4a2e1a8628042ecd38c",
+      "old_audio_gate_passed": false,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.29598739743232727,
+          "would_pass": false,
+          "would_drop_valid_speech": true
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.29598739743232727,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "Thank you.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1100.796334
+        },
+        "parakeet": {
+          "text": "Thank you.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 56.944250000000004
+        }
+      }
+    },
+    {
+      "name": "thank-you-pauses",
+      "wav": "thank-you-pauses.wav",
+      "text": "Thank you",
+      "speech": true,
+      "category": "pauses",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 30.7075625,
+      "sha256": "44cf4ff447526f496ee91cb2ffc482b1bd998579f1330ecd6381e99c9370909a",
+      "old_audio_gate_passed": false,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9997394680976868,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9997394680976868,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "Thank you. Thank you.",
+          "exact_normalized_match": false,
+          "speech_presence_correct": true,
+          "inference_ms": 2213.216625
+        },
+        "parakeet": {
+          "text": "Thank you.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 121.09720899999999
+        }
+      }
+    },
+    {
+      "name": "bye",
+      "wav": "bye.wav",
+      "text": "Bye",
+      "speech": true,
+      "category": "spoken",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 0.4255,
+      "sha256": "e8fc99a19c3c87c728e508faa26247fdbce6ed76cf000220a91a54a552348bfd",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9974575638771057,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9974575638771057,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "Bye.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1070.440417
+        },
+        "parakeet": {
+          "text": "Five.",
+          "exact_normalized_match": false,
+          "speech_presence_correct": true,
+          "inference_ms": 60.455792
+        }
+      }
+    },
+    {
+      "name": "repetition",
+      "wav": "repetition.wav",
+      "text": "No, no, no!",
+      "speech": true,
+      "category": "spoken",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 1.7350625,
+      "sha256": "bf0f7916f3f8009323a2906c196c146f1f4f583ae9f91b0bf3eb1e4b18042818",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9995157718658447,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9995157718658447,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "No, no, no.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1128.033333
+        },
+        "parakeet": {
+          "text": "No, no, no.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 61.295916
+        }
+      }
+    },
+    {
+      "name": "outro",
+      "wav": "outro.wav",
+      "text": "Thanks for watching",
+      "speech": true,
+      "category": "spoken",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 1.160375,
+      "sha256": "2f1ab194352ee32c7de325c085370aa0da0a52720ae856ab70d95138dcfb1698",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9999643564224243,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9999643564224243,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "Thanks for watching.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1100.867916
+        },
+        "parakeet": {
+          "text": "Thanks for watching.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 59.208166999999996
+        }
+      }
+    },
+    {
+      "name": "german",
+      "wav": "german.wav",
+      "text": "Danke",
+      "speech": true,
+      "category": "spoken",
+      "language": "de",
+      "synthetic": true,
+      "seconds": 0.5168125,
+      "sha256": "ac0b188dcecdf4bcdf04c9d4f053cf3d9958960519dbdc4626e259a17745b333",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9995473027229309,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9995473027229309,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "Danke.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1059.612542
+        },
+        "parakeet": {
+          "text": "Danke.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 56.469416
+        }
+      }
+    },
+    {
+      "name": "spanish",
+      "wav": "spanish.wav",
+      "text": "sí.",
+      "speech": true,
+      "category": "spoken",
+      "language": "es",
+      "synthetic": true,
+      "seconds": 0.60025,
+      "sha256": "46b143f93b03e37c3b24e73e63f9d0944cf7481bba02fe2c148369854da32b00",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.999487042427063,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.999487042427063,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "S.E.",
+          "exact_normalized_match": false,
+          "speech_presence_correct": true,
+          "inference_ms": 1063.319
+        },
+        "parakeet": {
+          "text": "S. E.",
+          "exact_normalized_match": false,
+          "speech_presence_correct": true,
+          "inference_ms": 57.4075
+        }
+      }
+    },
+    {
+      "name": "sentence",
+      "wav": "sentence.wav",
+      "text": "Please send the draft tomorrow. Thank you.",
+      "speech": true,
+      "category": "spoken",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 2.6075,
+      "sha256": "0353f82e9964673d3a984400d9377cd24161db5fd1a8547af67d9171de89de73",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9999749660491943,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9999749660491943,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "Please send the draft tomorrow. Thank you.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1081.429959
+        },
+        "parakeet": {
+          "text": "Please send the draft tomorrow. Thank you.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 65.093041
+        }
+      }
+    },
+    {
+      "name": "sentence-quiet",
+      "wav": "sentence-quiet.wav",
+      "text": "Please send the draft tomorrow. Thank you.",
+      "speech": true,
+      "category": "quiet",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 2.6075,
+      "sha256": "b749b78fe4bfe441685db3b9798f950fb2628b655a9dbedcdc37286d973d6ace",
+      "old_audio_gate_passed": false,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9997627139091492,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9997627139091492,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "Please send the draft tomorrow. Thank you.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1082.01275
+        },
+        "parakeet": {
+          "text": "Please send the draft tomorrow. Thank you.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 63.506833
+        }
+      }
+    },
+    {
+      "name": "silence-short",
+      "wav": "silence-short.wav",
+      "text": "",
+      "speech": false,
+      "category": "silence",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 1.0,
+      "sha256": "643f8a8dc8bd9c19225afffad2becfec5426180b3749cb208abdf1a6c8354efc",
+      "old_audio_gate_passed": false,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.012029800564050674,
+          "would_pass": false,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.012029800564050674,
+          "would_pass": false,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 0.0205
+        },
+        "parakeet": {
+          "text": "",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 0.017583
+        }
+      }
+    },
+    {
+      "name": "silence-long",
+      "wav": "silence-long.wav",
+      "text": "",
+      "speech": false,
+      "category": "silence",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 30.0,
+      "sha256": "40abc924dc63f75aafb2400bb99fd66741e22eb9ff2450973a18db53a06286ac",
+      "old_audio_gate_passed": false,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.012029800564050674,
+          "would_pass": false,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.012029800564050674,
+          "would_pass": false,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 0.176625
+        },
+        "parakeet": {
+          "text": "",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 0.173792
+        }
+      }
+    },
+    {
+      "name": "noise",
+      "wav": "noise.wav",
+      "text": "",
+      "speech": false,
+      "category": "noise",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 3.0,
+      "sha256": "8dce79e89e6cc115f470bb7b26d27ff28488bdd0a10ebebc0a1c79521e54f582",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.042823657393455505,
+          "would_pass": false,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.042823657393455505,
+          "would_pass": false,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": ".",
+          "exact_normalized_match": false,
+          "speech_presence_correct": false,
+          "inference_ms": 1061.210417
+        },
+        "parakeet": {
+          "text": "",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 62.109333
+        }
+      }
+    },
+    {
+      "name": "tone",
+      "wav": "tone.wav",
+      "text": "",
+      "speech": false,
+      "category": "tone",
+      "language": "en",
+      "synthetic": true,
+      "seconds": 3.0,
+      "sha256": "59629cbcad8f8bb8d3ccd18942d9998c92bdc89a642ab2b10a48621e3624405b",
+      "old_audio_gate_passed": false,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.44940170645713806,
+          "would_pass": false,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.44940170645713806,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": ".",
+          "exact_normalized_match": false,
+          "speech_presence_correct": false,
+          "inference_ms": 1055.1866670000002
+        },
+        "parakeet": {
+          "text": "",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 56.50325
+        }
+      }
+    },
+    {
+      "name": "natural",
+      "wav": "natural.wav",
+      "text": "And so my fellow Americans ask not what your country can do for you ask what you can do for your country.",
+      "speech": true,
+      "category": "human",
+      "language": "en",
+      "synthetic": false,
+      "seconds": 11.0,
+      "sha256": "d7d4e74b8a333ed02186008bc109a1b1a19d16da668bd56e785d80d69a16a72f",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9993361830711365,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9993361830711365,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1116.2804159999998
+        },
+        "parakeet": {
+          "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 83.327417
+        }
+      }
+    },
+    {
+      "name": "natural-quiet",
+      "wav": "natural-quiet.wav",
+      "text": "And so my fellow Americans ask not what your country can do for you ask what you can do for your country.",
+      "speech": true,
+      "category": "human-quiet",
+      "language": "en",
+      "synthetic": false,
+      "seconds": 11.0,
+      "sha256": "ba7fa5a4c0dc92602a7829a9d2f56282a981676eefe4fb3610498a15045cdf50",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9932944178581238,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9932944178581238,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1118.419542
+        },
+        "parakeet": {
+          "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 80.806375
+        }
+      }
+    },
+    {
+      "name": "natural-very-quiet",
+      "wav": "natural-very-quiet.wav",
+      "text": "And so my fellow Americans ask not what your country can do for you ask what you can do for your country.",
+      "speech": true,
+      "category": "human-very-quiet",
+      "language": "en",
+      "synthetic": false,
+      "seconds": 11.0,
+      "sha256": "c35509510a6388f9c54f32cdce24be398a4e314db9e4a64e8dc415efd7a6d500",
+      "old_audio_gate_passed": false,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.1301167756319046,
+          "would_pass": false,
+          "would_drop_valid_speech": true
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.1301167756319046,
+          "would_pass": false,
+          "would_drop_valid_speech": true
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 1191.179709
+        },
+        "parakeet": {
+          "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 78.934125
+        }
+      }
+    },
+    {
+      "name": "natural-pauses",
+      "wav": "natural-pauses.wav",
+      "text": "And so my fellow Americans ask not what your country can do for you ask what you can do for your country.",
+      "speech": true,
+      "category": "human-pauses",
+      "language": "en",
+      "synthetic": false,
+      "seconds": 41.0,
+      "sha256": "f9829901e386c4db32dc24b3565444e4a2aa4e713d1626925f5042d36a14dfb9",
+      "old_audio_gate_passed": true,
+      "vad": [
+        {
+          "policy": "default",
+          "threshold": 0.5,
+          "min_speech_ms": 250,
+          "max_probability": 0.9994307160377502,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        },
+        {
+          "policy": "lenient",
+          "threshold": 0.20000000298023224,
+          "min_speech_ms": 100,
+          "max_probability": 0.9994307160377502,
+          "would_pass": true,
+          "would_drop_valid_speech": false
+        }
+      ],
+      "engines": {
+        "whisper": {
+          "text": "and so my fellow americans ask not what your country can do for you ask what you can do for your country you",
+          "exact_normalized_match": false,
+          "speech_presence_correct": true,
+          "inference_ms": 2250.687667
+        },
+        "parakeet": {
+          "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+          "exact_normalized_match": true,
+          "speech_presence_correct": true,
+          "inference_ms": 172.43225
+        }
+      }
+    }
+  ]
+}
