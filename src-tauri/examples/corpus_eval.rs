@@ -2,7 +2,7 @@
 //! corpus_eval <whisper|parakeet> <models-dir> <manifest.json> <results.jsonl>
 //! No downloads, microphone, cleanup, dictionary, history, or clipboard access.
 use anyhow::{anyhow, ensure, Context, Result};
-use linty_lib::{parakeet::ParakeetEngine, transcribe};
+use linty_lib::{parakeet::ParakeetEngine, sha256_hex, transcribe};
 use serde::Deserialize;
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
@@ -45,7 +45,7 @@ fn read_audio(base: &Path, case: &Case) -> Result<Vec<f32>> {
     );
     let bytes = fs::read(path)?;
     ensure!(
-        format!("{:x}", Sha256::digest(&bytes)) == case.audio_sha256,
+        sha256_hex(Sha256::digest(&bytes)) == case.audio_sha256,
         "audio checksum mismatch"
     );
     let mut reader = hound::WavReader::new(std::io::Cursor::new(bytes))?;
@@ -96,7 +96,7 @@ fn main() -> Result<()> {
     emit(
         &mut file,
         json!({"type":"start", "schema_version":1, "engine":args[0],
-        "manifest_sha256":format!("{:x}", Sha256::digest(&bytes)), "expected_cases":manifest.cases.len(),
+        "manifest_sha256":sha256_hex(Sha256::digest(&bytes)), "expected_cases":manifest.cases.len(),
         "language":"en", "cleanup":false, "dictionary":false, "context_prompt":false,
         "production_speech_guards":true, "profile":if cfg!(debug_assertions) {"debug"} else {"release"}}),
     )?;

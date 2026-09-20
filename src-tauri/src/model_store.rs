@@ -66,6 +66,12 @@ pub fn verify_artifact(
     Ok(())
 }
 
+/// Preserve the lowercase, zero-padded checksum format used by model catalogs.
+/// sha2 0.11 returns an array that no longer implements LowerHex.
+pub fn sha256_hex(digest: sha2::digest::Output<sha2::Sha256>) -> String {
+    digest.iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -112,11 +118,21 @@ mod tests {
     #[test]
     fn rejects_corrupt_truncated_and_empty_artifacts() {
         use sha2::{Digest, Sha256};
-        let digest = format!("{:x}", Sha256::digest(b"model"));
+        let digest = sha256_hex(Sha256::digest(b"model"));
         assert!(verify_artifact(5, &digest, 5, &digest).is_ok());
         assert!(verify_artifact(0, &digest, 5, &digest).is_err());
         assert!(verify_artifact(4, &digest, 5, &digest).is_err());
         assert!(verify_artifact(6, &digest, 5, &digest).is_err());
         assert!(verify_artifact(5, "corrupt", 5, &digest).is_err());
+    }
+
+    #[test]
+    fn sha256_matches_known_vector_and_preserves_leading_zeroes() {
+        use sha2::{Digest, Sha256};
+        assert_eq!(
+            sha256_hex(Sha256::digest(b"abc")),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        assert_eq!(sha256_hex([0; 32].into()), "00".repeat(32));
     }
 }

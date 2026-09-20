@@ -457,7 +457,7 @@ fn verify_file(path: &Path, expected: &str) -> anyhow::Result<()> {
         hash.update(&buf[..n]);
     }
     anyhow::ensure!(
-        format!("{:x}", hash.finalize()) == expected,
+        crate::model_store::sha256_hex(hash.finalize()) == expected,
         "download_checksum_mismatch"
     );
     Ok(())
@@ -529,7 +529,7 @@ pub async fn download_s1_model(
                     last_event = Instant::now();
                 }
             }
-            anyhow::ensure!(downloaded == size && format!("{:x}", hash.finalize()) == sha, "S1-mini download verification failed. Try again.");
+            anyhow::ensure!(downloaded == size && crate::model_store::sha256_hex(hash.finalize()) == sha, "S1-mini download verification failed. Try again.");
             output.sync_all().await?;
             drop(output);
             tokio::fs::rename(part, dir.join(name)).await?;

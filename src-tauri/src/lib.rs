@@ -19,6 +19,7 @@ mod history_db;
 mod input_activity;
 pub mod logging;
 mod model_store;
+pub use model_store::sha256_hex;
 #[cfg(feature = "parakeet")]
 pub mod parakeet;
 mod paste;
