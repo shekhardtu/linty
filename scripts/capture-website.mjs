@@ -14,6 +14,7 @@ try {
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   const capture = async name => {
+    await page.getByText(/^Changes (?:are )?saved locally$/).waitFor();
     await page.mouse.move(1190, 790);
     await page.evaluate(async()=>{
       await document.fonts.ready;
