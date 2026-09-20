@@ -82,6 +82,15 @@ def omitted_notices(package):
         template = attribution + "\n\n" + template if attribution else template
         result = [(f"{package['source']} (Cargo metadata; upstream omits license file)",
                    f"{package['name']} {package['version']}\nSelected license: MIT (from the package declaration)\nPublished authors: {authors}\n\n{template}")]
+    if not result and package.get("license") == "MPL-2.0":
+        # selectors 0.36 publishes MPL source headers but no license file,
+        # including in its pinned upstream tree. Preserve its declaration
+        # with the unmodified terms from mozilla.org/media/MPL/2.0/index.txt.
+        template = (DIRECTORY / "MPL-2.0-terms.txt").read_text()
+        authors = ", ".join(package.get("authors", []))
+        result = [(f"{package['source']} (Cargo metadata; upstream omits license file)",
+                   f"{package['name']} {package['version']}\nDeclared license: MPL-2.0\nPublished authors: {authors}\n"
+                   f"License terms: https://www.mozilla.org/media/MPL/2.0/index.txt\n\n{template}")]
     if not result:
         raise ValueError(f"Missing upstream notices: {repo}@{revision}")
     return result
