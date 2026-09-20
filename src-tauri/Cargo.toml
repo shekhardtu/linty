@@ -53,7 +53,7 @@ whatlang = "0.18"
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.5"          # NSEvent monitoring for fn/globe key
 block2 = "0.5"
-cocoa = "0.26"          # Activation policy (Dock/menu bar)
+cocoa = "0.27"          # Activation policy (Dock/menu bar)
 objc = "0.2"
 security-framework = "3.7"
 candle-core = { version = "=0.11.0", features = ["metal"] }
