@@ -296,11 +296,11 @@ export function Sidebar() {
       </nav>
       <div className="sidebar-breathing-space" aria-hidden="true" />
       <div className="sidebar-tip">
-        <kbd>{formatTriggerKeycap(triggerKey)}</kbd>
-        <div>
-          <span>Hold to dictate</span>
-          <p>Release to paste your words.</p>
+        <div className="sidebar-tip-shortcut">
+          <span>Hold</span>
+          <kbd>{formatTriggerKeycap(triggerKey)}</kbd>
         </div>
+        <p>Release to paste.</p>
       </div>
       <VersionIndicator />
     </aside>

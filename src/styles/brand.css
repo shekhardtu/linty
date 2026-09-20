@@ -72,12 +72,16 @@
   background: radial-gradient(ellipse at 100% 0%, var(--color-sidebar-header) 30%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
 }
-.sidebar-tip > kbd {
-  display: grid;
-  place-items: center;
-  min-width: 33px;
-  height: 36px;
-  font-size: 17px;
+.sidebar-tip kbd {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
   border-color: var(--color-border);
   background: transparent;
   color: var(--color-accent);
