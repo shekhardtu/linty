@@ -1,7 +1,6 @@
 ## What's new
 
-- Spoken corrections such as “four licences—my bad—five licences” and “April—my mistake—January” can now pass through text cleanup.
-- Time formatting such as “two pm” becoming “2pm” no longer causes cleanup to revert solely because the number format changed.
-- Cleanup now accepts number, weekday and month changes. Review important amounts and dates, since mistaken changes can also pass through.
+- Dictation now finishes quietly in editors such as Zed when text is pasted but insertion cannot be confirmed. The pill and app no longer show a confusing paste warning.
+- Paste verification information remains available in each dictation’s Details. If automatic paste fails, Linty still offers a way to copy your saved text.
 - Updated the app's desktop and interface components, including the updater, and refreshed third-party notices.
-- Kept model download integrity checks compatible with the updated checksum library.
+- Model downloads continue to check file integrity before installing speech and cleanup models.

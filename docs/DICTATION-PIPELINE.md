@@ -45,7 +45,7 @@ The delivery module owns clipboard snapshot/publication, checked key posting, bo
 | `skipped` | There was nothing to paste. |
 | `pasted` | Legacy record: paste was sent, without the new insertion verification. |
 
-Unsupported or unreadable applications can receive a paste while remaining unverified. Observation waits at most two seconds between bounded Accessibility calls. Slow applications may therefore show an unconfirmed outcome even when they insert successfully. No uncertain delivery is retried automatically. `attemptedText` records a posted payload; new `pastedText` snapshots require verification.
+Unsupported or unreadable applications can receive a paste while remaining unverified. Observation waits at most two seconds between bounded Accessibility calls. Slow applications may therefore record an unverified outcome even when they insert successfully. Unverified delivery dismisses the pill quietly without a warning toast or a success signal; verification details remain available in History. A known delivery failure still shows a recovery message. No uncertain delivery is retried automatically. `attemptedText` records a posted payload; new `pastedText` snapshots require verification.
 
 Clipboard restoration respects a new user copy through the pasteboard change count. A generation check and the restoration write share a lock, so an older timer cannot restore over a newer publication. Restoration waits at least 800 ms after posting; this still cannot guarantee clipboard-read timing for every remote or slow application.
 
