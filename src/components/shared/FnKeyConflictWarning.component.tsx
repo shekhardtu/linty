@@ -63,10 +63,9 @@ export function FnKeyConflictWarning({ className }: { className?: string }) {
             macOS is also using the fn key
           </span>
           <p className="text-[12px] text-text-secondary leading-relaxed">
-            Pressing fn triggers{" "}
+            fn also triggers{" "}
             <span className="font-medium text-text-primary">{action}</span>{" "}
-            system-wide, which can start Apple Dictation alongside Linty and
-            paste the same speech twice. Set{" "}
+            in macOS. Set{" "}
             <span className="font-medium text-text-primary">
               "Press 🌐 key to"
             </span>{" "}

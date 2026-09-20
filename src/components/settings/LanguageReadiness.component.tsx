@@ -28,9 +28,9 @@ export function LanguageReadiness({ compact = false }: { compact?: boolean }) {
     {!compactReady && <p role={failed ? "alert" : undefined}>{failed ? preparation.error
       : needsLanguages ? "Select and save one to three languages in Settings → Dictation before recording."
       : ready ? "Your speech is transcribed on this Mac. No internet connection needed."
-      : cleanup ? "English enables on-device cleanup automatically. Its one-time download is about 496 MB."
-      : preparation.status === "downloading" ? `A one-time download${preparation.model ? ` · about ${preparation.model.size_mb} MB` : ""}. Other languages can share this speech support.`
-      : "Linty chooses and prepares speech support automatically."}</p>}
+      : cleanup ? "One-time download · about 496 MB."
+      : preparation.status === "downloading" ? `One-time download${preparation.model ? ` · about ${preparation.model.size_mb} MB` : ""}.`
+      : "Getting speech support ready…"}</p>}
     {preparation.status === "downloading" && <div className="language-download-progress">
       <progress aria-label={cleanup ? "Text cleanup download" : "Speech support download"} max={100} value={preparation.progress} /><span>{preparation.progress}%</span>
     </div>}

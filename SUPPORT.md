@@ -6,7 +6,7 @@ Linty runs on **macOS 14 or later, on Intel and Apple silicon Macs**. One univer
 
 1. [Download Linty for Mac](https://github.com/shekhardtu/linty/releases/latest/download/linty.dmg).
 2. Open the `.dmg` file and drag **Linty** into **Applications**. Open Linty from Applications.
-3. English and **Right Command (⌘)** are selected automatically. In System Check, allow Microphone and Accessibility access so Linty can hear you and paste into other apps. The guided setup is optional; no language or shortcut choice is required.
+3. English and **Right Command (⌘)** are selected automatically. Follow onboarding to allow Microphone and Accessibility access so Linty can hear you and paste into other apps. No language or shortcut choice is required.
 4. Keep an internet connection while Linty prepares your language. Speech support downloads are about 500–574 MB. English also prepares on-device text cleanup (about 496 MB). Downloads are reused; dictation works offline once setup is ready.
 5. Optionally choose **Start recording** in System Check. Speak a short sentence and choose **Stop & transcribe**. Test transcripts are saved in History and can be deleted there.
 6. Open Notes or another app and click in an editable text field. Hold **Right Command**, speak, and release to paste. To dictate hands-free, double-press your trigger, then press once to finish. Change your trigger in **Shortcuts** or your language in **Settings → Dictation**. Existing customers keep their saved preferences.

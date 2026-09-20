@@ -18,7 +18,7 @@ import { MicrophoneTest } from "@/components/MicrophoneTest.component";
 import { LegalNotice } from "@/components/shared/LegalNotice.component";
 import { LanguageReadiness } from "@/components/settings/LanguageReadiness.component";
 import { languagePreparation } from "@/services/language-preparation.service";
-import { languageLabel } from "@/lib/languages.util";
+import { AUTO_LANGUAGE, languageLabel, validAutoDetectLanguages } from "@/lib/languages.util";
 import { formatTriggerLabel } from "@/lib/trigger.util";
 import { useAppStore } from "@/store/app.store";
 import { FnKeyConflictWarning } from "@/components/shared/FnKeyConflictWarning.component";
@@ -198,9 +198,9 @@ function PermissionRow({
   );
 }
 
-export function SystemCheckPage({ onGuidedSetup }: { onGuidedSetup: () => void }) {
+export function SystemCheckPage() {
   const { permissions, requestMic, requestAx } = usePermissions();
-  const { transcriptionLanguage, triggerKey, onboardingComplete } = useAppStore();
+  const { transcriptionLanguage, autoDetectLanguages, triggerKey } = useAppStore();
   const preparation = useSyncExternalStore(languagePreparation.subscribe, languagePreparation.getSnapshot);
 
   const micStatus: "granted" | "denied" | "not_asked" =
@@ -213,32 +213,36 @@ export function SystemCheckPage({ onGuidedSetup }: { onGuidedSetup: () => void }
 
   const axStatus: "granted" | "denied" | "not_asked" = permissions.accessibility
     ? "granted"
-    : "denied";
+    : "not_asked";
   const permissionsReady = micStatus === "granted" && axStatus === "granted";
-  const speechReady = preparation.status === "ready";
+  const needsLanguages = transcriptionLanguage === AUTO_LANGUAGE && !validAutoDetectLanguages(autoDetectLanguages);
+  const failed = preparation.status === "error" || preparation.status === "unavailable";
+  const speechReady = preparation.status === "ready" && !needsLanguages;
   const ready = permissionsReady && speechReady;
 
   return (
     <PageLayout reading>
-      <PageHeader page="system-check" title={onboardingComplete ? undefined : "Welcome to Linty"} />
+      <PageHeader page="system-check" />
       <div className={cn("system-readiness", ready && "is-ready")}>
         {ready ? <CheckCircle2 /> : <AlertCircle />}
         <div>
           <h2>
-            {ready ? "All set to listen." : permissionsReady ? "Getting your language ready." : "Allow access. Then start talking."}
+            {ready ? "All set to listen." : !permissionsReady ? "Allow access. Then start talking."
+              : failed ? "Speech support needs attention." : needsLanguages ? "Choose your spoken languages." : "Getting your language ready."}
           </h2>
           <p>
             {ready
               ? <>Open a text field, hold <kbd>{formatTriggerLabel(triggerKey)}</kbd>, speak, and release to paste.</>
-              : permissionsReady ? "Your permissions are ready. Linty is preparing dictation automatically."
-              : "macOS needs your permission to hear your voice and insert text into other apps."}
+              : !permissionsReady ? "macOS needs your permission to hear your voice and insert text into other apps."
+              : failed ? "Review the preparation details below to get dictation ready."
+              : needsLanguages ? "Select one to three languages in Settings → Dictation for Auto-detect."
+              : "Your permissions are ready. Linty is preparing dictation automatically."}
           </p>
         </div>
       </div>
 
       <div className="mb-6 text-[13px] text-text-secondary">
-        <p><strong className="text-text-primary">{languageLabel(transcriptionLanguage)}</strong> · Hold <kbd>{formatTriggerLabel(triggerKey)}</kbd> to dictate. No configuration needed.</p>
-        <button className="text-link mt-2" onClick={onGuidedSetup}>Guided setup (optional)</button>
+        <p><strong className="text-text-primary">{languageLabel(transcriptionLanguage)}</strong> · Hold <kbd>{formatTriggerLabel(triggerKey)}</kbd> to dictate.</p>
       </div>
 
       {/* Section label */}
@@ -263,7 +267,8 @@ export function SystemCheckPage({ onGuidedSetup }: { onGuidedSetup: () => void }
           label="Accessibility"
           description="Required for shortcuts and automatic paste"
           status={axStatus}
-          onOpenSettings={requestAx}
+          onGrant={requestAx}
+          onOpenSettings={() => openSystemSettings("accessibility")}
           isLast
         />
       </div>
