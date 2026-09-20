@@ -31,7 +31,7 @@ Technical diagnostic logs stay on your Mac unless you share them. They rotate by
 
 ## Website and GitHub
 
-Yofix hosts linty.ai and receives connection metadata. Its injected analytics has been observed sending page paths, referrers, viewport width, event IDs, and performance measurements. This website’s source opts out of that observed script and blocks browser background connections; this does not disable host-side logs. Host retention has not been confirmed.
+Yofix hosts linty.ai and receives connection metadata. Its injected analytics has been observed sending page paths, referrers, viewport width, event IDs, and performance measurements. This website’s source opts out of that observed script and blocks fetch and beacon requests; this does not disable host-side logs. Host retention has not been confirmed.
 
 The website saves your chosen theme and motion preference in browser storage until you change them or clear site data. Platform detection happens in your browser.
 
