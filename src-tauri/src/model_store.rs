@@ -127,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn sha256_matches_published_vectors_with_lowercase_and_leading_zeroes() {
+    fn sha256_matches_known_vector_and_preserves_leading_zeroes() {
         use sha2::{Digest, Sha256};
         assert_eq!(
             sha256_hex(Sha256::digest(b"abc")),

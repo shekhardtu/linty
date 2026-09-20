@@ -2,7 +2,7 @@
 //! dictation_eval MODELS_DIR CORPUS.json REPORT.json [AUDIO_DIR]
 //! Audio mode reads CASE_ID.wav; missing files stay pending, never become text tests.
 //! No downloads, recording, app settings changes, history writes, or clipboard access.
-use linty_lib::{parakeet::ParakeetEngine, reformat, transcribe};
+use linty_lib::{parakeet::ParakeetEngine, reformat, sha256_hex, transcribe};
 use serde::Deserialize;
 use serde_json::json;
 use sha2::{Digest, Sha256};
@@ -24,7 +24,7 @@ struct Case {
 
 fn read_wav(path: &Path) -> anyhow::Result<(Vec<f32>, String)> {
     let bytes = fs::read(path)?;
-    let digest = format!("{:x}", Sha256::digest(&bytes));
+    let digest = sha256_hex(Sha256::digest(&bytes));
     let mut reader = hound::WavReader::new(std::io::Cursor::new(bytes))?;
     let spec = reader.spec();
     anyhow::ensure!(
@@ -147,7 +147,7 @@ fn main() -> anyhow::Result<()> {
     }
     let report = json!({
         "schemaVersion": 1,
-        "corpusSha256": format!("{:x}", Sha256::digest(&corpus_bytes)),
+        "corpusSha256": sha256_hex(Sha256::digest(&corpus_bytes)),
         "source": if audio_dir.is_some() { "audio" } else { "text" },
         "runtime": "linty-candle",
         "language": corpus.language,
