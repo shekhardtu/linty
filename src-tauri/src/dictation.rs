@@ -22,6 +22,8 @@ pub struct Options {
     pub filename: Option<String>,
     pub model_name: String,
     pub language: String,
+    #[serde(default)]
+    pub auto_detect_languages: Vec<String>,
     pub prompt: String,
     pub vocabulary: Vec<crate::vocabulary::VocabTerm>,
     pub dictionary: Vec<Entry>,
@@ -105,6 +107,30 @@ pub struct Coordinator {
 }
 impl Coordinator {
     fn reserve(&self, options: Options) -> Result<Arc<Session>, String> {
+        if options.language == "auto" {
+            let languages = &options.auto_detect_languages;
+            if !(1..=3).contains(&languages.len())
+                || languages
+                    .iter()
+                    .any(|code| code.is_empty() || code == "auto" || code.as_bytes().contains(&0))
+                || languages
+                    .iter()
+                    .collect::<std::collections::HashSet<_>>()
+                    .len()
+                    != languages.len()
+            {
+                return Err("Choose one to three different languages for Auto-detect in Settings → Dictation before recording.".into());
+            }
+            #[cfg(feature = "local-stt")]
+            if languages
+                .iter()
+                .any(|code| whisper_rs::get_lang_id(code).is_none())
+            {
+                return Err(
+                    "Choose supported auto-detect languages in Settings → Dictation.".into(),
+                );
+            }
+        }
         let mut slot = self.current.lock().map_err(|e| e.to_string())?;
         if slot
             .as_ref()
@@ -187,6 +213,7 @@ async fn prepare(app: &tauri::AppHandle, options: &Options) -> Result<(), String
         options.filename.clone(),
         !options.vocabulary.is_empty(),
         false,
+        Some(options.language.clone()),
     )
     .await
 }
@@ -361,7 +388,11 @@ async fn process<B: Backend>(
     s.check()?;
     let mut candidate = raw.clone();
     let mut reformat_ms = 0.;
-    if o.cleanup {
+    if o.cleanup && !reformat::supports_language(&o.language) {
+        record["reformatting"]["status"] = json!("skipped");
+        record["reformatting"]["reason"] = json!("unsupported_language");
+        record["reformatting"]["totalMs"] = json!(0.);
+    } else if o.cleanup {
         backend.stage(s, "correcting")?;
         let tick = Instant::now();
         let mut options = o.cleanup_options.clone();
@@ -530,6 +561,27 @@ mod tests {
         assert!(c.get(10).is_err());
         assert_eq!(c.get(11).unwrap().id, second.id);
         assert_eq!(first.options.language, "en");
+    }
+    #[test]
+    fn auto_detect_requires_one_to_three_distinct_languages_before_capture() {
+        for languages in [
+            vec![],
+            vec!["en", "hi", "ur", "fr"],
+            vec!["en", "en"],
+            vec!["auto"],
+            vec![""],
+        ] {
+            let mut o = options();
+            o.language = "auto".into();
+            o.auto_detect_languages = languages.into_iter().map(String::from).collect();
+            assert!(Coordinator::default().reserve(o).is_err());
+        }
+        for languages in [vec!["hi"], vec!["en", "hi"], vec!["en", "hi", "ta"]] {
+            let mut o = options();
+            o.language = "auto".into();
+            o.auto_detect_languages = languages.into_iter().map(String::from).collect();
+            assert!(Coordinator::default().reserve(o).is_ok());
+        }
     }
     #[tokio::test]
     async fn cancelling_a_running_stage_drops_its_continuation() {

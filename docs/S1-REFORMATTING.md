@@ -17,7 +17,10 @@ selects layout only: editor contents, project vocabulary, and conversation
 context are not passed to the model. S1-mini does not support general app-aware
 instructions or a code-editor context mode.
 
-Explicit non-English languages pass through unchanged. Auto-detection requires
+Explicit non-English languages bypass S1 before inference and do not prepare
+its model. Settings shows cleanup as paused without clearing the saved preference;
+selecting English resumes it. Skipping local cleanup never enables cloud cleanup.
+Auto-detection requires
 confident English identification; short text may be skipped. Selecting English
 allows short English dictations to be processed without that ambiguity.
 
@@ -66,7 +69,7 @@ finishes that work and the temporary KV cache is cleared before cleanup becomes
 enabled. Preparation failures leave the previous cleanup mode selected and allow
 retry. The synthetic input/output is never saved to history or pasted.
 
-Installed cleanup prepares at startup even when autocorrection is disabled.
+Installed cleanup prepares at startup for English or Auto-detect, even when autocorrection is disabled.
 The shared dictation preparation command checks it again before opening the
 microphone, so startup and idle reloads finish warm-up before capture begins.
 Repeated preparation reuses a warmed engine and never downloads assets or

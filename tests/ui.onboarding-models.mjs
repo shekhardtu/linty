@@ -13,9 +13,10 @@ const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host
 let browser;
 const errors = [];
 
-function setupBridge({ existing = [], parakeet = true, local = true, language = 'en' } = {}) {
+function setupBridge({ existing = [], parakeet = true, local = true, language = 'en', languages = ['en'] } = {}) {
   const qa = window.__QA__;
   qa.stores[1].transcriptionLanguage = language;
+  qa.stores[1].autoDetectLanguages = languages;
   delete qa.stores[1].selectedModelFilename;
   qa.installed = new Set(existing);
   qa.downloads = [];
@@ -110,9 +111,40 @@ try {
     assert.deepEqual(result.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => n.failureSummary) })), []);
   };
 
+  // Onboarding asks for 1–3 real languages, never permits a fourth, and saves
+  // the list before preparing Auto-detect. Empty selections cannot continue.
+  let page = await open({ existing: [WHISPER] });
+  await reachLanguage(page);
+  assert.equal(await page.getByRole('group', { name: 'Frequently spoken languages' }).count(), 0);
+  await chooseLanguage(page, 'Auto-detect', true);
+  await page.getByRole('button', { name: 'Remove English', exact: true }).click();
+  assert.equal(await page.getByRole('button', { name: 'Continue', exact: true }).isDisabled(), true);
+  const addLanguage = async (page, name) => {
+    await page.getByRole('combobox', { name: 'Add spoken language', exact: true }).click();
+    assert.equal(await page.getByRole('option', { name: 'Auto-detect', exact: true }).count(), 0);
+    await page.getByRole('combobox', { name: 'Search languages', exact: true }).fill(name);
+    await page.getByRole('option', { name, exact: true }).click();
+  };
+  for (const language of ['English', 'Hindi', 'Tamil']) await addLanguage(page, language);
+  assert.equal(await page.getByRole('combobox', { name: 'Add spoken language', exact: true }).isDisabled(), true);
+  await chooseLanguage(page, 'Hindi', true);
+  assert.equal(await page.getByRole('group', { name: 'Frequently spoken languages' }).count(), 0);
+  await chooseLanguage(page, 'Auto-detect', true);
+  assert.equal(await page.getByRole('button', { name: /^Remove / }).count(), 3);
+  await audit(page);
+  await page.screenshot({ path: `artifacts/language/${engine.name()}-onboarding-languages.png` });
+  await page.setViewportSize({ width: 640, height: 480 });
+  await page.getByRole('button', { name: 'Continue', exact: true }).scrollIntoViewIfNeeded();
+  assert.ok(await page.getByRole('button', { name: 'Continue', exact: true }).isVisible());
+  await audit(page);
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await waitLanguage(page, 'auto');
+  assert.deepEqual(await page.evaluate(() => window.__QA__.stores[1].autoDetectLanguages), ['en', 'hi', 'ta']);
+  await page.close();
+
   // No premature download before the first language is confirmed. Setup continues
   // during the download, with a retryable final readiness screen.
-  let page = await open();
+  page = await open();
   await reachLanguage(page);
   assert.deepEqual(await page.evaluate(() => window.__QA__.downloads), []);
   await chooseLanguage(page, 'Hindi', true);
@@ -141,7 +173,7 @@ try {
   for (const options of [
     { language: 'en', existing: [PARAKEET], expected: PARAKEET },
     { language: 'en', parakeet: false, existing: [WHISPER], expected: WHISPER },
-    { language: 'auto', existing: [WHISPER], expected: WHISPER },
+    { language: 'auto', languages: ['en', 'hi'], existing: [WHISPER], expected: WHISPER },
   ]) {
     page = await open(options);
     await reachLanguage(page);
@@ -155,6 +187,47 @@ try {
     assert.deepEqual(await page.evaluate(() => window.__QA__.loads), [options.expected]);
     await page.close();
   }
+
+  // Dictation settings edit the persisted shortlist and expose exactly what
+  // Auto-detect uses. Failed saves keep the active list and captured options.
+  page = await open({ returning: true, language: 'auto', languages: ['en', 'hi'], existing: [WHISPER] });
+  await waitLanguage(page, 'auto');
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByText('Auto-detect currently uses: English, Hindi.', { exact: true }).waitFor();
+  await addLanguage(page, 'Tamil');
+  assert.equal(await page.getByRole('combobox', { name: 'Add spoken language', exact: true }).isDisabled(), true);
+  await page.evaluate(() => { window.__QA__.failures['plugin:store|save'] = 'Disk full'; });
+  await page.getByRole('button', { name: 'Save languages', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'Disk full' }).waitFor();
+  assert.deepEqual(await page.evaluate(() => window.__QA__.stores[1].autoDetectLanguages), ['en', 'hi']);
+  await page.evaluate(() => { delete window.__QA__.failures['plugin:store|save']; });
+  await page.getByRole('button', { name: 'Save languages', exact: true }).click();
+  await page.getByText('Auto-detect currently uses: English, Hindi, Tamil.', { exact: true }).waitFor();
+  const captured = await page.evaluate(async () => (await import('/src/services/dictation-options.service.ts')).dictationOptions());
+  assert.equal(captured.language, 'auto');
+  assert.deepEqual(captured.autoDetectLanguages, ['en', 'hi', 'ta']);
+  await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.setState({ isRecording: true, status: 'recording' }));
+  assert.equal(await page.getByRole('button', { name: 'Remove Hindi', exact: true }).isDisabled(), true);
+  await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.setState({ isRecording: false, status: 'idle' }));
+  await audit(page);
+  await page.screenshot({ path: `artifacts/language/${engine.name()}-dictation-languages.png` });
+  await chooseLanguage(page, 'Hindi'); await waitLanguage(page, 'hi');
+  assert.equal(await page.getByRole('group', { name: 'Frequently spoken languages' }).count(), 0);
+  assert.deepEqual(await page.evaluate(() => window.__QA__.stores[1].autoDetectLanguages), ['en', 'hi', 'ta']);
+  await chooseLanguage(page, 'Auto-detect'); await waitLanguage(page, 'auto');
+  await page.getByText('Auto-detect currently uses: English, Hindi, Tamil.', { exact: true }).waitFor();
+  await page.close();
+
+  // Upgraded users must choose their own shortlist; missing preferences cannot
+  // silently fall back to all languages or guessed regional defaults.
+  page = await open({ returning: true, language: 'auto', languages: [], existing: [WHISPER] });
+  await waitLanguage(page, 'auto');
+  const missingChoice = await page.evaluate(async () => {
+    try { (await import('/src/services/dictation-options.service.ts')).dictationOptions(); }
+    catch (error) { return error.message; }
+  });
+  assert.match(missingChoice, /Choose one to three languages/);
+  await page.close();
 
   // Languages sharing speech support do not reload it. New downloads preserve
   // the confirmed language until ready, survive navigation, and cache on disk.

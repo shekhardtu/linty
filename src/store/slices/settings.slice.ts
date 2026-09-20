@@ -71,6 +71,7 @@ export interface SettingsSlice {
   whisperPrompt: string;
   onboardingComplete: boolean;
   transcriptionLanguage: string;
+  autoDetectLanguages: string[];
   loadedModelFilename: string | null;
   selectedModelFilename: string | null;
   /** Apply the personal dictionary (replacements + engine hints) to new dictations. */
@@ -121,6 +122,7 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set) => ({
   whisperPrompt: "",
   onboardingComplete: false,
   transcriptionLanguage: "auto",
+  autoDetectLanguages: [],
   loadedModelFilename: null,
   selectedModelFilename: null,
   modelIdleUnloadMinutes: DEFAULT_MODEL_IDLE_UNLOAD_MINUTES,

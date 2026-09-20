@@ -107,7 +107,7 @@ export function prepareLanguage(language: string): Promise<void> {
           if (previousModel !== model.filename) {
             publish({ status: "loading", progress: 100 });
             changedModel = true;
-            await invoke("load_local_model", { filename: model.filename });
+            await invoke("load_local_model", { filename: model.filename, language });
           } else if (dictationPreparation.getSnapshot() !== "ready") {
             // Idle unloading leaves the selected filename intact. Native
             // preparation reuses a resident model or reloads it if necessary.
@@ -146,7 +146,7 @@ export function prepareLanguage(language: string): Promise<void> {
         } finally {
           // A late load or failed save must not replace the confirmed engine.
           if (changedModel && useAppStore.getState().loadedModelFilename !== model.filename && previousModel) {
-            await invoke("load_local_model", { filename: previousModel }).catch(() => {});
+            await invoke("load_local_model", { filename: previousModel, language: previous.transcriptionLanguage }).catch(() => {});
           }
         }
       });

@@ -121,6 +121,31 @@ async fn run(backend: &FakeBackend, s: &Arc<Session>) -> Result<Outcome, String>
     .await
 }
 #[tokio::test]
+async fn non_english_skips_cleanup_and_preserves_delivery() {
+    for (language, text) in [
+        ("hi", "आप क्या कर रहे हो?"),
+        ("hi", "Unexpected Latin output"),
+        ("es", "¿Qué estás haciendo?"),
+    ] {
+        let b = FakeBackend::new(text, "This must never replace the transcript.");
+        let mut s = session();
+        Arc::get_mut(&mut s).unwrap().options.language = language.into();
+        let result = run(&b, &s).await.unwrap();
+        assert!(result.warnings.is_empty());
+        let record = result.record.unwrap();
+        assert_eq!(record["rawText"], text);
+        assert_eq!(record["finalText"], text);
+        assert_eq!(record["reformatting"]["enabled"], true);
+        assert_eq!(record["reformatting"]["status"], "skipped");
+        assert_eq!(record["reformatting"]["reason"], "unsupported_language");
+        assert!(record.get("reformattedText").is_none());
+        let events = b.events.lock().unwrap();
+        assert!(!events.contains(&"cleanup"));
+        assert!(events.contains(&"deliver"));
+    }
+}
+
+#[tokio::test]
 async fn raw_is_saved_before_cleanup_and_delivery_then_verification_is_recorded() {
     let b = FakeBackend::new("send Sara fifteen rupees", "Send Sara ₹15.");
     let result = run(&b, &session()).await.unwrap();

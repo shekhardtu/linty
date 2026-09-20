@@ -86,6 +86,7 @@ export const fixture = ({
     1: {
       theme,
       onboardingComplete: !onboarding,
+      autoDetectLanguages: ["en"],
       selectedModelFilename: "ggml-large-v3-turbo-q5_0.bin",
       triggerKey: "fn",
       correctionEnabled: false,

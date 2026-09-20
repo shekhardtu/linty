@@ -2,7 +2,8 @@ import { useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "@/store/app.store";
 import { prepareInstalledCleanup } from "@/services/dictation-preparation.service";
-import { AUTO_LANGUAGE, DEFAULT_TRANSCRIPTION_LANGUAGE, isSupportedLanguage } from "@/lib/languages.util";
+import { supportsLocalCleanup } from "@/lib/reformat.util";
+import { AUTO_LANGUAGE, DEFAULT_TRANSCRIPTION_LANGUAGE, isSupportedLanguage, normalizeAutoDetectLanguages, validAutoDetectLanguages } from "@/lib/languages.util";
 import { DEFAULT_MODEL_IDLE_UNLOAD_MINUTES } from "@/store/slices/settings.slice";
 import type { SettingsSlice, ThemePreference } from "@/store/slices/settings.slice";
 import type { CleanupMode, ReformatContext, ReformatStyle } from "@/types/reformat.types";
@@ -29,6 +30,7 @@ export function useSettings() {
     whisperPrompt,
     onboardingComplete,
     transcriptionLanguage,
+    autoDetectLanguages,
     setTheme,
     setWhisperPrompt,
     setOnboardingComplete,
@@ -66,7 +68,6 @@ export function useSettings() {
           reformatLists: lists !== false,
           reformatContext: context && ["auto", "general", "email"].includes(context) ? context : "auto",
         });
-        void prepareInstalledCleanup().catch((error) => console.warn("[s1] Startup preparation failed:", error));
         const savedTheme = await store.get<ThemePreference>("theme");
         const savedWhisperPrompt = await store.get<string>("whisperPrompt");
         const savedOnboarding = await store.get<boolean>("onboardingComplete");
@@ -93,6 +94,8 @@ export function useSettings() {
           ? isSupportedLanguage(savedLanguage) ? savedLanguage : AUTO_LANGUAGE
           : savedOnboarding ? AUTO_LANGUAGE : DEFAULT_TRANSCRIPTION_LANGUAGE;
         setTranscriptionLanguage(language);
+        useAppStore.setState({ autoDetectLanguages: normalizeAutoDetectLanguages(await store.get("autoDetectLanguages")) });
+        void prepareInstalledCleanup().catch((error) => console.warn("[s1] Startup preparation failed:", error));
         if (savedLanguage && language !== savedLanguage) await store.set("transcriptionLanguage", language);
         if (savedSelectedModel) setSelectedModelFilename(savedSelectedModel);
         if (savedTriggerKey) setTriggerKey(savedTriggerKey);
@@ -122,6 +125,9 @@ export function useSettings() {
       throw new Error("Finish dictating before changing text cleanup.");
     }
     if (mode === "local") {
+      if (!supportsLocalCleanup(state.transcriptionLanguage)) {
+        throw new Error("On-device cleanup supports English only. Select English or Auto-detect in Language settings.");
+      }
       const model = await invoke<{ downloaded: boolean }>("s1_model_status");
       if (!model.downloaded) throw new Error("Download S1-mini before using on-device cleanup.");
       // Do not enable correction until loading and the first inference passes
@@ -166,6 +172,14 @@ export function useSettings() {
       await prepareLanguage(value);
     }
   }, []);
+  const saveAutoDetectLanguages = useCallback(async (languages: string[]) => {
+    const state = useAppStore.getState();
+    if (state.isRecording || ["preparing", "recording", "transcribing", "correcting", "pasting"].includes(state.status)) {
+      throw new Error("Finish dictating before changing your languages.");
+    }
+    if (!validAutoDetectLanguages(languages)) throw new Error("Choose one to three different spoken languages.");
+    await saveSetting("autoDetectLanguages", [...languages]);
+  }, []);
   const saveTriggerKey = useCallback((value: string) => saveSetting("triggerKey", value), []);
   const saveModelIdleUnloadMinutes = useCallback(async (minutes: number) => {
     await saveSetting("modelIdleUnloadMinutes", minutes);
@@ -195,6 +209,8 @@ export function useSettings() {
     saveOnboardingComplete,
     transcriptionLanguage,
     saveTranscriptionLanguage,
+    autoDetectLanguages,
+    saveAutoDetectLanguages,
     modelIdleUnloadMinutes,
     saveModelIdleUnloadMinutes,
     triggerKey,

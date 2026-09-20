@@ -835,6 +835,10 @@
 .language-choice-row { display: flex; gap: 24px; align-items: center; justify-content: space-between; padding: 4px 0 12px; }
 .language-choice-row p, .language-notes p { color: var(--color-text-secondary); font-size: 12px; line-height: 1.8; margin-top: 6px; }
 .language-picker-trigger { min-width: 220px; }
+.frequent-languages { width: 100%; max-width: 440px; text-align: left; }
+.frequent-language-choices, .frequent-language-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.frequent-language-choices:empty { display: none; }
+.auto-detect-settings { border-top: 1px solid var(--color-border-subtle); padding-top: 16px; margin-top: 8px; }
 .language-picker-popup { position: fixed; margin: 0; padding: 0; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-bg-elevated); color: var(--color-text-primary); box-shadow: 0 12px 36px #0003; overflow: hidden; }
 .language-picker-popup:popover-open { display: flex; flex-direction: column; }
 .language-picker-search { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--color-border-subtle); color: var(--color-text-muted); flex-shrink: 0; }

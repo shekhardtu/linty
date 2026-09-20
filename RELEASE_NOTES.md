@@ -1,7 +1,7 @@
 ## What's new
 
-- Choose your dictation language and Linty automatically prepares the right speech support. The separate Speech engine page and model picker are gone.
-- Search 100 languages by their English or native names. Setup and later language changes reuse existing downloads, show preparation progress, and offer a retry if something goes wrong.
-- Keep dictating in your current language while another language downloads. Linty switches when the new language is ready and your current dictation has finished.
-- Dictation and optional text cleanup now run entirely on your Mac. No accounts or API keys are needed.
-- Idle memory settings are now in Dictation.
+- Auto-detect now chooses from one to three languages you speak frequently. Select them during setup or in Settings → Dictation to reduce wrong-language results, including Hindi being written in Urdu script.
+- The frequently spoken languages picker appears only for Auto-detect. Choose a specific language to use it directly; your saved Auto-detect choices are kept for later.
+- Already using Auto-detect? Choose and save your languages in Settings → Dictation before your next recording.
+- English-only on-device cleanup pauses when a specific non-English language is selected, without loading its model. Your cleanup preference is preserved for when you return to English.
+- Speech accuracy still depends on the recording. Very short speech and background noise can still cause errors.

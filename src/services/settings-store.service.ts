@@ -19,6 +19,7 @@ export async function getSettingsStore() {
         reformatContext: "auto",
         theme: "system",
         whisperPrompt: "",
+        autoDetectLanguages: [],
         modelIdleUnloadMinutes: DEFAULT_MODEL_IDLE_UNLOAD_MINUTES,
         triggerKey: DEFAULT_TRIGGER_KEY,
         trackApplicationUsage: true,
@@ -48,4 +49,3 @@ export function saveSetting<K extends keyof SettingsSlice>(key: K, value: Settin
     useAppStore.setState({ [key]: value });
   });
 }
-

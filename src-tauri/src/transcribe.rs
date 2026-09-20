@@ -72,6 +72,25 @@ pub fn transcribe_local<P, G>(
     samples: &[f32],
     prompt: Option<&str>,
     language: Option<&str>,
+    on_partial: P,
+    on_progress: G,
+) -> Result<String, String>
+where
+    P: FnMut(&str) + 'static,
+    G: FnMut(i32) + 'static,
+{
+    transcribe_local_with_languages(ctx, samples, prompt, language, &[], on_partial, on_progress)
+}
+
+/// Auto-detect can be restricted to the user's spoken languages. An empty list
+/// preserves Whisper's unrestricted detection; an explicit language takes priority.
+#[cfg(feature = "local-stt")]
+pub fn transcribe_local_with_languages<P, G>(
+    ctx: &whisper_rs::WhisperContext,
+    samples: &[f32],
+    prompt: Option<&str>,
+    language: Option<&str>,
+    auto_detect_languages: &[String],
     mut on_partial: P,
     on_progress: G,
 ) -> Result<String, String>
@@ -112,14 +131,29 @@ where
         .unwrap_or(4);
     params.set_n_threads(n_threads);
 
-    // Set language: None for auto-detect, Some(code) for explicit
-    match language {
-        Some(lang) if lang != "auto" && !lang.is_empty() => {
-            params.set_language(Some(lang));
-        }
+    let started = std::time::Instant::now();
+    let candidates = detection_candidates(language, auto_detect_languages)?;
+    let detected = match candidates.as_slice() {
+        [] => None,
+        [(code, _)] => Some(*code),
         _ => {
-            params.set_language(None);
+            // This replaces Whisper's normal language-detection pass. full()
+            // receives an explicit language, so it does not detect a second time.
+            state
+                .pcm_to_mel(samples, n_threads as usize)
+                .map_err(|e| format!("Language detection failed: {e}"))?;
+            let (_, probabilities) = state
+                .lang_detect(0, n_threads as usize)
+                .map_err(|e| format!("Language detection failed: {e}"))?;
+            Some(best_detection_language(&candidates, &probabilities)?)
         }
+    };
+    let chosen_language = language
+        .filter(|l| !l.is_empty() && *l != "auto")
+        .or(detected);
+    params.set_language(chosen_language);
+    if let Some(code) = detected {
+        log::debug!("[transcribe] Restricted auto-detect selected {code}");
     }
 
     params.set_print_special(false);
@@ -167,7 +201,6 @@ where
         duration_secs <= 20.0
     );
 
-    let started = std::time::Instant::now();
     state
         .full(params, samples)
         .map_err(|e| format!("Transcription failed: {}", e))?;
@@ -201,6 +234,45 @@ where
     );
 
     Ok(finish_transcript(&result, "Whisper"))
+}
+
+#[cfg(feature = "local-stt")]
+fn detection_candidates<'a>(
+    language: Option<&str>,
+    allowed: &'a [String],
+) -> Result<Vec<(&'a str, usize)>, String> {
+    if language.is_some_and(|l| !l.is_empty() && l != "auto") {
+        return Ok(Vec::new());
+    }
+    if allowed.len() > 3 {
+        return Err("Choose at most three auto-detect languages.".into());
+    }
+    let mut candidates = Vec::new();
+    for code in allowed {
+        if code.as_bytes().contains(&0) {
+            return Err("Invalid auto-detect language.".into());
+        }
+        let id = whisper_rs::get_lang_id(code)
+            .filter(|_| code != "auto")
+            .ok_or_else(|| format!("Unsupported auto-detect language: {code}"))?
+            as usize;
+        if !candidates.iter().any(|(_, previous)| *previous == id) {
+            candidates.push((code.as_str(), id));
+        }
+    }
+    Ok(candidates)
+}
+
+#[cfg(feature = "local-stt")]
+fn best_detection_language<'a>(
+    candidates: &[(&'a str, usize)],
+    probabilities: &[f32],
+) -> Result<&'a str, String> {
+    candidates.iter()
+        .filter_map(|(code, id)| probabilities.get(*id).copied().filter(|p| p.is_finite() && *p > 0.0).map(|p| (*code, p)))
+        .max_by(|a, b| a.1.total_cmp(&b.1))
+        .map(|(code, _)| code)
+        .ok_or_else(|| "Could not identify one of your auto-detect languages. Select a spoken language in Settings and try again.".to_string())
 }
 
 // ── Local STT via Parakeet (Neural Engine) ──

@@ -435,6 +435,7 @@ async fn transcribe_buffer(
     state: tauri::State<'_, AppState>,
     prompt: Option<String>,
     language: Option<String>,
+    auto_detect_languages: Vec<String>,
     vocabulary: Option<Vec<vocabulary::VocabTerm>>,
     filename: Option<String>,
 ) -> Result<transcribe::Transcription, String> {
@@ -496,11 +497,12 @@ async fn transcribe_buffer(
                 let app_prog = app.clone();
                 let progress_generation = state.audio_generation.clone();
                 tokio::task::spawn_blocking(move || {
-                    transcribe::transcribe_local(
+                    transcribe::transcribe_local_with_languages(
                         &ctx,
                         &samples,
                         prompt.as_deref(),
                         language.as_deref(),
+                        &auto_detect_languages,
                         // The capsule only communicates status, never transcript text.
                         |_| {},
                         move |progress| {
@@ -541,7 +543,14 @@ async fn transcribe_buffer(
     }
     #[cfg(not(feature = "local-stt"))]
     {
-        let _ = (app, state, prompt, language, filename);
+        let _ = (
+            app,
+            state,
+            prompt,
+            language,
+            auto_detect_languages,
+            filename,
+        );
         Err("Local STT not available — rebuild with `local-stt` feature".into())
     }
 }
@@ -1015,6 +1024,7 @@ async fn load_local_model(
     #[allow(unused_variables)] app: tauri::AppHandle,
     #[allow(unused_variables)] state: tauri::State<'_, AppState>,
     #[allow(unused_variables)] filename: String,
+    #[allow(unused_variables)] language: Option<String>,
 ) -> Result<(), String> {
     log::info!("[cmd] load_local_model: {}", filename);
     #[cfg(feature = "local-stt")]
@@ -1033,7 +1043,9 @@ async fn load_local_model(
             .local_model_last_used_at
             .store(now_epoch_ms(), Ordering::Relaxed);
 
-        prepare_installed_cleanup(&app, false).await?;
+        if reformat::supports_language(language.as_deref().unwrap_or("auto")) {
+            prepare_installed_cleanup(&app, false).await?;
+        }
 
         log::info!("[cmd] Local model loaded successfully: {}", filename);
         Ok(())
@@ -1051,6 +1063,7 @@ async fn prepare_dictation(
     filename: Option<String>,
     vocabulary: bool,
     cleanup_required: bool,
+    language: Option<String>,
 ) -> Result<(), String> {
     #[cfg(feature = "local-stt")]
     {
@@ -1095,7 +1108,11 @@ async fn prepare_dictation(
             #[cfg(not(feature = "parakeet"))]
             let _ = (engine, vocabulary);
         }
-        let result = prepare_installed_cleanup(&app, cleanup_required).await;
+        let result = if reformat::supports_language(language.as_deref().unwrap_or("auto")) {
+            prepare_installed_cleanup(&app, cleanup_required).await
+        } else {
+            Ok(())
+        };
         state
             .local_model_last_used_at
             .store(now_epoch_ms(), Ordering::Relaxed);
@@ -1103,7 +1120,7 @@ async fn prepare_dictation(
     }
     #[cfg(not(feature = "local-stt"))]
     {
-        let _ = (app, state, filename, vocabulary, cleanup_required);
+        let _ = (app, state, filename, vocabulary, cleanup_required, language);
         Err("On-device speech support is not available in this build".into())
     }
 }

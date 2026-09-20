@@ -1,4 +1,44 @@
 use super::*;
+
+#[cfg(feature = "local-stt")]
+#[test]
+fn auto_detection_uses_only_the_chosen_languages() {
+    let allowed = vec!["en".into(), "hi".into(), "ta".into()];
+    let candidates = detection_candidates(None, &allowed).unwrap();
+    let mut scores = vec![0.; whisper_rs::get_lang_max_id() as usize + 1];
+    let id = |code| whisper_rs::get_lang_id(code).unwrap() as usize;
+    scores[id("ur")] = 0.85;
+    scores[id("hi")] = 0.10;
+    scores[id("en")] = 0.02;
+    assert_eq!(best_detection_language(&candidates, &scores).unwrap(), "hi");
+    scores[id("en")] = 0.20;
+    assert_eq!(best_detection_language(&candidates, &scores).unwrap(), "en");
+    scores[id("ta")] = 0.30;
+    assert_eq!(best_detection_language(&candidates, &scores).unwrap(), "ta");
+    assert!(
+        detection_candidates(Some("hi"), &allowed)
+            .unwrap()
+            .is_empty(),
+        "Explicit language bypasses detection"
+    );
+    assert!(best_detection_language(&candidates, &[]).is_err());
+    assert!(best_detection_language(&candidates, &vec![f32::NAN; scores.len()]).is_err());
+}
+
+#[cfg(feature = "local-stt")]
+#[test]
+fn detection_rejects_invalid_or_excess_languages() {
+    for allowed in [
+        vec!["xx".into()],
+        vec!["auto".into()],
+        vec!["hi\0".into()],
+        vec!["en".into(), "hi".into(), "ta".into(), "ur".into()],
+    ] {
+        assert!(detection_candidates(Some("auto"), &allowed).is_err());
+    }
+    let allowed = vec!["hi".into()];
+    assert_eq!(detection_candidates(None, &allowed).unwrap()[0].0, "hi");
+}
 #[test]
 fn ordinary_words_and_previously_blocked_phrases_survive_every_finalizer() {
     let phrases = [
