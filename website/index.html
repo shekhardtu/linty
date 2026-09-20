@@ -69,7 +69,7 @@
             <div class="screen-switch" role="group" aria-label="Product screens">
               <button type="button" data-screen="history" aria-pressed="false">History</button>
               <button type="button" data-screen="overview" aria-pressed="true">Overview</button>
-              <button type="button" data-screen="language" aria-pressed="false">Language</button>
+              <button type="button" data-screen="dictation" aria-pressed="false">Dictation</button>
             </div>
             <button type="button" class="product-playback" id="product-playback" aria-label="Pause screen slideshow" title="Pause screen slideshow" hidden><span class="product-playback-icon" aria-hidden="true"></span></button>
           </div>
@@ -82,8 +82,8 @@
             <div class="product-slide" data-product-slide="overview" data-caption="An example week: 3,048 words, about 52 minutes back." data-sample="Example data · 40 wpm typing baseline" role="group" aria-roledescription="slide" aria-label="2 of 3: Overview" aria-hidden="false">
               <img id="product-image" src="images/overview-light.png?v=52fbff877a99" data-light="images/overview-light.png?v=52fbff877a99" data-dark="images/overview-dark.png?v=a7851a13a4d2" width="1200" height="800" alt="Linty’s Overview with a plausible week of example dictations, words transcribed, and estimated time saved." draggable="false" decoding="async" fetchpriority="high" />
             </div>
-            <div class="product-slide" data-product-slide="language" data-caption="Choose your language. Linty prepares speech support automatically." data-sample="Actual interface · example data" role="group" aria-roledescription="slide" aria-label="3 of 3: Language" aria-hidden="true" hidden inert>
-              <img src="images/language-light.png?v=d8d5c4290782" data-light="images/language-light.png?v=d8d5c4290782" data-dark="images/language-dark.png?v=09096fdaf702" width="1200" height="800" alt="Linty’s Language settings with English selected and ready for offline dictation." draggable="false" decoding="async" />
+            <div class="product-slide" data-product-slide="dictation" data-caption="Your language and text cleanup, together in Dictation settings." data-sample="Actual interface · example data" role="group" aria-roledescription="slide" aria-label="3 of 3: Dictation" aria-hidden="true" hidden inert>
+              <img src="images/language-light.png?v=6ff8a1dd6072" data-light="images/language-light.png?v=6ff8a1dd6072" data-dark="images/language-dark.png?v=40629f5fae46" width="1200" height="800" alt="Linty’s Dictation settings with English selected, on-device text cleanup, and writing style, layout, and list controls." draggable="false" decoding="async" />
             </div>
           </div>
           <figcaption><span id="screen-caption">An example week: 3,048 words, about 52 minutes back.</span><span class="sample-label" id="sample-label">Example data · 40 wpm typing baseline</span></figcaption>
@@ -215,10 +215,10 @@
       <div class="faq-list">
         <details open><summary>Will it run on my Mac?<span aria-hidden="true">+</span></summary><p>Linty requires macOS 14 or later and an Apple Silicon Mac (M1 or newer). Your language, recording length, and available memory affect processing time.</p></details>
         <details><summary>What do I need to set up?<span aria-hidden="true">+</span></summary><p>Choose your spoken language. Linty downloads the speech support it needs, or reuses an existing download. Grant Microphone and Accessibility access, then choose your shortcut. System Check helps you try your microphone and dictation.</p></details>
-        <details><summary>Can I change languages later?<span aria-hidden="true">+</span></summary><p>Yes. In Settings → Language, search 100 languages by English or native name, or choose Auto-detect. Linty reuses downloaded speech support and downloads more only when needed. Your current language stays active until the new one is ready. App menus stay in English; recognition accuracy varies by language.</p></details>
+        <details><summary>Can I change languages later?<span aria-hidden="true">+</span></summary><p>Yes. In Settings → Dictation, search 100 languages by English or native name, or choose Auto-detect and save up to three languages you use. Linty reuses downloaded speech support and downloads more only when needed. Your current language stays active until the new one is ready. App menus stay in English; recognition accuracy varies by language.</p></details>
         <details><summary>Does dictation need an internet connection?<span aria-hidden="true">+</span></summary><p>Internet access is needed to download speech support, optional text cleanup, and app updates. Once speech support is ready, dictation works offline. Your audio and transcripts stay on your Mac.</p></details>
         <details><summary>Is it free?<span aria-hidden="true">+</span></summary><p>Linty is free and open source under the MIT license. No account or subscription is needed for dictation or optional text cleanup.</p></details>
-        <details><summary>What if a transcription isn’t right?<span aria-hidden="true">+</span></summary><p>Review and edit it in History, add unfamiliar names to your dictionary, and check that your spoken language is selected in Settings → Language. Use System Check to try your microphone. Audio quality and background noise can affect results.</p></details>
+        <details><summary>What if a transcription isn’t right?<span aria-hidden="true">+</span></summary><p>Review and edit it in History, add unfamiliar names to your dictionary, and check that your spoken language is selected in Settings → Dictation. Use System Check to try your microphone. Audio quality and background noise can affect results.</p></details>
       </div>
     </section>
 

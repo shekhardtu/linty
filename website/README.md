@@ -109,7 +109,9 @@ logical width and reserves the aspect ratio. Screenshots are not zoom links:
 
 - `overview-{light,dark}.png` — initial Overview
 - `history-{light,dark}.png` — History with the latest email reply selected
-- `language-{light,dark}.png` — Settings → Language with English selected
+- `language-{light,dark}.png` — Settings → Dictation with English selected and
+  on-device cleanup enabled. Customize cleanup is expanded to show writing style,
+  layout, and lists. The filenames stay stable after Language moved into Dictation.
 
 On desktop (at least 761px wide and 560px tall), the showcase scales to the
 viewport height below the sticky header, with 16px of breathing room at each end.

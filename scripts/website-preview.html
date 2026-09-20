@@ -9,6 +9,7 @@ previewClock.setHours(16, 45, 0, 0);
 Date.now = () => previewClock.getTime();
 fixture({ theme: new URLSearchParams(location.search).get('theme') || 'light' });
 window.__QA__.stores[1].transcriptionLanguage = "en";
+window.__QA__.stores[1].reformatEnabled = true;
 window.__QA__.stores[1].updateHistory = { lastRunVersion: version, notice: null };
 window.__QA__.stores[2].transcripts = websitePreviewData();
 window.__QA__.stores[3].corrections = [];
@@ -22,6 +23,7 @@ const invoke = window.__TAURI_INTERNALS__.invoke;
 window.__TAURI_INTERNALS__.invoke = (command, ...args) => {
   if (command === 'plugin:app|version') return Promise.resolve(version);
   if (command === 'get_app_icons') return Promise.resolve(icons);
+  if (command === 's1_model_status') return Promise.resolve({ downloaded: true, loaded: true, downloading: false, progress: 100, downloadBytes: 495642462 });
   return invoke(command, ...args);
 };
 await import('/src/main.tsx');
