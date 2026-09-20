@@ -22,7 +22,7 @@ export function StatusBar() {
   const detail = status === "error" ? error || "Transcription failed"
     : preparation === "error" ? "Preparation failed. Try dictating again."
     : needsLanguages ? "Choose one to three languages in Dictation settings"
-    : !ready && !recording && !busy ? loadedModelFilename ? "Dictation will prepare while you speak" : "Prepare dictation in Language settings"
+    : !ready && !recording && !busy ? loadedModelFilename ? "Dictation will prepare while you speak" : "Prepare dictation in Dictation settings"
     : activity;
   return (
     <footer className="status-bar">
@@ -36,7 +36,7 @@ export function StatusBar() {
         <span>{saveLabel}</span>
       </div>
       <div className="status-engine-region" role="status" aria-atomic="true">
-        <button className={`status-engine is-${engineState}`} onClick={() => setSettingsSection("language")}
+        <button className={`status-engine is-${engineState}`} onClick={() => setSettingsSection("general")}
           aria-label={`${engine}: ${activity}. Configure dictation language`} title={`${engine}: ${detail}`}>
           <span className="status-engine-indicator" aria-hidden="true">
             <Cpu size={13} className={engineState === "ready" ? "is-active" : ""} />

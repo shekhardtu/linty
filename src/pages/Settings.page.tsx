@@ -1,7 +1,7 @@
 import { Select } from "@/components/shared/Select.component";
 import { useState, useEffect } from "react";
 import {
-  Languages,
+  ChevronDown,
   Mic,
   ShieldCheck,
 } from "lucide-react";
@@ -16,12 +16,6 @@ import {
   SettingRow,
   ValueBadge,
 } from "@/components/shared/SettingsLayout.component";
-import {
-  AUTO_LANGUAGE,
-  nativeLanguageLabel,
-  modelSupportsLanguage,
-  languageLabel,
-} from "@/lib/languages.util";
 import { SETTINGS_SECTIONS } from "@/config/navigation.config";
 import {
   PageLayout,
@@ -35,7 +29,6 @@ import { HistoryStorage } from "@/components/settings/HistoryStorage.component";
 import { AudioStorage } from "@/components/settings/AudioStorage.component";
 import { DictationLanguages } from "@/components/settings/DictationLanguages.component";
 import { modelLabel } from "@/lib/model-labels.util";
-import { Reformatting } from "@/components/settings/Reformatting.component";
 import type { ThemePreference } from "@/store/slices/settings.slice";
 
 const THEME_SEGMENTS = [
@@ -77,17 +70,12 @@ export function SettingsPage() {
       <div className="settings-pane">
         {(visited.has("general") || section === "general") && (
           <div hidden={section !== "general"}>
-            <GeneralSection showLanguages={section === "general"} />
+            <DictationSection />
           </div>
         )}
         {(visited.has("audio") || section === "audio") && (
           <div hidden={section !== "audio"}>
             <AudioSection />
-          </div>
-        )}
-        {(visited.has("language") || section === "language") && (
-          <div hidden={section !== "language"}>
-            <LanguageSection />
           </div>
         )}
         {(visited.has("appearance") || section === "appearance") && (
@@ -105,17 +93,25 @@ export function SettingsPage() {
   );
 }
 
-/* ═══ General ═══ */
-function GeneralSection({ showLanguages }: { showLanguages: boolean }) {
+/* ═══ Dictation ═══ */
+function DictationSection() {
   const { modelIdleUnloadMinutes, saveModelIdleUnloadMinutes } = useSettings();
-  return <div className="settings-section">
-    {showLanguages && <DictationLanguages />}
-    <Reformatting />
-    <SectionCard>
-      <SettingRow label="Free memory when idle" description="Releases speech and cleanup models after inactivity. They prepare automatically when needed."
-        right={<Select label="Free memory when idle" value={modelIdleUnloadMinutes}
-          onChange={(minutes) => { void saveModelIdleUnloadMinutes(minutes).catch(() => {}); }} options={IDLE_UNLOAD_OPTIONS} />} />
-    </SectionCard>
+  const loadedModel = useAppStore((state) => state.loadedModelFilename);
+  return <div className="settings-section dictation-preferences">
+    <DictationLanguages />
+    <details className="dictation-advanced">
+      <summary>Advanced <ChevronDown size={14} aria-hidden="true" /></summary>
+      <div className="dictation-advanced-content">
+        <SettingRow label="Free memory when idle" description="Releases speech and cleanup models after inactivity. They prepare again when needed."
+          right={<Select label="Free memory when idle" value={modelIdleUnloadMinutes}
+            onChange={(minutes) => { void saveModelIdleUnloadMinutes(minutes).catch(() => {}); }} options={IDLE_UNLOAD_OPTIONS} />} />
+        <div className="dictation-model-details">
+          <span className="field-label">Speech support</span>
+          <p>{loadedModel ? `Active model: ${modelLabel(loadedModel)}` : "Speech support prepares automatically when needed."}</p>
+          <p>Linty selects speech support for your language and this Mac. Downloads are reused across compatible languages.</p>
+        </div>
+      </div>
+    </details>
   </div>;
 }
 
@@ -156,43 +152,6 @@ function AudioSection() {
       {(error || !available) && <p role="status" className="text-sm text-warning">{error || "Your selected microphone is unavailable or has an ambiguous name. Choose another input or System Default."}</p>}
     </div>
   );
-}
-
-/* ═══ Language ═══ */
-
-function LanguageSection() {
-  const active = useAppStore(state => state.settingsSection === "language");
-  const { transcriptionLanguage, autoDetectLanguages } = useSettings();
-  const loadedModel = useAppStore((state) => state.loadedModelFilename);
-  const setCurrentView = useAppStore((state) => state.setCurrentView);
-  const dictating = useAppStore((state) => state.isRecording || ["preparing", "recording", "transcribing", "correcting", "pasting"].includes(state.status));
-  const ready = modelSupportsLanguage(loadedModel, transcriptionLanguage);
-
-  return <div className="settings-section language-settings">
-    <SectionHeader title="Language" />
-    <div className="language-feature">
-      <div className="language-symbol" aria-hidden="true"><Languages size={32} /></div>
-      <div>
-        <span className="eyebrow">YOUR DICTATION LANGUAGE</span>
-        <h3>{languageLabel(transcriptionLanguage)}{transcriptionLanguage !== AUTO_LANGUAGE && nativeLanguageLabel(transcriptionLanguage).toLowerCase() !== languageLabel(transcriptionLanguage).toLowerCase() && <span className="language-native" lang={transcriptionLanguage}>{nativeLanguageLabel(transcriptionLanguage)}</span>}</h3>
-        <p>{transcriptionLanguage === AUTO_LANGUAGE ? autoDetectLanguages.length ? `Auto-detect chooses from ${autoDetectLanguages.map(languageLabel).join(", ")}.` : "Choose up to three frequently spoken languages for Auto-detect." : "Your voice, in your own words."}</p>
-      </div>
-    </div>
-    {active && <DictationLanguages />}
-    <div className="language-notes">
-      <div><h4>One language or auto-detect</h4><p>Choose a language for a more focused transcription, or use Auto-detect when you switch between languages. Accuracy varies by language and recording.</p></div>
-      <div><h4>Prepared once, ready again</h4><p>Many languages share the same speech support. Downloads are reused when you change languages or return to an earlier choice.</p></div>
-    </div>
-    <div className="language-actions">
-      <button className="standard-button" disabled={!ready || dictating} onClick={() => setCurrentView("system-check")}><Mic size={15} />Try dictation</button>
-      <span>Check your microphone and try a short recording.</span>
-    </div>
-    <details className="language-details">
-      <summary>Technical details</summary>
-      <p>{loadedModel ? `Active speech model: ${modelLabel(loadedModel)}` : "Speech support is being prepared."}</p>
-      <p>Speech support is selected automatically for your language and this Mac. All speech recognition runs on this Mac.</p>
-    </details>
-  </div>;
 }
 
 /* ═══ Privacy ═══ */

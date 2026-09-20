@@ -4,7 +4,6 @@ import {
   Clock,
   Info,
   Keyboard,
-  Languages,
   Layers3,
   Mic,
   Palette,
@@ -104,10 +103,10 @@ export const SETTINGS_SECTIONS = [
   {
     id: "general",
     label: "Dictation",
-    description: "Choose your spoken languages and how your words are cleaned up.",
+    description: "Choose how Linty listens and writes.",
     icon: Sparkles,
     keywords:
-      "languages auto-detect spoken multilingual refine transcription grammar punctuation correction instructions clipboard paste output reformat s1 mini Superwhisper local cleanup lists",
+      "language languages english hindi auto-detect spoken multilingual speech support model whisper parakeet refine transcription grammar punctuation correction instructions clipboard paste output reformat s1 mini Superwhisper local cleanup lists memory idle",
   },
   {
     id: "audio",
@@ -115,13 +114,6 @@ export const SETTINGS_SECTIONS = [
     description: "Your microphone and recording quality.",
     icon: Mic,
     keywords: "input device mic source sample quality rate khz",
-  },
-  {
-    id: "language",
-    label: "Language",
-    description: "Choose your language. Linty prepares the rest.",
-    icon: Languages,
-    keywords: "transcription language spoken english hindi multilingual auto-detect speech support model whisper parakeet",
   },
   {
     id: "appearance",

@@ -9,6 +9,7 @@ import { Select } from "@/components/shared/Select.component";
 import { SectionCard, SettingRow } from "@/components/shared/SettingsLayout.component";
 import { languageLabel } from "@/lib/languages.util";
 import { supportsLocalCleanup } from "@/lib/reformat.util";
+import { downloadCleanupModel } from "@/services/model-download.service";
 import type { CleanupMode, ReformatContext, ReformatStyle } from "@/types/reformat.types";
 
 interface ModelStatus { downloaded: boolean; downloading: boolean; progress: number }
@@ -21,7 +22,7 @@ function modelError(error: unknown) {
   return detail || "Could not update text cleanup. Try again.";
 }
 
-export function Reformatting() {
+export function Reformatting({ disabled: languagePreparing = false }: { disabled?: boolean }) {
   const {
     reformatEnabled, reformatStyle, reformatLists, reformatContext, saveReformatSetting,
     saveCleanupMode, transcriptionLanguage, modelIdleUnloadMinutes,
@@ -35,7 +36,7 @@ export function Reformatting() {
   const [error, setError] = useState<string | null>(null);
   const busy = useAppStore((s) => s.isRecording || ["preparing", "transcribing", "correcting", "pasting"].includes(s.status));
   const activeMode: CleanupMode = reformatEnabled ? "local" : "off";
-  const disabled = saving || busy || downloading;
+  const disabled = languagePreparing || saving || busy || downloading;
   const localSupported = supportsLocalCleanup(transcriptionLanguage);
   const showSetup = pendingLocal && localSupported;
   const selectedMode = showSetup ? "local" : activeMode;
@@ -80,7 +81,7 @@ export function Reformatting() {
   const downloadAndEnable = async () => {
     setSaving(true); setDownloading(true); setProgress(0); setError(null);
     try {
-      await invoke("download_s1_model");
+      await downloadCleanupModel();
       await refresh();
       setPreparing(true);
       await saveCleanupMode("local");
@@ -95,7 +96,7 @@ export function Reformatting() {
     finally { setSaving(false); }
   };
   const description = selectedMode === "off"
-    ? "Use the speech engine’s transcript without extra rewriting."
+    ? "Keep your transcript as spoken, without extra rewriting."
     : "Remove fillers and tidy grammar, punctuation and lists on your Mac. English only.";
 
   return (
@@ -130,7 +131,7 @@ export function Reformatting() {
       {!localSupported && (
         <p className="cleanup-caption" role="status">{localPaused
           ? `On-device cleanup is paused for ${languageLabel(transcriptionLanguage)}. Your transcript stays as spoken. Cleanup resumes when you select English.`
-          : "On-device cleanup supports English only. Select English or Auto-detect to use it."}</p>
+          : "On-device cleanup supports English only. Select English to use it."}</p>
       )}
 
       {activeMode !== "off" && !showSetup && !localPaused && <details className="cleanup-options" key={activeMode}>
@@ -144,7 +145,6 @@ export function Reformatting() {
               { value: "auto", label: "Automatic" }, { value: "general", label: "General text" }, { value: "email", label: "Email" },
             ]} />} />
             <Toggle enabled={reformatLists} disabled={disabled} onChange={(enabled) => void saveOption("reformatLists", enabled)} label="Use lists when appropriate" description="Turn clear enumerations into text lists." />
-            {transcriptionLanguage === "auto" && <p className="cleanup-caption">Auto-detect only cleans up confidently identified English. Select English in Language settings for short English dictations.</p>}
             <p className="cleanup-caption">
               {modelIdleUnloadMinutes === 0 ? "The cleanup model stays in memory until you turn it off." : `The cleanup model frees its memory after ${modelIdleUnloadMinutes} minutes idle and reloads when needed.`}
             </p>

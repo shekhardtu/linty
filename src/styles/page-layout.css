@@ -131,7 +131,7 @@
   gap: 24px;
 }
 
-/* Dictation starts with one decision; dependent controls are disclosed on demand. */
+/* Common dictation choices stay visible; advanced controls open on demand. */
 .dictation-settings {
   display: flex;
   flex-direction: column;
@@ -153,7 +153,7 @@
   border-top: 0;
 }
 .cleanup-choice .select-trigger {
-  --select-width: 212px;
+  --select-width: 220px;
 }
 .dictation-settings .setting-row > div:first-child > span:last-child,
 .dictation-settings .setting-toggle > div:first-child > span:last-child {
@@ -827,18 +827,29 @@
   font-size: 11px;
 }
 
-/* Language owns speech preparation; model names stay in optional details. */
-.language-settings .language-feature { display: flex; align-items: center; gap: 24px; text-align: left; padding: 24px; background: var(--color-panel); border-radius: 4px 16px 4px 4px; }
-.language-symbol { display: grid; place-items: center; width: 72px; height: 88px; flex-shrink: 0; color: var(--color-accent); border: 1px solid var(--color-border); border-radius: 38px 38px 8px 8px; }
-.language-settings .language-feature h3 { font-size: 30px; margin: 10px 0 8px; }
-.language-native { display: inline-block; margin-left: 14px; font-size: 17px; color: var(--color-text-muted); letter-spacing: normal; }
-.language-choice-row { display: flex; gap: 24px; align-items: center; justify-content: space-between; padding: 4px 0 12px; }
-.language-choice-row p, .language-notes p { color: var(--color-text-secondary); font-size: 12px; line-height: 1.8; margin-top: 6px; }
+/* Spoken language and text cleanup share one Dictation page. */
+.language-choice-row { display: flex; gap: 24px; align-items: center; justify-content: space-between; }
+.language-choice-row p { color: var(--color-text-muted); font-size: 12px; line-height: 1.7; margin-top: 8px; }
+.language-choice-row > .language-picker-trigger { flex-shrink: 0; }
 .language-picker-trigger { min-width: 220px; }
-.frequent-languages { width: 100%; max-width: 440px; text-align: left; }
-.frequent-language-choices, .frequent-language-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-.frequent-language-choices:empty { display: none; }
-.auto-detect-settings { border-top: 1px solid var(--color-border-subtle); padding-top: 16px; margin-top: 8px; }
+.frequent-languages { width: 100%; text-align: left; }
+.frequent-language-choices, .frequent-language-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.frequent-language-choices .language-picker-trigger { min-width: 148px; width: auto; }
+.frequent-languages .preferences-footnote { margin-top: 8px; }
+.dictation-language-options { padding: 16px 20px; margin-top: 20px; background: var(--color-panel); border: 1px solid var(--color-border-subtle); border-radius: 8px; }
+.dictation-languages .preferences-footnote { margin-top: 8px; line-height: 1.7; }
+.dictation-language-status { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; margin-top: 20px; }
+.dictation-language-status > .language-readiness { flex: 1 1 220px; }
+.dictation-language-status > button { flex-shrink: 0; }
+.dictation-advanced { border-top: 1px solid var(--color-border-subtle); padding-top: 24px; }
+.dictation-advanced > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: 12px; font-weight: 550; list-style: none; cursor: pointer; }
+.dictation-advanced > summary::-webkit-details-marker { display: none; }
+.dictation-advanced[open] > summary > svg { rotate: 180deg; }
+.dictation-advanced-content { display: flex; flex-direction: column; gap: 24px; padding-top: 24px; }
+.dictation-advanced .setting-row { padding: 0; gap: 24px; }
+.dictation-advanced .setting-row > div:first-child { gap: 8px; }
+.dictation-advanced .setting-row > div:last-child { margin-left: 0; }
+.dictation-model-details p { margin-top: 8px; color: var(--color-text-muted); font-size: 12px; line-height: 1.7; }
 .language-picker-popup { position: fixed; margin: 0; padding: 0; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-bg-elevated); color: var(--color-text-primary); box-shadow: 0 12px 36px #0003; overflow: hidden; }
 .language-picker-popup:popover-open { display: flex; flex-direction: column; }
 .language-picker-search { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--color-border-subtle); color: var(--color-text-muted); flex-shrink: 0; }
@@ -851,6 +862,9 @@
 .language-picker-option small { display: block; color: var(--color-text-muted); font-size: 11px; line-height: 1.7; }
 .language-picker-empty { font-size: 12px; padding: 16px; color: var(--color-text-secondary); }
 .language-readiness { padding: 18px 20px; border-radius: 10px; background: var(--color-success-glow); border: 1px solid var(--color-border-subtle); text-align: left; width: 100%; }
+.language-readiness.is-compact { padding: 0; border: 0; background: transparent; }
+.language-readiness.is-compact .language-readiness-heading { font-size: 12px; }
+.language-readiness.is-compact strong { font-weight: 400; }
 .language-readiness.has-error { background: var(--color-bg-elevated); }
 .language-readiness-heading { display: flex; align-items: center; gap: 9px; color: var(--color-accent); font-size: 13px; }
 .language-readiness.has-error .language-readiness-heading { color: var(--color-warning); }
@@ -860,17 +874,8 @@
 .language-download-progress progress { appearance: none; width: 100%; height: 5px; border: 0; border-radius: 8px; background: var(--color-bg-active); accent-color: var(--color-accent); }
 .language-download-progress progress::-webkit-progress-bar { background: var(--color-bg-active); border-radius: 8px; }
 .language-download-progress progress::-webkit-progress-value { background: var(--color-accent); border-radius: 8px; }
-.language-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
-.language-notes h4 { font-size: 13px; font-weight: 550; }
-.language-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
-.language-actions > span { font-size: 12px; color: var(--color-text-muted); }
-.language-details { border-top: 1px solid var(--color-border-subtle); padding-top: 16px; font-size: 12px; color: var(--color-text-muted); }
-.language-details summary { cursor: pointer; width: fit-content; }
-.language-details p { line-height: 1.8; margin-top: 12px; }
-@media (max-width: 760px) {
-  .language-choice-row { flex-direction: column; align-items: stretch; gap: 16px; }
-  .language-picker-trigger { width: 100%; }
-  .language-notes { grid-template-columns: 1fr; gap: 18px; }
-  .language-settings .language-feature { padding: 20px; gap: 16px; }
-  .language-native { display: block; margin: 6px 0 0; }
+@media (max-width: 800px) {
+  .language-choice-row, .dictation-advanced .setting-row { flex-direction: column; align-items: stretch; gap: 16px; }
+  .language-choice-row > .language-picker-trigger, .dictation-preferences .select-trigger { width: 100%; }
+  .dictation-language-options { padding: 16px; }
 }

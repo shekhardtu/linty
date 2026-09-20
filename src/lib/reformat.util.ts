@@ -1,8 +1,8 @@
 import type { ReformatContext, ReformatMetrics, ReformatOptions, ReformatStyle } from "../types/reformat.types.ts";
 
-/** Auto-detect still requires confidently English text in the native engine. */
+/** Cleanup is available only with an explicit English selection. */
 export function supportsLocalCleanup(language: string): boolean {
-  return language === "en" || language === "auto";
+  return language === "en";
 }
 
 export function reformatOptions(style: ReformatStyle, lists: boolean, context: ReformatContext, bundleId?: string | null): ReformatOptions {

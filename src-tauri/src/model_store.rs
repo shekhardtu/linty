@@ -10,7 +10,7 @@ pub fn validate_speech_id(id: &str) -> Result<(), String> {
     if matches!(id, WHISPER_ID | crate::transcribe::PARAKEET_V3_ID) {
         Ok(())
     } else {
-        Err("Unknown speech model. Choose your dictation language in Settings → Language.".into())
+        Err("Unknown speech model. Choose your dictation language in Settings → Dictation.".into())
     }
 }
 

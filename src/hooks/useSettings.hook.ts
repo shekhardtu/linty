@@ -94,6 +94,7 @@ export function useSettings() {
           ? isSupportedLanguage(savedLanguage) ? savedLanguage : AUTO_LANGUAGE
           : savedOnboarding ? AUTO_LANGUAGE : DEFAULT_TRANSCRIPTION_LANGUAGE;
         setTranscriptionLanguage(language);
+        if (language !== "en" && reformat === true) await saveSetting("reformatEnabled", false);
         useAppStore.setState({ autoDetectLanguages: normalizeAutoDetectLanguages(await store.get("autoDetectLanguages")) });
         void prepareInstalledCleanup().catch((error) => console.warn("[s1] Startup preparation failed:", error));
         if (savedLanguage && language !== savedLanguage) await store.set("transcriptionLanguage", language);
@@ -126,7 +127,7 @@ export function useSettings() {
     }
     if (mode === "local") {
       if (!supportsLocalCleanup(state.transcriptionLanguage)) {
-        throw new Error("On-device cleanup supports English only. Select English or Auto-detect in Language settings.");
+        throw new Error("On-device cleanup supports English only. Select English in Dictation settings.");
       }
       const model = await invoke<{ downloaded: boolean }>("s1_model_status");
       if (!model.downloaded) throw new Error("Download S1-mini before using on-device cleanup.");
@@ -134,6 +135,7 @@ export function useSettings() {
       // finish; otherwise the user's first dictation pays for GPU initialization.
       await invoke("prepare_s1_model");
       const current = useAppStore.getState();
+      if (current.transcriptionLanguage !== "en") throw new Error("Text cleanup is only available with English selected.");
       if (current.isRecording || ["preparing", "transcribing", "correcting", "pasting"].includes(current.status)) {
         throw new Error("Finish dictating before changing text cleanup.");
       }
@@ -167,9 +169,9 @@ export function useSettings() {
       // Save the initial choice immediately so setup can continue while speech
       // support downloads. Later changes commit only after preparation succeeds.
       await saveSetting("transcriptionLanguage", value);
-      void prepareLanguage(value).catch(() => {});
+      void prepareLanguage(value, { applyCleanupDefault: true }).catch(() => {});
     } else {
-      await prepareLanguage(value);
+      await prepareLanguage(value, { applyCleanupDefault: true });
     }
   }, []);
   const saveAutoDetectLanguages = useCallback(async (languages: string[]) => {

@@ -2,10 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { initialReformatMetrics, reformatOptions, reformatApplied, supportsLocalCleanup } from "../src/lib/reformat.util.ts";
 
-test("local cleanup supports English and guarded auto-detection only", () => {
+test("local cleanup requires an explicit English selection", () => {
   assert.equal(supportsLocalCleanup("en"), true);
-  assert.equal(supportsLocalCleanup("auto"), true);
-  for (const language of ["hi", "es", "fr", "ar", "zh", "", "unknown"]) {
+  for (const language of ["auto", "hi", "es", "fr", "ar", "zh", "", "unknown"]) {
     assert.equal(supportsLocalCleanup(language), false, language);
   }
 });

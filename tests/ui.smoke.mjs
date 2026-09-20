@@ -39,7 +39,7 @@ try {
     while (!(await page.getByRole('dialog').count()) && !(await page.locator(':popover-open').count()) && await page.getByRole('button', {name:'Dismiss notification',exact:true}).count()) await page.getByRole('button', {name:'Dismiss notification',exact:true}).first().click();
     return page.screenshot({ path: `${output}/${name}.png`, animations: 'disabled' });
   };
-  const settingLabels = { general:'Dictation', audio:'Audio', language:'Language', appearance:'Appearance', privacy:'Privacy & storage' };
+  const settingLabels = { general:'Dictation', audio:'Audio', appearance:'Appearance', privacy:'Privacy & storage' };
   const openSettingsSection = async (screen, name) => {
     const showSidebar = screen.getByRole('button', {name:'Show sidebar',exact:true});
     if (await showSidebar.count()) await showSidebar.click();
@@ -302,7 +302,7 @@ try {
   await page.keyboard.press('Meta+k');
   await page.getByRole('combobox', {name:'Search Linty'}).fill('language');
   await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
-  await page.locator('.settings-language').waitFor();
+  await page.locator('.settings-general').waitFor();
   assert.equal(await page.locator('.window-toolbar [role=combobox]').count(), 0, 'Settings navigation lives in the sidebar');
   await chooseOption(page,'Transcription language','Spanish');
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].transcriptionLanguage), 'es');
@@ -334,7 +334,7 @@ try {
       await page.keyboard.press('ArrowLeft');
       assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
     }
-    for (const section of ['general', 'audio', 'language', 'appearance', 'privacy']) {
+    for (const section of ['general', 'audio', 'appearance', 'privacy']) {
       await openSettingsSection(page,settingLabels[section]);
       await audit(`${section}-${theme}`);
       if (section === 'audio') {
@@ -371,7 +371,13 @@ try {
         await page.getByRole('heading', { name: 'System microphone', exact: true }).waitFor();
         await screenshot(`audio-${theme}`);
       }
-      if (section === 'language') {
+      if (section === 'general') {
+        const advanced = page.locator('.dictation-advanced');
+        assert.equal(await advanced.evaluate(el => el.open), false, 'Advanced controls are collapsed by default');
+        await advanced.locator('summary').click();
+        await chooseOption(page, 'Free memory when idle', theme === 'light' ? 'After 5 minutes' : 'After 15 minutes');
+        assert.equal(await page.evaluate(() => window.__QA__.stores[1].modelIdleUnloadMinutes), theme === 'light' ? 5 : 15);
+        await advanced.locator('summary').click();
         const dropdown=page.getByRole('combobox',{name:'Transcription language',exact:true});
         await dropdown.click();
         await audit(`dropdown-${theme}`); await screenshot(`dropdown-${theme}`);
@@ -397,7 +403,7 @@ try {
           await page.waitForFunction(() => window.__QA__.emittedEvents.filter(e => e.event === 'tray-state-changed').at(-1)?.payload.transcriptionLanguage === 'de');
           await page.evaluate(() => { window.__QA__.failures['plugin:store|save'] = 'Language preferences could not be saved'; });
           await chooseTrayLanguage('fr');
-          assert.equal(await page.locator('.language-feature h3').innerText(), 'GermanDeutsch', 'Failed tray saves retain the active language');
+          await page.getByText('German remains active until French is ready.', {exact:true}).waitFor();
           assert.equal(await page.evaluate(() => window.__QA__.stores[1].transcriptionLanguage), 'de');
           await page.evaluate(async () => {
             delete window.__QA__.failures['plugin:store|save'];
@@ -415,7 +421,7 @@ try {
         }
       }
 
-      if (section === 'privacy' || section === 'appearance' || section === 'language') await screenshot(`${section}-${theme}`);
+      if (section === 'privacy' || section === 'appearance' || section === 'general') await screenshot(`${section}-${theme}`);
       if (section === 'privacy') {
         const processing = page.locator('details', {has:page.getByText('Processing details', {exact:true})});
         assert.equal(await processing.evaluate(el => el.open), false);
@@ -565,11 +571,11 @@ try {
   await checkOverviewRanges(page);
   await page.keyboard.press('Meta+,');
   await page.setViewportSize({ width:640, height:480 });
-  for (const section of ['general','audio','language','appearance','privacy']) {
+  for (const section of ['general','audio','appearance','privacy']) {
     await openSettingsSection(page,settingLabels[section]);
     const overflow = await page.locator('.preferences-scroll').evaluate(el => el.scrollWidth > el.clientWidth + 1);
     assert.equal(overflow, false, `${section}: horizontal overflow at 640 × 480`);
-    if (section === 'language') {
+    if (section === 'general') {
       const trigger=page.getByRole('combobox',{name:'Transcription language',exact:true});
       await trigger.click();
       assert.equal(await page.getByRole('combobox', {name:'Search languages',exact:true}).evaluate(el=>el===document.activeElement),true,'Opening the language picker focuses search on macOS');
