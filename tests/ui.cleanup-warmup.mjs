@@ -69,7 +69,7 @@ try {
   // Native preservation fallback remains visible and does not trigger a UI rewrite.
   await page.evaluate(()=>{
     const raw='the budget is one lakh fifty thousand rupees';
-    window.__QA__.nextOutcome={record:{transcriptId:'protected',rawText:raw,finalText:raw,deliveryStatus:'unverified',textValidation:{status:'fallback',reasons:['numbers_changed']},timestamp:Date.now(),wordCount:9,durationSeconds:2,processingTimeMs:200,engine:'local',modelName:'Fixture',corrected:false},warnings:['Cleanup changed protected details. Your original transcript was kept.'],recognized:[],corrected:[]};
+    window.__QA__.nextOutcome={record:{transcriptId:'protected',rawText:raw,finalText:raw,deliveryStatus:'unverified',textValidation:{status:'fallback',reasons:['units_changed']},timestamp:Date.now(),wordCount:9,durationSeconds:2,processingTimeMs:200,engine:'local',modelName:'Fixture',corrected:false},warnings:['Cleanup changed protected details. Your original transcript was kept.'],recognized:[],corrected:[]};
   });
   await press();await status('recording');await release();await page.waitForFunction(()=>!!window.__QA__.finishNative);
   await page.evaluate(()=>{window.__QA__.finishNative();delete window.__QA__.finishNative;});await status('done');

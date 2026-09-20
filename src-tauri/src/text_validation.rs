@@ -128,13 +128,6 @@ fn number_spans(tokens: &[String]) -> Vec<(std::ops::Range<usize>, String)> {
     }
     values
 }
-fn numbers(tokens: &[String]) -> Vec<String> {
-    number_spans(tokens)
-        .into_iter()
-        .map(|(_, value)| value)
-        .collect()
-}
-
 /// Resolve only adjacent, explicit replacements of two known entities. Quoted
 /// and reported examples keep both alternatives. Unknown/long-distance edits
 /// remain ambiguous and therefore retain the original protected details.
@@ -215,12 +208,29 @@ fn correction_reference(input: &str, tokens: &[String]) -> (Vec<String>, Vec<Str
     (reference, removed)
 }
 
-fn counts(tokens: &[String], terms: &[&str]) -> BTreeMap<String, usize> {
-    let mut out = BTreeMap::new();
-    for token in tokens.iter().filter(|t| terms.contains(&t.as_str())) {
-        *out.entry(token.clone()).or_default() += 1;
-    }
-    out
+fn is_calendar_word(word: &str) -> bool {
+    matches!(
+        word,
+        "monday"
+            | "tuesday"
+            | "wednesday"
+            | "thursday"
+            | "friday"
+            | "saturday"
+            | "sunday"
+            | "january"
+            | "february"
+            | "march"
+            | "april"
+            | "may"
+            | "june"
+            | "july"
+            | "august"
+            | "september"
+            | "october"
+            | "november"
+            | "december"
+    )
 }
 fn negations(tokens: &[String]) -> usize {
     tokens
@@ -322,9 +332,8 @@ pub fn validate(input: &str, candidate: &str) -> Validation {
     if before.len() >= 20 && after.len() * 4 < before.len() {
         reasons.push("excessive_deletion");
     }
-    if numbers(&before) != numbers(&after) {
-        reasons.push("numbers_changed");
-    }
+    // Numeric values are left to the cleanup model: comparing number lists also
+    // rejects valid self-corrections and formatting such as "two pm" -> "2pm".
     if negative_markers(input) != negative_markers(candidate) {
         reasons.push("number_sign_changed");
     }
@@ -344,30 +353,6 @@ pub fn validate(input: &str, candidate: &str) -> Validation {
     if negations(&before) != negations(&after) {
         reasons.push("negation_changed");
     }
-    let dates = [
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday",
-        "january",
-        "february",
-        "march",
-        "april",
-        "may",
-        "june",
-        "july",
-        "august",
-        "september",
-        "october",
-        "november",
-        "december",
-    ];
-    if counts(&before, &dates) != counts(&after, &dates) {
-        reasons.push("dates_changed");
-    }
     for word in [
         "maybe", "might", "perhaps", "probably", "possibly", "unsure",
     ] {
@@ -379,14 +364,20 @@ pub fn validate(input: &str, candidate: &str) -> Validation {
         }
     }
     // Protect explicit proper-name spellings already present in the transcript.
+    // Allow numeric and calendar edits regardless of capitalization. This also
+    // excludes personal names that match calendar words, such as April or May.
     // Lowercase names cannot reliably be identified without additional context.
     if input.split_whitespace().any(|word| {
         let word = word.trim_matches(|c: char| !c.is_alphanumeric());
+        let normalized = word.to_lowercase();
         word.chars().next().is_some_and(char::is_uppercase)
-            && !["um", "uh", "actually", "sorry"].contains(&word.to_lowercase().as_str())
+            && !["um", "uh", "actually", "sorry"].contains(&normalized.as_str())
+            && small(&normalized).is_none()
+            && scale(&normalized).is_none()
+            && !is_calendar_word(&normalized)
             && word.chars().filter(|c| c.is_alphabetic()).count() > 1
-            && before.contains(&word.to_lowercase())
-            && !after.contains(&word.to_lowercase())
+            && before.contains(&normalized)
+            && !after.contains(&normalized)
     }) {
         reasons.push("named_text_changed");
     }
@@ -404,7 +395,7 @@ pub fn validate(input: &str, candidate: &str) -> Validation {
 mod tests {
     use super::*;
     #[test]
-    fn preserves_indian_amount_and_accepts_equivalent_grouping() {
+    fn accepts_number_formatting_and_value_changes() {
         let input = "the budget is one lakh fifty thousand rupees";
         assert_eq!(
             validate(input, "The budget is ₹150,000.").status,
@@ -414,9 +405,57 @@ mod tests {
             validate(input, "The budget is ₹1,50,000.").status,
             "accepted"
         );
-        assert!(validate(input, "The budget is ₹1,050,000.")
-            .reasons
-            .contains(&"numbers_changed"));
+        // Value changes no longer trigger fallback, even without a correction cue.
+        for (input, output) in [
+            (input, "The budget is ₹1,050,000."),
+            ("version 1.2.3", "Version 1.2.4."),
+            ("one two", "3"),
+            ("one and two", "3"),
+            ("Four licences", "Five licences."),
+            ("One Hundred licences", "200 licences."),
+            ("call john at two pm", "Call John at 2pm."),
+        ] {
+            assert_eq!(validate(input, output).status, "accepted", "{input}");
+        }
+    }
+    #[test]
+    fn accepts_number_corrections_without_phrase_specific_exceptions() {
+        for (input, output) in [
+            ("Four licences—my bad—five licences", "Five licences."),
+            (
+                "we need four licences my bad we need five licences once the tests pass",
+                "We need five licences once the tests pass.",
+            ),
+            (
+                "four licences scratch that five licences",
+                "Five licences.",
+            ),
+            (
+                "uh it takes six weeks. ask clara to erm review it. kind of let's start at three pm. forget that two months.",
+                "It takes two months. Ask Clara to review it. Let's start at 3pm.",
+            ),
+        ] {
+            assert_eq!(validate(input, output).status, "accepted", "{input}");
+        }
+    }
+    #[test]
+    fn accepts_calendar_corrections_and_unexplained_date_changes() {
+        for (input, output) in [
+            (
+                "for the hmm record, you know we ship in april my mistake january",
+                "For the record, we ship in January.",
+            ),
+            (
+                "we ship in April, my mistake, January",
+                "We ship in January.",
+            ),
+            ("meet on Friday scratch that Monday", "Meet on Monday."),
+            ("meet on Monday", "Meet on Friday."),
+            ("Friday or Monday", "Monday"),
+            ("meet on May 4", "Meet on June 5."),
+        ] {
+            assert_eq!(validate(input, output).status, "accepted", "{input}");
+        }
     }
     #[test]
     fn rejects_changed_facts_without_rejecting_punctuation() {
@@ -436,8 +475,6 @@ mod tests {
                 "Send Sarah the file.",
                 "named_text_changed",
             ),
-            ("meet on Monday", "Meet on Friday.", "dates_changed"),
-            ("version 1.2.3", "Version 1.2.4.", "numbers_changed"),
         ] {
             assert!(validate(a, b).reasons.contains(&reason), "{reason}");
         }
@@ -447,15 +484,16 @@ mod tests {
         );
     }
     #[test]
-    fn protects_units_signs_literals_and_separate_numbers() {
+    fn protects_units_signs_and_literals() {
         for (input, output) in [
             ("pay fifteen rupees", "Pay $15."),
             ("minus fifteen degrees", "15 degrees"),
             ("balance -15", "Balance 15"),
             ("run `rm -rf`", "Run `rm rf`"),
             ("open https://example.test/a", "Open https://example.test/b"),
-            ("one two", "3"),
-            ("one and two", "3"),
+            ("version `1.2.3`", "Version `1.2.4`."),
+            ("say \"four licences\"", "Say \"five licences\"."),
+            ("say \"Monday\"", "Say \"Friday\"."),
         ] {
             assert_eq!(validate(input, output).status, "fallback", "{input}");
         }
@@ -485,16 +523,16 @@ mod tests {
             assert_eq!(validate(input, output).status, "accepted", "{input}");
         }
         for input in [
-            "Thursday or Tuesday",
-            "she said Thursday no Tuesday",
-            "quote Thursday no Tuesday end quote",
+            "Arjun or Meera",
+            "she said Arjun no Meera",
+            "quote Arjun no Meera end quote",
         ] {
-            assert_eq!(validate(input, "Tuesday").status, "fallback");
+            assert_eq!(validate(input, "Meera").status, "fallback");
         }
     }
     #[test]
     fn ambiguous_corrections_fall_back_and_fillers_can_disappear() {
-        assert_eq!(validate("Friday or Monday", "Monday").status, "fallback");
+        assert_eq!(validate("Arjun or Meera", "Meera").status, "fallback");
         assert_eq!(validate("um uh", "").status, "accepted");
         assert_eq!(validate("send it", "").status, "fallback");
     }
