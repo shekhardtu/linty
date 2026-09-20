@@ -4,7 +4,15 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { assertMainMatches, parseArgs, publishBuiltRelease, selectReleaseType, synchronizeMain, updaterManifest } from '../scripts/release-local.mjs';
+import { assertMainMatches, localUiSuites, parseArgs, publishBuiltRelease, selectReleaseType, synchronizeMain, updaterManifest } from '../scripts/release-local.mjs';
+
+test('local releases include every browser suite required by the PR workflow', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/checks.yml', import.meta.url), 'utf8');
+  const uiJob = workflow.split('\n  ui-tests:\n')[1].split('\n  required-checks:\n')[0];
+  const required = [...uiJob.matchAll(/run: yarn test:([a-z-]+)/g)].map(match => match[1]);
+  assert.ok(required.length > 0);
+  assert.deepEqual([...localUiSuites].sort(), required.sort());
+});
 
 function repo(t) {
   const root = mkdtempSync(path.join(tmpdir(), 'linty-local-release-'));

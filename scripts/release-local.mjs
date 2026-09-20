@@ -12,6 +12,7 @@ const target = 'aarch64-apple-darwin';
 const versionPattern = /^\d+\.\d+\.\d+$/;
 const signingNames = ['APPLE_SIGNING_IDENTITY', 'APPLE_ID', 'APPLE_PASSWORD', 'APPLE_TEAM_ID',
   'TAURI_SIGNING_PRIVATE_KEY', 'TAURI_SIGNING_PRIVATE_KEY_PASSWORD'];
+export const localUiSuites = ['security', 'ui', 'onboarding', 'audio-history', 'correction-feedback', 'updates'];
 
 export function parseArgs(args) {
   const options = { mode: '--check', releaseType: undefined, bump: 'patch', help: false };
@@ -219,7 +220,7 @@ async function main(options) {
     build(py, ['tests/supervisor.test.py']);
     build(py, ['scripts/check-rust-advisories.py']);
     build('yarn', ['playwright', 'install', 'chromium', 'webkit']);
-    for (const browser of ['chromium', 'webkit']) for (const suite of ['security', 'ui', 'audio-history', 'correction-feedback', 'updates']) {
+    for (const browser of ['chromium', 'webkit']) for (const suite of localUiSuites) {
       build('yarn', [`test:${suite}`], { env: { ...env, UI_BROWSER: browser } });
     }
 
