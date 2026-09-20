@@ -37,8 +37,9 @@ try {
       if(command==='dictation_result') {
         window.__QA__.calls.push(command);
         const failed=window.__QA__.failPaste;
-        const record={transcriptId:'native-'+args.generation,rawText:'Private words stay out of the pill.',finalText:'Private words stay out of the pill.',deliveryStatus:failed?'failed':'verified',timestamp:Date.now(),durationSeconds:2,processingTimeMs:100,wordCount:8,engine:'local',modelName:'Fixture',corrected:false};
-        window.__QA__.capsule.push(failed?{state:'error',error:'Paste failed · copy from History'}:{state:'done'});
+        const deliveryStatus=failed?'failed':window.__QA__.deliveryStatus??'verified';
+        const record={transcriptId:'native-'+args.generation,rawText:'Private words stay out of the pill.',finalText:'Private words stay out of the pill.',deliveryStatus,timestamp:Date.now(),durationSeconds:2,processingTimeMs:100,wordCount:8,engine:'local',modelName:'Fixture',corrected:false};
+        window.__QA__.capsule.push(failed?{state:'error',error:'Paste failed · copy from History'}:{state:deliveryStatus==='verified'?'done':'idle'});
         window.__QA__.savedAudioGeneration=args.generation;
         return original('history_save',{record,recordingGeneration:args.generation}).then(()=>({record,warnings:[],recognized:[],corrected:[]}));
       }
@@ -146,16 +147,28 @@ try {
   assert.equal(await count('start_dictation'),starts+1,'Even a fast successful result cannot turn an extra tap into a new recording');
   assert.equal(await count('dictation_result'),pastes+1);
   await page.clock.runFor(401);
+  await store.evaluate(s=>s.getState().toasts.forEach(toast=>s.getState().removeToast(toast.toastId)));
+  await page.evaluate(()=>{window.__QA__.deliveryStatus='unverified';});
+  await double('Control+Option+Space'); await status('recording');
+  const sounds=await count('play_capsule_sound');
+  const deliveries=await count('dictation_result');
+  await single('Control+Option+Space'); await status('done');
+  await page.clock.runFor(501);
+  assert.deepEqual(await store.evaluate(s=>s.getState().toasts),[],'An unreadable destination does not produce a warning');
+  assert.equal(await count('play_capsule_sound'),sounds,'Unverified insertion does not play a success sound');
+  assert.equal(await count('dictation_result'),deliveries+1,'Unverified delivery is not retried');
+  assert.equal(await store.evaluate(s=>s.getState().finalText),'Private words stay out of the pill.','Text remains available after quiet completion');
   await page.evaluate(()=>{window.__QA__.hasAudio=true;window.__QA__.failPaste=true;window.__QA__.capsule=[];});
   await double('Control+Option+Space'); await status('recording');
   await single('Control+Option+Space'); await status('done');
   await page.waitForFunction(()=>window.__QA__.capsule.at(-1)?.state==='error');
   assert.equal(await page.evaluate(()=>window.__QA__.capsule.some(s=>s.state==='done')),false,'A failed paste must never show a success checkmark');
   assert.equal(await page.evaluate(()=>window.__QA__.capsule.at(-1).error),'Paste failed · copy from History');
+  assert.ok(await store.evaluate(s=>s.getState().toasts.some(toast=>toast.type==='error' && toast.action?.label==='Copy text')),'A failed paste keeps its copy recovery action');
 
   await mkdir('artifacts/dictation-pill',{recursive:true});
   // The in-app microphone test uses native input history, just like the pill.
-  await page.evaluate(()=>{window.__QA__.hasAudio=false;window.__QA__.failPaste=false;});
+  await page.evaluate(()=>{window.__QA__.hasAudio=false;window.__QA__.failPaste=false;delete window.__QA__.deliveryStatus;});
   await page.getByRole('button',{name:'System Check',exact:true}).click();
   const microphoneTest=page.locator('.microphone-test');
   const startTest=page.getByRole('button',{name:'Start microphone test',exact:true});
@@ -379,6 +392,10 @@ try {
     }
     await pill.clock.runFor(1200);
     assert.equal(await pill.locator('.capsule-pill').count(),0,'Success fades away');
+    await send({state:'pasting'}); await pill.locator('.capsule-pasting').waitFor();
+    await send({state:'idle'}); await pill.clock.runFor(200);
+    assert.equal(await pill.locator('.capsule-pill').count(),0,'Unverified delivery dismisses without an error or success checkmark');
+    assert.equal(await pill.getByRole('status').innerText(),'','Quiet completion leaves no warning announcement');
     await send({state:'recording',generation:13}); await pill.clock.runFor(200);
     await send({state:'idle'}); await pill.clock.runFor(80);
     await send({state:'recording',generation:14}); await pill.clock.runFor(300);

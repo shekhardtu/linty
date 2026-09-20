@@ -128,6 +128,7 @@ async fn run(backend: &FakeBackend, s: &Arc<Session>) -> Result<Outcome, String>
 async fn raw_is_saved_before_cleanup_and_delivery_then_verification_is_recorded() {
     let b = FakeBackend::new("send Sara fifteen rupees", "Send Sara ₹15.");
     let result = run(&b, &session()).await.unwrap();
+    assert_eq!(delivery_feedback(&result), ("done", None));
     let events = b.events.lock().unwrap();
     let index = |name| events.iter().position(|e| *e == name).unwrap();
     assert!(index("save") < index("cleanup"));
@@ -202,6 +203,8 @@ async fn uncertain_delivery_is_never_retried_or_called_verified() {
     let mut b = FakeBackend::new("keep this text", "Keep this text.");
     b.delivery_status = "unverified";
     let result = run(&b, &session()).await.unwrap();
+    assert!(result.warnings.is_empty());
+    assert_eq!(delivery_feedback(&result), ("idle", None));
     let record = result.record.unwrap();
     assert_eq!(record["deliveryStatus"], "unverified");
     assert!(record.get("pastedText").is_none());
@@ -227,4 +230,21 @@ async fn a_storage_error_is_reported_with_the_recoverable_transcript() {
     assert_eq!(record["rawText"], b.raw);
     assert_eq!(record["deliveryStatus"], "failed");
     assert!(!b.events.lock().unwrap().contains(&"deliver"));
+}
+
+#[tokio::test]
+async fn failed_delivery_keeps_the_recovery_message_and_saved_text() {
+    let mut b = FakeBackend::new("keep this text", "Keep this text.");
+    b.delivery_status = "failed";
+    let result = run(&b, &session()).await.unwrap();
+    assert_eq!(
+        delivery_feedback(&result),
+        ("error", Some("Paste failed · copy from History".into()))
+    );
+    let record = result.record.unwrap();
+    assert_eq!(record["deliveryStatus"], "failed");
+    assert_eq!(record["finalText"], b.candidate);
+    assert!(record.get("attemptedText").is_none());
+    assert!(record.get("pastedText").is_none());
+    assert_eq!(*b.record.lock().unwrap(), Some(record));
 }

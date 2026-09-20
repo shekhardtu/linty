@@ -58,11 +58,10 @@ export function useTranscription() {
       void noteDictionaryUse({ recognized: outcome.recognized, corrected: outcome.corrected }).catch(() => {});
       state.setStatus("done");
       if (record.deliveryStatus === "failed") state.addToast({ type: "error", message: "Paste failed. Copy your text to retry.", action: { label: "Copy text", onClick: () => { void copyTranscript(record); } } });
-      else if (record.deliveryStatus !== "verified") state.addToast({ type: "warning", message: "Paste could not be confirmed. Check the destination before copying again.", action: { label: "Copy text", onClick: () => { void copyTranscript(record); } } });
       if (record.deliveryStatus === "verified") void invoke("play_capsule_sound", { sound: "success" }).catch(() => {});
       timers.current.push(setTimeout(() => {
         if (ownsDictation(session) && !session.cancelled) void invoke("hide_capsule").catch(() => {});
-      }, record.deliveryStatus === "verified" ? 5000 : 8000));
+      }, record.deliveryStatus === "failed" ? 8000 : 5000));
       timers.current.push(setTimeout(() => {
         if (ownsDictation(session) && !session.cancelled) useAppStore.getState().resetTranscription();
       }, 3000));
