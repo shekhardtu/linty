@@ -40,6 +40,7 @@ try {
     await page.getByRole('button',{name:'Settings',exact:true}).click();
     await page.getByRole('button',{name:'Language',exact:true}).click();
     await page.getByRole('heading',{name:'Language',exact:true}).waitFor();
+    await page.getByRole('heading',{name:'English',exact:true}).waitFor();
     await page.getByText('Ready for offline dictation', { exact: true }).waitFor();
     await capture(`language-${theme}`);
   }

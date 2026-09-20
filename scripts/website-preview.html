@@ -8,6 +8,7 @@ const previewClock = new Date();
 previewClock.setHours(16, 45, 0, 0);
 Date.now = () => previewClock.getTime();
 fixture({ theme: new URLSearchParams(location.search).get('theme') || 'light' });
+window.__QA__.stores[1].transcriptionLanguage = "en";
 window.__QA__.stores[1].updateHistory = { lastRunVersion: version, notice: null };
 window.__QA__.stores[2].transcripts = websitePreviewData();
 window.__QA__.stores[3].corrections = [];

@@ -9,3 +9,12 @@ Screenshots use synthetic data and the mocked native bridge in Playwright WebKit
 ![Language settings in the light theme](light.png)
 
 ![Language settings in the dark theme](dark.png)
+
+The landing page uses English in its Language screenshots and describes automatic
+speech preparation, offline dictation, and optional on-device English cleanup.
+The following Chrome captures show the updated website carousel. Desktop and
+390px mobile layouts, theme switching, and the new setup FAQs were checked.
+
+![Website Language preview in the light theme](website-light.png)
+
+![Website Language preview in the dark theme](website-dark.png)
