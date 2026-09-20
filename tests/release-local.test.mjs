@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { assertMainMatches, parseArgs, publishBuiltRelease, synchronizeMain, updaterManifest } from '../scripts/release-local.mjs';
+import { assertMainMatches, parseArgs, publishBuiltRelease, selectReleaseType, synchronizeMain, updaterManifest } from '../scripts/release-local.mjs';
 
 function repo(t) {
   const root = mkdtempSync(path.join(tmpdir(), 'linty-local-release-'));
@@ -39,10 +39,28 @@ function repo(t) {
 
 test('local release defaults to a non-publishing check and rejects conflicting modes', () => {
   assert.equal(parseArgs([]).mode, '--check');
-  assert.deepEqual(parseArgs(['--publish', '--force-update']), { mode: '--publish', forceUpdate: true, help: false });
+  assert.deepEqual(parseArgs(['--publish', '--release-type', 'required']), { mode: '--publish', releaseType: 'required', bump: 'patch', help: false });
+  assert.equal(parseArgs(['--publish', '--release-type', 'optional', '--bump', 'minor']).bump, 'minor');
   assert.equal(parseArgs(['--build-only']).mode, '--build-only');
   assert.throws(() => parseArgs(['--build-only', '--publish']));
   assert.throws(() => parseArgs(['--skip-tests']));
+  assert.throws(() => parseArgs(['--release-type']));
+  assert.throws(() => parseArgs(['--release-type', 'recommended']));
+  assert.throws(() => parseArgs(['--bump', 'automatic']));
+  assert.throws(() => parseArgs(['--bump', 'minor', '--bump', 'major']));
+});
+
+test('every new publication asks required or optional without remembering a previous choice', async () => {
+  let questions = 0;
+  const ask = async () => { questions++; return 'Required'; };
+  assert.equal(await selectReleaseType(parseArgs(['--publish']), ask), 'required');
+  assert.equal(await selectReleaseType(parseArgs(['--publish']), ask), 'required');
+  assert.equal(questions, 2);
+  assert.equal(await selectReleaseType(parseArgs(['--publish', '--release-type', 'optional']), ask), 'optional');
+  assert.equal(await selectReleaseType(parseArgs(['--build-only']), ask), 'optional');
+  assert.equal(questions, 2, 'an explicit answer from the skill does not need a second terminal prompt');
+  await assert.rejects(selectReleaseType(parseArgs(['--publish']), async () => ''), /no default/);
+  await assert.rejects(selectReleaseType(parseArgs(['--publish']), async () => 'recommended'), /no default/);
 });
 
 test('fast-forwards local main when the remote has new commits', t => {
@@ -122,7 +140,7 @@ test('the updater manifest preserves required updates unless explicitly raised',
   assert.equal(result.minimum_version, '0.0.2');
   assert.equal(result.platforms['darwin-aarch64'].signature, 'signed');
   assert.match(result.platforms['darwin-aarch64'].url, /\/v0\.0\.3\/Linty\.app\.tar\.gz$/);
-  assert.equal(updaterManifest({ ...input, forceUpdate: true }).minimum_version, '0.0.3');
+  assert.equal(updaterManifest({ ...input, releaseType: 'required' }).minimum_version, '0.0.3');
   assert.equal(Object.hasOwn(updaterManifest({ ...input, previous: {} }), 'minimum_version'), false);
   assert.throws(() => updaterManifest({ ...input, previous: { minimum_version: '0.0.4' } }));
   assert.throws(() => updaterManifest({ ...input, signature: '' }));

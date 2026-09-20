@@ -12,6 +12,13 @@ tests, signs, notarizes, and publishes locally; do not dispatch GitHub Actions o
 enable the remote release workflow as part of deployment. A deployment request
 authorizes the release; do not ask for the same publishing permission again.
 
+For each new release, always ask **Required or Optional?** and wait for the
+answer. Required raises the minimum supported version to this release and
+automatically updates older copies; Optional shows availability and lets the
+customer trigger installation. Pass that answer as `--release-type required` or
+`--release-type optional`. Always bump patch unless the user explicitly requests
+`--bump minor` or `--bump major`. Never carry forward a previous release's choice.
+
 If the user only asks to inspect or prepare deployment tooling, use `--check` or
 `--help` and do not publish. Secrets belong in the local secure environment and
 Keychain; never put their values in output, source files, or skill files.

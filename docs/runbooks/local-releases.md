@@ -42,6 +42,23 @@ yarn release:local --check
 yarn release:local --publish
 ```
 
+Every release asks **Required or Optional?** There is no default or remembered
+answer. The deploy skill asks in chat; the command asks in an interactive
+terminal. After answering in chat, the skill passes `--release-type required` or
+`--release-type optional` so the terminal does not ask again. Noninteractive
+publishing requires that explicit choice.
+
+- **Required:** this version becomes the minimum supported version. Older copies
+  download automatically and install/restart when dictation is idle.
+- **Optional:** supported copies show that an update is available; the customer
+  chooses when to install. An existing minimum from a previous required release
+  remains enforced for copies below that minimum.
+
+Versions always advance by **patch** (for example, `0.0.60` → `0.0.61`) unless
+the user explicitly requests `--bump minor` (`0.1.0`) or `--bump major` (`1.0.0`).
+Release type and version size are independent; a required update still defaults
+to patch. Version selection advances beyond both source versions and used tags.
+
 The first command checks tools, credentials, remote-workflow state and whether
 main is synchronized. It does not change Git, build, or publish. The second:
 
@@ -57,8 +74,8 @@ main is synchronized. It does not change Git, build, or publish. The second:
    notarizes/staples the DMG, and verifies the updater signature against the
    application's configured public key using Minisign.
 5. Creates `latest.json`, preserving the latest release's required-update
-   minimum. An unavailable previous manifest stops publication. Add
-   `--force-update` only when deliberately requiring older copies to update.
+   minimum for Optional, or raising it to the new version for Required. An
+   unavailable previous manifest stops publication.
 6. Fetches again and checks that local main, remote main, and the build's source
    still match. It rejects a competing release tag or an enabled/running remote
    release workflow.
@@ -91,7 +108,7 @@ tag or GitHub release. It permits unchanged release notes for timing runs.
 
 Builds are retained under `release/local/build-*` beside the repository's common
 Git directory. The command prints the exact path. `release/build.json` records
-the source commit, version commit, and artifact SHA-256 hashes;
+the source commit, version commit, release type, version bump, and artifact SHA-256 hashes;
 `release/release-source.bundle` preserves the built commit. Failed commands retain
 the worktree. Package-manager, Rust and Swift caches are under `release/local/cache`.
 

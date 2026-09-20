@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { createInterface } from 'node:readline/promises';
 import { pathToFileURL } from 'node:url';
 import { nextVersion } from './prepare-release.mjs';
 
@@ -13,11 +14,32 @@ const signingNames = ['APPLE_SIGNING_IDENTITY', 'APPLE_ID', 'APPLE_PASSWORD', 'A
   'TAURI_SIGNING_PRIVATE_KEY', 'TAURI_SIGNING_PRIVATE_KEY_PASSWORD'];
 
 export function parseArgs(args) {
-  const modes = args.filter(arg => ['--check', '--build-only', '--publish'].includes(arg));
-  if (modes.length > 1 || args.some(arg => !['--check', '--build-only', '--publish', '--force-update', '--help'].includes(arg))) {
-    throw new Error('Choose one of --check, --build-only, or --publish; optionally add --force-update.');
+  const options = { mode: '--check', releaseType: undefined, bump: 'patch', help: false };
+  const seen = new Set();
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index];
+    const key = ['--check', '--build-only', '--publish'].includes(arg) ? 'mode' : arg;
+    if (seen.has(key)) throw new Error(`Repeated or conflicting option: ${arg}`);
+    seen.add(key);
+    if (key === 'mode') options.mode = arg;
+    else if (arg === '--help') options.help = true;
+    else if (arg === '--release-type') {
+      options.releaseType = args[++index];
+      if (!['required', 'optional'].includes(options.releaseType)) throw new Error('--release-type requires required or optional.');
+    } else if (arg === '--bump') {
+      options.bump = args[++index];
+      if (!['patch', 'minor', 'major'].includes(options.bump)) throw new Error('--bump requires patch, minor, or major.');
+    } else throw new Error(`Unknown option: ${arg}`);
   }
-  return { mode: modes[0] ?? '--check', forceUpdate: args.includes('--force-update'), help: args.includes('--help') };
+  return options;
+}
+
+export async function selectReleaseType(options, ask) {
+  if (options.releaseType) return options.releaseType;
+  if (options.mode !== '--publish') return 'optional';
+  const answer = (await ask('Is this release required or an optional upgrade? Type required or optional: ')).trim().toLowerCase();
+  if (!['required', 'optional'].includes(answer)) throw new Error('Choose required or optional before publishing; there is no default.');
+  return answer;
 }
 
 export function requireCleanMain(git) {
@@ -54,11 +76,12 @@ export function assertMainMatches(git, sha) {
   }
 }
 
-export function updaterManifest({ version, notes, signature, archive, previous, forceUpdate, now = new Date() }) {
+export function updaterManifest({ version, notes, signature, archive, previous, releaseType = 'optional', now = new Date() }) {
+  if (!['required', 'optional'].includes(releaseType)) throw new Error('Unknown release type.');
   if (!versionPattern.test(version) || !signature.trim() || path.basename(archive) !== archive) {
     throw new Error('Invalid release version, updater signature, or archive name.');
   }
-  const minimum = forceUpdate ? version : previous.minimum_version;
+  const minimum = releaseType === 'required' ? version : previous.minimum_version;
   if (minimum !== undefined && (!versionPattern.test(minimum) ||
       nextVersion(version, [minimum]) !== nextVersion(version, []))) {
     throw new Error('The previous minimum update version is invalid or newer than this release.');
@@ -89,10 +112,11 @@ export function publishBuiltRelease({ git, gh, sourceSha, builtSha, version, bui
   upload(tag);
 }
 
-function main(options) {
+async function main(options) {
   if (options.help) {
-    console.log('Usage: yarn release:local [--check | --build-only | --publish] [--force-update]\n' +
+    console.log('Usage: yarn release:local [--check | --build-only | --publish] [--release-type required|optional] [--bump patch|minor|major]\n' +
       'Run from clean main on an Apple Silicon Mac. Defaults to a read-only prerequisite check.\n' +
+      'Publishing asks required or optional unless that choice is supplied explicitly. Version bumps default to patch.\n' +
       'Build/publish synchronize and push main first; all builds and tests run locally.');
     return;
   }
@@ -141,6 +165,11 @@ function main(options) {
     console.log('Local release prerequisites passed. Nothing was built or published.');
     return;
   }
+  const releaseType = await selectReleaseType(options, async question => {
+    if (!process.stdin.isTTY || !process.stdout.isTTY) throw new Error('Ask the user for this release type, then pass --release-type required or optional.');
+    const prompt = createInterface({ input: process.stdin, output: process.stdout });
+    try { return await prompt.question(question); } finally { prompt.close(); }
+  });
 
   const commonGit = path.resolve(root, git(['rev-parse', '--git-common-dir']).trim());
   const storage = path.resolve(commonGit, '..', 'release', 'local');
@@ -154,7 +183,8 @@ function main(options) {
     buildDir = mkdtempSync(path.join(storage, 'build-'));
     git(['worktree', 'add', '--detach', buildDir, sourceSha]);
     const buildGit = args => run('git', args, { cwd: buildDir, capture: true });
-    const version = run(process.execPath, ['scripts/prepare-release.mjs', ...(options.mode === '--build-only' ? ['--build-only'] : [])],
+    const version = run(process.execPath, ['scripts/prepare-release.mjs', '--bump', options.bump,
+      ...(options.mode === '--build-only' ? ['--build-only'] : [])],
       { cwd: buildDir, capture: true }).trim();
     if (!versionPattern.test(version)) throw new Error('Release preparation did not return a valid version.');
     buildGit(['add', 'package.json', 'src-tauri/tauri.conf.json', 'src-tauri/Cargo.toml', 'src-tauri/Cargo.lock']);
@@ -167,7 +197,7 @@ function main(options) {
     const venv = path.join(cache, 'python');
     const env = { ...baseEnv, CARGO_TARGET_DIR: targetDir };
     const build = (command, args, extra = {}) => run(command, args, { cwd: buildDir, env, ...extra });
-    console.log(`Preparing v${version} from main ${sourceSha}. Saved worktree: ${buildDir}`);
+    console.log(`Preparing ${releaseType} v${version} (${options.bump} bump) from main ${sourceSha}. Saved worktree: ${buildDir}`);
     build('yarn', ['install', '--frozen-lockfile', '--ignore-scripts']);
     build('swift', ['build', '-c', 'release', '--product', 'LintyParakeet', '--package-path', 'src-tauri/swift',
       '--scratch-path', swiftDir, '--disable-automatic-resolution']);
@@ -236,13 +266,13 @@ function main(options) {
     gh(['release', 'download', previousTag, '--repo', repository, '--pattern', 'latest.json', '--dir', previousDir]);
     const manifest = updaterManifest({ version, notes: readFileSync(path.join(buildDir, 'RELEASE_NOTES.md'), 'utf8'),
       signature: readFileSync(signature, 'utf8'), archive: path.basename(archive),
-      previous: JSON.parse(readFileSync(path.join(previousDir, 'latest.json'), 'utf8')), forceUpdate: options.forceUpdate });
+      previous: JSON.parse(readFileSync(path.join(previousDir, 'latest.json'), 'utf8')), releaseType });
     writeFileSync(path.join(buildDir, 'latest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
     if (buildGit(['status', '--porcelain', '--untracked-files=no']).trim()) throw new Error('Tracked release source changed during the build.');
     buildGit(['bundle', 'create', 'release/release-source.bundle', 'HEAD', `^${sourceSha}`]);
     const checksums = Object.fromEntries([...files.map(([name]) => name), 'latest.json', 'RELEASE_NOTES.md'].map(name =>
       [name, createHash('sha256').update(readFileSync(path.join(buildDir, name))).digest('hex')]));
-    writeFileSync(path.join(buildDir, 'release/build.json'), `${JSON.stringify({ version, sourceSha, builtSha, checksums }, null, 2)}\n`);
+    writeFileSync(path.join(buildDir, 'release/build.json'), `${JSON.stringify({ version, releaseType, bump: options.bump, sourceSha, builtSha, checksums }, null, 2)}\n`);
     if (options.mode === '--build-only') {
       console.log(`Local build verified; no release published. Artifacts and build record: ${buildDir}`);
       return;
@@ -259,7 +289,7 @@ function main(options) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  try { main(parseArgs(process.argv.slice(2))); } catch (error) {
+  try { await main(parseArgs(process.argv.slice(2))); } catch (error) {
     console.error(`release-local: ${error.message}`);
     process.exitCode = 1;
   }

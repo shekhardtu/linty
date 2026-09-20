@@ -13,6 +13,14 @@ test('release versions advance past source versions and previously used tags', (
   assert.throws(() => nextVersion('dev', []), /Invalid package version/);
 });
 
+test('minor and major bumps require an explicit choice and reset lower version parts', () => {
+  assert.equal(nextVersion('0.0.52', ['v0.0.99']), '0.0.100');
+  assert.equal(nextVersion('0.0.52', ['v0.0.99'], 'minor'), '0.1.0');
+  assert.equal(nextVersion('0.0.52', ['v1.4.9'], 'minor'), '1.5.0');
+  assert.equal(nextVersion('0.0.52', ['v1.4.9'], 'major'), '2.0.0');
+  assert.throws(() => nextVersion('0.0.52', [], 'automatic'), /Version bump/);
+});
+
 test('build-only candidates retain the publish notes gate and transfer their exact source', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'linty-build-only-test-'));
   const source = join(directory, 'source');
