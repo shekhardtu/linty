@@ -16,6 +16,7 @@ import { useUpdater, useUpdaterAutoCheck } from "@/hooks/useUpdater.hook";
 import { useUpdateAcknowledgment } from "@/hooks/useUpdateAcknowledgment.hook";
 import { useTraySync } from "@/hooks/useTraySync.hook";
 import { useAppStore } from "@/store/app.store";
+import { checkMicrophonePermission } from "@/services/permissions.service";
 import { Sidebar } from "@/components/layout/Sidebar.component";
 import { WindowToolbar } from "@/components/layout/WindowToolbar.component";
 import { StatusBar } from "@/components/layout/StatusBar.component";
@@ -44,16 +45,24 @@ export default function App() {
   const { saveTranscriptionLanguage, onboardingComplete, saveOnboardingComplete, settingsLoaded } = useSettings();
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [showGuidedSetup, setShowGuidedSetup] = useState(false);
-  const initialViewSet = useRef(false);
+  const [micPermission, setMicPermission] = useState<string | null>(null);
+  const micPollRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
-  // First launch opens the permission checks. Defaults prepare independently,
-  // and customers can use the entire app without completing the optional guide.
+  // Restore microphone access if it is lost after setup.
   useEffect(() => {
-    if (!settingsLoaded || initialViewSet.current) return;
-    initialViewSet.current = true;
-    if (!onboardingComplete) setCurrentView("system-check");
-  }, [settingsLoaded, onboardingComplete, setCurrentView]);
+    if (!onboardingComplete || !settingsLoaded) return;
+    const poll = async () => {
+      const status = await checkMicrophonePermission().catch(() => "not_determined");
+      setMicPermission(status);
+    };
+    poll();
+    micPollRef.current = setInterval(poll, 3000);
+    return () => clearInterval(micPollRef.current);
+  }, [onboardingComplete, settingsLoaded]);
+
+  useEffect(() => {
+    if (micPermission === "authorized" && micPollRef.current) clearInterval(micPollRef.current);
+  }, [micPermission]);
 
   useTheme();
   useGlobalHotkey();
@@ -83,18 +92,7 @@ export default function App() {
 
   const handleOnboardingComplete = useCallback(async () => {
     await saveOnboardingComplete(true);
-    setShowGuidedSetup(false);
   }, [saveOnboardingComplete]);
-
-  // A successful dictation also finishes first-run setup. The guide is optional.
-  useEffect(() => {
-    if (!settingsLoaded || onboardingComplete) return;
-    return useAppStore.subscribe((next, previous) => {
-      if (next.status === "done" && previous.status !== "done") {
-        void saveOnboardingComplete(true).catch(() => {});
-      }
-    });
-  }, [settingsLoaded, onboardingComplete, saveOnboardingComplete]);
 
   // Menu: Check for Updates
   useEffect(() => {
@@ -139,7 +137,7 @@ export default function App() {
   // Commands yield to dialogs and controls that already handled the event.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (showGuidedSetup || e.defaultPrevented || document.querySelector("dialog[open]")) return;
+      if (!onboardingComplete || e.defaultPrevented || document.querySelector("dialog[open]")) return;
       if (e.metaKey && e.key === ",") {
         e.preventDefault();
         setCurrentView("settings");
@@ -172,7 +170,7 @@ export default function App() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentView, setCurrentView, showGuidedSetup]);
+  }, [currentView, setCurrentView, onboardingComplete]);
 
   // The dictionary must be in memory before the first dictation applies it.
   useEffect(() => {
@@ -190,9 +188,9 @@ export default function App() {
     return <div className="app-loading" role="status"><span className="loading-mark" />Opening Linty…</div>;
   }
 
-  if (showGuidedSetup) {
+  if (!onboardingComplete || (micPermission !== null && micPermission !== "authorized")) {
     return <>
-      <OnboardingPage onComplete={handleOnboardingComplete} onDismiss={() => setShowGuidedSetup(false)} />
+      <OnboardingPage onComplete={handleOnboardingComplete} startAtMic={onboardingComplete} />
       <ToastContainer />
       <RecordingFocus />
       <UpdateRequiredDialogue />
@@ -213,7 +211,7 @@ export default function App() {
           {currentView === "dashboard" && <DashboardPage />}
           {currentView === "apps" && <AppsPage />}
           {currentView === "dictionary" && <DictionaryPage />}
-          {currentView === "system-check" && <SystemCheckPage onGuidedSetup={() => setShowGuidedSetup(true)} />}
+          {currentView === "system-check" && <SystemCheckPage />}
           {currentView === "shortcuts" && <ShortcutsPage />}
           {currentView === "about" && <AboutPage />}
         </main>

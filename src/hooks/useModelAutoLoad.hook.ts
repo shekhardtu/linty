@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useAppStore } from "@/store/app.store";
 import { prepareLanguage } from "@/services/language-preparation.service";
 
-/** Prepare the saved language or first-run defaults without requiring the guide. */
+/** Prepare defaults while onboarding handles permissions, or load saved choices. */
 export function useModelAutoLoad() {
   const settingsLoaded = useAppStore((s) => s.settingsLoaded);
   useEffect(() => {
