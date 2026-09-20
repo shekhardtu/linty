@@ -46,7 +46,7 @@ test("word rate uses total duration instead of averaging per-session rates", () 
       durationSeconds: 180,
       wordCount: 180,
       processingTimeMs: 4500,
-      engine: "cloud",
+      engine: "previous",
     }),
   ]);
   assert.deepEqual(stats, {

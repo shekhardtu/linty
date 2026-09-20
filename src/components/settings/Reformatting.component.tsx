@@ -7,7 +7,6 @@ import { useAppStore } from "@/store/app.store";
 import { Toggle } from "@/components/shared/Toggle.component";
 import { Select } from "@/components/shared/Select.component";
 import { SectionCard, SettingRow } from "@/components/shared/SettingsLayout.component";
-import { DEFAULT_CORRECTION_PROMPT } from "@/services/correction.service";
 import { languageLabel } from "@/lib/languages.util";
 import type { CleanupMode, ReformatContext, ReformatStyle } from "@/types/reformat.types";
 
@@ -24,7 +23,6 @@ function modelError(error: unknown) {
 export function Reformatting() {
   const {
     reformatEnabled, reformatStyle, reformatLists, reformatContext, saveReformatSetting,
-    sttMode, groqApiKey, correctionEnabled, correctionPrompt, saveCorrectionPrompt,
     saveCleanupMode, transcriptionLanguage, modelIdleUnloadMinutes,
   } = useSettings();
   const [model, setModel] = useState<ModelStatus | null>(null);
@@ -34,14 +32,11 @@ export function Reformatting() {
   const [saving, setSaving] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [instructions, setInstructions] = useState(correctionPrompt || DEFAULT_CORRECTION_PROMPT);
   const busy = useAppStore((s) => s.isRecording || ["preparing", "transcribing", "correcting", "pasting"].includes(s.status));
-  const cloudAvailable = sttMode === "cloud" && Boolean(groqApiKey.trim());
-  const activeMode: CleanupMode = reformatEnabled ? "local" : cloudAvailable && correctionEnabled ? "cloud" : "off";
+  const activeMode: CleanupMode = reformatEnabled ? "local" : "off";
   const selectedMode = pendingLocal ? "local" : activeMode;
   const disabled = saving || busy || downloading;
 
-  useEffect(() => { setInstructions(correctionPrompt || DEFAULT_CORRECTION_PROMPT); }, [correctionPrompt]);
   useEffect(() => { if (reformatEnabled) setPendingLocal(false); }, [reformatEnabled]);
   const refresh = useCallback(async () => {
     const status = await invoke<ModelStatus>("s1_model_status");
@@ -95,18 +90,9 @@ export function Reformatting() {
     catch { setError("Could not save cleanup settings. Try again."); }
     finally { setSaving(false); }
   };
-  const saveInstructions = async (value: string) => {
-    setSaving(true); setError(null);
-    try { await saveCorrectionPrompt(value); }
-    catch { setError("Could not save your instructions. Try again."); }
-    finally { setSaving(false); }
-  };
-
   const description = selectedMode === "off"
     ? "Use the speech engine’s transcript without extra rewriting."
-    : selectedMode === "cloud"
-      ? "Fix grammar and punctuation with Groq. Your transcript is sent to the cloud."
-      : "Remove fillers and tidy grammar, punctuation and lists on your Mac. English only.";
+    : "Remove fillers and tidy grammar, punctuation and lists on your Mac. English only.";
 
   return (
     <div className="dictation-settings">
@@ -116,7 +102,6 @@ export function Reformatting() {
             onChange={(mode) => void choose(mode)} options={[
               { value: "off", label: "Keep as spoken" },
               { value: "local", label: "Clean up on this Mac" },
-              ...(cloudAvailable ? [{ value: "cloud" as const, label: "Clean up in the cloud" }] : []),
             ]} />
         } />
         {activeMode === "local" && !pendingLocal && <p className="cleanup-caption">S1-mini by Superwhisper</p>}
@@ -125,7 +110,7 @@ export function Reformatting() {
         </p>}
         {pendingLocal && !preparing && <div className="cleanup-setup">
           <p>Download S1-mini by Superwhisper to use on-device cleanup. About 496 MB, once.</p>
-          <p className="cleanup-caption">{activeMode === "cloud" ? "Cloud cleanup stays on until setup is complete." : "Your current dictation stays unchanged until setup is complete."}</p>
+          <p className="cleanup-caption">Your current dictation stays unchanged until setup is complete.</p>
           <div className="cleanup-setup-actions">
             <button type="button" className="standard-button primary-button" disabled={disabled} onClick={() => void downloadAndEnable()}>
               {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
@@ -145,7 +130,6 @@ export function Reformatting() {
       {activeMode !== "off" && !pendingLocal && <details className="cleanup-options" key={activeMode}>
         <summary>Customize cleanup <ChevronDown size={14} /></summary>
         <div className="cleanup-options-content">
-          {activeMode === "local" ? <>
             <SettingRow label="Writing style" right={<Select<ReformatStyle> label="Reformatting writing style" value={reformatStyle} disabled={disabled} onChange={(style) => void saveOption("reformatStyle", style)} options={[
               { value: "casual", label: "Casual" }, { value: "semi-casual", label: "Semi-casual" },
               { value: "semi-formal", label: "Standard" }, { value: "formal", label: "Formal" },
@@ -158,16 +142,6 @@ export function Reformatting() {
             <p className="cleanup-caption">
               {modelIdleUnloadMinutes === 0 ? "The cleanup model stays in memory until you turn it off." : `The cleanup model frees its memory after ${modelIdleUnloadMinutes} minutes idle and reloads when needed.`}
             </p>
-          </> : <div className="cleanup-instructions">
-            <div className="cleanup-instructions-heading">
-              <label className="field-label" htmlFor="correction-instructions">Custom instructions</label>
-              {instructions !== DEFAULT_CORRECTION_PROMPT && <button type="button" className="text-link" disabled={disabled} onClick={() => { setInstructions(DEFAULT_CORRECTION_PROMPT); void saveInstructions(DEFAULT_CORRECTION_PROMPT); }}>Reset to default</button>}
-            </div>
-            <textarea id="correction-instructions" aria-label="Correction instructions" value={instructions} disabled={disabled}
-              onChange={(event) => setInstructions(event.target.value)}
-              onBlur={() => { if (instructions !== (correctionPrompt || DEFAULT_CORRECTION_PROMPT)) void saveInstructions(instructions); }}
-              rows={5} spellCheck={false} />
-          </div>}
         </div>
       </details>}
     </div>

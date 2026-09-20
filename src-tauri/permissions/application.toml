@@ -1,7 +1,7 @@
 # Application commands are denied unless the window has the corresponding permission.
 [[permission]]
 identifier = "main-commands"
-description = "Manage dictation, models, credentials, and local history from the main window."
+description = "Manage dictation, models, and local history from the main window."
 commands.allow = [
     "check_for_update",
     "start_dictation",
@@ -30,9 +30,6 @@ commands.allow = [
     "history_audio",
     "history_delete_audio",
     "history_export_audio",
-    "get_groq_api_key",
-    "set_groq_api_key",
-    "remove_groq_api_key",
     "get_audio_inputs",
     "set_audio_input",
     "recover_recording",
@@ -55,7 +52,6 @@ commands.allow = [
     "delete_model_file",
     "is_local_stt_available",
     "set_model_idle_unload_minutes",
-    "register_local_model",
     "load_local_model",
     "prepare_dictation",
     "prepare_parakeet_vocabulary",

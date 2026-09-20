@@ -1,35 +1,7 @@
 # Dictation recovery
 
-## Incident: 17 September 2026
-
-Two independent failures produced the reported capsule behavior:
-
-- The saved input was a Continuity microphone. macOS removed its audio
-  device during the session. Recording correctly refused to use that missing input,
-  but the frontend hid the capsule and put the explanation in the main window.
-- After switching to System Default, recording worked. The selected engine was
-  Cloud with no Groq API key. `processAudio` set the main store's error and returned
-  without replacing the capsule's `transcribing` state. No inference was running.
-
-The process samples showed a live application and an idle audio command loop.
-This incident was an orphaned UI state, not a native-process crash.
-
 ## Behavior
 
-- Clicking Cloud in Speech engine settings selects its setup view. A dashed
-  selection and **Setup required** status identify the provisional choice, with
-  a message that Local remains active. **Save and use Cloud** persists a nonempty
-  trimmed key and the Cloud preference, then changes the status to **Active**.
-  **Cancel setup** or choosing Local discards the unsaved key draft. Typing or
-  leaving the field does not activate Cloud.
-- The key input is hidden in Local settings. With an existing saved key, choosing
-  Cloud activates it directly. Native tray selection is disabled without a key,
-  and the settings save function and recording preflight enforce the same rule.
-  Onboarding also requires a key for Cloud. Presence is checked; authenticity is
-  checked by Groq when transcribing, with failures shown in the capsule.
-- Keys are saved in macOS Keychain. **Remove API key** clears the saved credential
-  and switches to Local. Existing plaintext settings are migrated on load; see
-  [Credential storage](CREDENTIAL-STORAGE.md) for the security boundaries.
 - Startup, stop, configuration, and inference errors replace the spinner with an
   explanation in the capsule. Errors dismiss after six seconds. Empty recordings
   return to idle; no transcription spinner is started for zero samples.
@@ -45,7 +17,7 @@ This incident was an orphaned UI state, not a native-process crash.
 - Cancelled sessions cannot resume the frontend pipeline and paste late inference
   results. Audio generations prevent abandoned capture from writing into the next
   recording and prevent cancelled Whisper progress from changing its capsule.
-- No automatic engine switch, cloud upload, or transcription retry occurs.
+- Language changes prepare the matching local model and wait for active dictation to finish. Recovery never uploads speech or automatically retries transcription.
 
 ## Process crashes
 
@@ -72,8 +44,7 @@ later into a different application.
 
 ## Validation
 
-- `node tests/ui.recovery.mjs` (also with `UI_BROWSER=webkit`): setup/save gating,
-  save failure, missing key preflight, errors in the capsule, empty audio, quick
+- `node tests/ui.recovery.mjs` (also with `UI_BROWSER=webkit`): errors in the capsule, empty audio, quick
   release, microphone disconnect, hung startup/inference, successful retry, and
   suppression of a late result.
 - `python3 tests/supervisor.test.py`: clean quit, one crash followed by recovery,

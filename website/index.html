@@ -66,7 +66,7 @@
             <div class="screen-switch" role="group" aria-label="Product screens">
               <button type="button" data-screen="history" aria-pressed="false">History</button>
               <button type="button" data-screen="overview" aria-pressed="true">Overview</button>
-              <button type="button" data-screen="engines" aria-pressed="false">Speech engines</button>
+              <button type="button" data-screen="language" aria-pressed="false">Language</button>
             </div>
             <button type="button" class="product-playback" id="product-playback" aria-label="Pause screen slideshow" title="Pause screen slideshow" hidden><span class="product-playback-icon" aria-hidden="true"></span></button>
           </div>
@@ -74,13 +74,13 @@
         <figure class="product-figure">
           <div class="product-window" id="product-window">
             <div class="product-slide" data-product-slide="history" data-caption="Find, copy, and edit the words you’ve already said." data-sample="Actual interface · example data" role="group" aria-roledescription="slide" aria-label="1 of 3: History" aria-hidden="true" hidden inert>
-              <img src="images/history-light.png?v=26d03a85eb18" data-light="images/history-light.png?v=26d03a85eb18" data-dark="images/history-dark.png?v=936b598914e9" width="1200" height="800" alt="Linty’s History screen with an example project update selected for review and editing." draggable="false" decoding="async" />
+              <img src="images/history-light.png?v=3543bde99b77" data-light="images/history-light.png?v=3543bde99b77" data-dark="images/history-dark.png?v=b465884ac0f1" width="1200" height="800" alt="Linty’s History screen with an example project update selected for review and editing." draggable="false" decoding="async" />
             </div>
             <div class="product-slide" data-product-slide="overview" data-caption="An example week: 3,048 words, about 52 minutes back." data-sample="Example data · 40 wpm typing baseline" role="group" aria-roledescription="slide" aria-label="2 of 3: Overview" aria-hidden="false">
-              <img id="product-image" src="images/overview-light.png?v=ce90279051c9" data-light="images/overview-light.png?v=ce90279051c9" data-dark="images/overview-dark.png?v=9fb0483a7d91" width="1200" height="800" alt="Linty’s Overview with a plausible week of example dictations, words transcribed, and estimated time saved." draggable="false" decoding="async" fetchpriority="high" />
+              <img id="product-image" src="images/overview-light.png?v=52fbff877a99" data-light="images/overview-light.png?v=52fbff877a99" data-dark="images/overview-dark.png?v=a7851a13a4d2" width="1200" height="800" alt="Linty’s Overview with a plausible week of example dictations, words transcribed, and estimated time saved." draggable="false" decoding="async" fetchpriority="high" />
             </div>
-            <div class="product-slide" data-product-slide="engines" data-caption="Choose the speech engine that fits your Mac." data-sample="Actual interface · example data" role="group" aria-roledescription="slide" aria-label="3 of 3: Speech engines" aria-hidden="true" hidden inert>
-              <img src="images/engines-light.png?v=14ad1fd65428" data-light="images/engines-light.png?v=14ad1fd65428" data-dark="images/engines-dark.png?v=353c1823d244" width="1200" height="800" alt="Linty’s Speech engine settings showing local models and controls for processing on your device." draggable="false" decoding="async" />
+            <div class="product-slide" data-product-slide="language" data-caption="Choose your language. Linty prepares speech support automatically." data-sample="Actual interface · example data" role="group" aria-roledescription="slide" aria-label="3 of 3: Language" aria-hidden="true" hidden inert>
+              <img src="images/language-light.png?v=d17afa73271b" data-light="images/language-light.png?v=d17afa73271b" data-dark="images/language-dark.png?v=22121271d4e8" width="1200" height="800" alt="Linty’s Language settings with searchable languages and ready status for offline dictation." draggable="false" decoding="async" />
             </div>
           </div>
           <figcaption><span id="screen-caption">An example week: 3,048 words, about 52 minutes back.</span><span class="sample-label" id="sample-label">Example data · 40 wpm typing baseline</span></figcaption>
@@ -126,7 +126,7 @@
               <section class="demo-scene demo-notes" data-demo-panel="notes" data-detail="Illustrated workflow. List formatting uses optional text cleanup." data-description="Capture a thought. Give it a little structure." role="group" aria-roledescription="slide" aria-label="1 of 3: Notes">
                 <div class="demo-window-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>Notes</span><span class="notes-tools" aria-hidden="true">▤ &nbsp; Aa &nbsp; ⊕</span></div>
                 <div class="notes-layout">
-                  <aside class="notes-sidebar" aria-hidden="true"><span class="notes-folder">All iCloud <span>3</span></span><span class="notes-day">Today</span><div class="notes-selected"><strong>Launch checklist</strong><span>9:41 AM · A small plan…</span></div><div class="notes-preview"><strong>A good idea</strong><span>Yesterday · A thought…</span></div><div class="notes-preview"><strong>Reading list</strong><span>Monday · Save for later</span></div></aside>
+                  <aside class="notes-sidebar" aria-hidden="true"><span class="notes-folder">On My Mac <span>3</span></span><span class="notes-day">Today</span><div class="notes-selected"><strong>Launch checklist</strong><span>9:41 AM · A small plan…</span></div><div class="notes-preview"><strong>A good idea</strong><span>Yesterday · A thought…</span></div><div class="notes-preview"><strong>Reading list</strong><span>Monday · Save for later</span></div></aside>
                   <div class="notes-page">
                     <p class="notes-date">Today at 9:41 AM</p>
                     <h3>Launch checklist</h3>
@@ -192,14 +192,13 @@
       <div class="section-copy">
         <p class="eyebrow">03 / Privacy first</p>
         <h2 id="privacy-title">Your Mac can do<br />the listening.</h2>
-        <p>Choose a local speech engine to transcribe on your device. After the model is downloaded, local transcription works offline.</p>
+        <p>Choose your language and Linty prepares the right speech support on your Mac. After the initial download, dictation works offline.</p>
         <a class="text-link" href="https://github.com/shekhardtu/linty">Read the code for yourself <span aria-hidden="true">↗</span></a>
       </div>
       <div class="privacy-ledger">
         <div class="ledger-header"><span class="brand-mark" aria-hidden="true"></span><span>Clear choices. No fine print.</span></div>
         <dl>
           <div><dt>On-device transcription</dt><dd>Whisper or Parakeet runs locally. Your recording stays on your Mac for transcription.</dd><dd class="ledger-label">Local</dd></div>
-          <div><dt>Cloud, when you choose it</dt><dd>Groq uses your API key and sends audio to its service. Optional cloud text correction also sends text to Groq.</dd><dd class="ledger-label">Optional</dd></div>
           <div><dt>History you manage</dt><dd>Your saved transcriptions live on this Mac. Search, edit, delete, or choose a retention period in Settings.</dd><dd class="ledger-label">Your choice</dd></div>
         </dl>
         <p class="ledger-footer">No Linty account required for local dictation.</p>
@@ -211,7 +210,7 @@
       <div class="faq-list">
         <details open><summary>Will it run on my Mac?<span aria-hidden="true">+</span></summary><p>The current build requires macOS 14 or later and an Apple Silicon Mac (M1 or newer). Model choice and available memory affect transcription speed.</p></details>
         <details><summary>What do I need to set up?<span aria-hidden="true">+</span></summary><p>Grant Microphone access to record your voice and Accessibility access to use the shortcut and paste into other apps. Choose and download a local model; System Check helps you verify your setup.</p></details>
-        <details><summary>Is it free?<span aria-hidden="true">+</span></summary><p>Linty is free and open source under the MIT license. Local transcription does not require a subscription. Optional Groq services use your own API key and are subject to your provider’s limits and pricing.</p></details>
+        <details><summary>Is it free?<span aria-hidden="true">+</span></summary><p>Linty is free and open source under the MIT license. Dictation and optional text cleanup run on your Mac without an account, API key, or subscription.</p></details>
         <details><summary>What if a transcription isn’t right?<span aria-hidden="true">+</span></summary><p>Review and edit it in History, add unfamiliar names to your dictionary, or try another speech model. Audio quality, language, and background noise can affect results.</p></details>
       </div>
     </section>

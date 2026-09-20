@@ -45,7 +45,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn streaming_encoding_matches_existing_cloud_wav_including_chunk_boundaries() {
+    fn streaming_encoding_matches_pcm16_wav_including_chunk_boundaries() {
         let mut samples = vec![0.125; ENCODE_BUFFER_BYTES + 13];
         samples.extend([
             f32::NAN,
@@ -58,7 +58,7 @@ mod tests {
         ]);
         let mut actual = Vec::new();
         write(&samples, &mut actual).unwrap();
-        assert_eq!(actual, crate::transcribe::encode_wav(&samples));
+        assert_eq!(actual, encode_reference(&samples));
         assert!(encoded_len(usize::MAX).is_err());
         assert!(encoded_len(i32::MAX as usize).is_err());
     }
@@ -87,4 +87,45 @@ mod tests {
         )
         .is_err());
     }
+}
+
+#[cfg(test)]
+/// Encode f32 PCM samples (16kHz mono) into a WAV byte buffer.
+pub fn encode_reference(samples: &[f32]) -> Vec<u8> {
+    let sample_rate: u32 = 16000;
+    let bits_per_sample: u16 = 16;
+    let num_channels: u16 = 1;
+    let byte_rate = sample_rate * (bits_per_sample as u32 / 8) * num_channels as u32;
+    let block_align = num_channels * (bits_per_sample / 8);
+    let data_size = (samples.len() * 2) as u32;
+    let file_size = 36 + data_size;
+
+    let mut buf = Vec::with_capacity(file_size as usize + 8);
+
+    // RIFF header
+    buf.extend_from_slice(b"RIFF");
+    buf.extend_from_slice(&file_size.to_le_bytes());
+    buf.extend_from_slice(b"WAVE");
+
+    // fmt chunk
+    buf.extend_from_slice(b"fmt ");
+    buf.extend_from_slice(&16u32.to_le_bytes());
+    buf.extend_from_slice(&1u16.to_le_bytes());
+    buf.extend_from_slice(&num_channels.to_le_bytes());
+    buf.extend_from_slice(&sample_rate.to_le_bytes());
+    buf.extend_from_slice(&byte_rate.to_le_bytes());
+    buf.extend_from_slice(&block_align.to_le_bytes());
+    buf.extend_from_slice(&bits_per_sample.to_le_bytes());
+
+    // data chunk
+    buf.extend_from_slice(b"data");
+    buf.extend_from_slice(&data_size.to_le_bytes());
+
+    for &sample in samples {
+        let clamped = sample.clamp(-1.0, 1.0);
+        let val = (clamped * 32767.0) as i16;
+        buf.extend_from_slice(&val.to_le_bytes());
+    }
+
+    buf
 }

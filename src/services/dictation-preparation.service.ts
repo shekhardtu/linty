@@ -25,7 +25,6 @@ function requestedPreparation() {
   const state = useAppStore.getState();
   if (!state.settingsLoaded) throw new Error("Settings are still loading. Please try again.");
   return {
-    local: state.sttMode === "local",
     filename: state.loadedModelFilename ?? state.selectedModelFilename,
     vocabulary: state.dictionaryEnabled && state.dictionaryEntries.some((entry) => entry.enabled),
     cleanupRequired: state.reformatEnabled,

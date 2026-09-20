@@ -1,15 +1,13 @@
 # Local transcript reformatting
 
 Settings → Dictation → Text cleanup → Clean up on this Mac enables an optional English text
-normalizer after either local or cloud speech recognition. It is off by default.
+normalizer after on-device speech recognition. It is off by default.
 The Settings download installs S1-mini by Superwhisper (Q4_K_M, about 496 MB
 including the tokenizer). Writing style, layout, and list controls are under
-Customize cleanup. Keep as spoken disables extra rewriting; cloud cleanup is
-offered only when the cloud speech engine is configured. Inference runs locally through Candle on Metal, with
-CPU fallback when no Metal device is available. This does not change whether the
-selected speech recognition engine sends audio to the cloud.
+Customize cleanup. Keep as spoken disables extra rewriting. Inference runs locally through Candle on Metal, with
+CPU fallback when no Metal device is available. Audio and text stay on the device.
 
-S1-mini replaces Groq text refinement while enabled. It can remove fillers,
+S1-mini can remove fillers,
 correct punctuation and grammar, normalize numbers, and produce plain-text
 lists and email layout. This integration pastes text; it does not insert native
 rich-text bold styling. “Automatic” selects email layout for Apple Mail,
@@ -49,7 +47,7 @@ frontend round trip (including waiting for background model loading). Missing
 measurements remain absent rather than being reported as measured zeroes.
 
 The parent record also retains speech model/language, audio duration and sample
-count, speech recognition time, cloud refinement outcome, paste outcome/time,
+count, speech recognition time, paste outcome/time,
 dictionary replacements, application identity when enabled, and total processing
 time. These support later latency and edit-rate comparisons; they do not directly
 measure customer satisfaction or prove causality.
@@ -89,7 +87,7 @@ clipboard changes, a paste, or an empty History entry; pending audio is discarde
 Output checks also catch control-token and extreme length results, but do not
 guarantee semantic fidelity. The model's required prompt is unchanged.
 
-Reformatting failures never trigger cloud refinement. The personal dictionary
+Reformatting failures keep the original transcript. The personal dictionary
 still runs after reformatting or fallback. Completed transcripts are saved even
 when clipboard preparation or pasting fails.
 

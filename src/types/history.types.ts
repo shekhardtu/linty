@@ -47,7 +47,7 @@ export interface UsageResult extends UsageSummary {
   timeline: ReturnType<typeof usageTimeline>;
   recent: TranscriptRecord[];
   engines: {
-    engine: "local" | "cloud";
+    engine: string;
     sessions: number;
     share: number | null;
     rate: number | null;

@@ -55,10 +55,6 @@ impl Backend for FakeBackend {
             metrics,
         })
     }
-    async fn correct(&self, _: &str, _: &str) -> Result<String, String> {
-        self.note("correct");
-        Ok(self.candidate.clone())
-    }
     fn cancel_cleanup(&self) {}
     async fn save(&self, record: Value, _: u64) -> Result<(), String> {
         self.note("save");
@@ -103,7 +99,7 @@ impl Backend for FakeBackend {
     fn changed(&self) {}
 }
 fn session() -> Arc<Session> {
-    let options=serde_json::from_value(json!({"local":true,"filename":"test.bin","modelName":"Synthetic","language":"en","prompt":"","vocabulary":[],"dictionary":[],"cleanup":true,"cleanupOptions":{"styling":"semi-formal","structure":"lists","context":"general"},"cleanupContextAuto":false,"cloudCorrection":false,"correctionPrompt":"","observeCorrections":false,"trackApplication":false})).unwrap();
+    let options=serde_json::from_value(json!({"filename":"test.bin","modelName":"Synthetic","language":"en","prompt":"","vocabulary":[],"dictionary":[],"cleanup":true,"cleanupOptions":{"styling":"semi-formal","structure":"lists","context":"general"},"cleanupContextAuto":false,"observeCorrections":false,"trackApplication":false})).unwrap();
     let s = Coordinator::default().reserve(options).unwrap();
     s.generation.store(7, Ordering::SeqCst);
     *s.phase.lock().unwrap() = Phase::Processing;

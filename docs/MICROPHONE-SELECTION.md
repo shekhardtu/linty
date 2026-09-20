@@ -12,9 +12,9 @@ controls with standard separators. **Recent Transcriptions** contains the last
 five previews and **View History…**. **Copy Last Transcription** copies the full
 record directly; deleted or edited records are resolved from storage at click time.
 
-The selected, configured engine shows a green circle **after its name** when
-idle and a microphone is available. A quiet shortcut hint replaces the old Ready
-row; recording and processing retain their activity labels. Engine selection and
+The tray shows **On-device · Ready** when speech support is prepared, the app is
+idle, and a microphone is available. A quiet shortcut hint replaces the old Ready
+row; recording and processing retain their activity labels. Language selection and
 Quit are disabled during dictation/processing. macOS owns the menu's appearance,
 keyboard navigation, dismissal, checkmarks and submenus. There is no tray webview.
 The monochrome three-stroke icon is a native template, generated from the same

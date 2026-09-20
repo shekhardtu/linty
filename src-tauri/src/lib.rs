@@ -9,7 +9,6 @@ mod clipboard;
 #[cfg(target_os = "macos")]
 #[allow(deprecated)]
 mod corrections;
-mod credentials;
 mod delivery;
 mod dictation;
 #[cfg(target_os = "macos")]
@@ -17,6 +16,7 @@ mod fnkey;
 mod history;
 mod history_db;
 mod input_activity;
+mod legacy_settings;
 pub mod logging;
 mod model_store;
 pub use model_store::sha256_hex;
@@ -546,29 +546,6 @@ async fn transcribe_buffer(
     }
 }
 
-/// Transcribe audio samples held in Rust state via Groq cloud API.
-/// Samples never cross IPC — read directly from RecordingState.
-async fn transcribe_buffer_cloud(
-    state: tauri::State<'_, AppState>,
-    api_key: String,
-    prompt: Option<String>,
-    language: Option<String>,
-) -> Result<String, String> {
-    // Take samples from recording state
-    let samples = {
-        let mut rec = state.recording.lock().map_err(|e| e.to_string())?;
-        std::mem::take(&mut rec.samples)
-    };
-
-    log::debug!(
-        "[cmd] transcribe_buffer_cloud: {} samples ({:.1}s)",
-        samples.len(),
-        samples.len() as f64 / 16000.0
-    );
-
-    transcribe::transcribe_cloud(&samples, &api_key, prompt.as_deref(), language.as_deref()).await
-}
-
 #[tauri::command]
 fn stop_correction_watch() {
     #[cfg(target_os = "macos")]
@@ -798,7 +775,7 @@ fn reset_all_data(
         .map_err(|e| format!("No app data dir: {}", e))?;
 
     // Delete settings store
-    credentials::remove_groq_api_key(app.clone())?;
+    legacy_settings::remove_retired_settings(&app)?;
     let settings_path = data_dir.join("linty-settings.json");
     if settings_path.exists() {
         std::fs::remove_file(&settings_path)
@@ -1071,7 +1048,6 @@ async fn load_local_model(
 async fn prepare_dictation(
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
-    local: bool,
     filename: Option<String>,
     vocabulary: bool,
     cleanup_required: bool,
@@ -1082,7 +1058,7 @@ async fn prepare_dictation(
         state
             .local_model_last_used_at
             .store(now_epoch_ms(), Ordering::Relaxed);
-        if local {
+        {
             let selected = state
                 .local_model_filename
                 .lock()
@@ -1090,7 +1066,7 @@ async fn prepare_dictation(
                 .clone();
             let filename = filename
                 .or(selected.clone())
-                .ok_or("Choose a speech model in Settings → Speech engine.")?;
+                .ok_or("Choose your dictation language in Settings → Language.")?;
             let engine = if selected.as_ref() == Some(&filename) {
                 resident_local_engine(&state)?
             } else {
@@ -1127,11 +1103,8 @@ async fn prepare_dictation(
     }
     #[cfg(not(feature = "local-stt"))]
     {
-        let _ = (state, filename, vocabulary);
-        if local {
-            return Err("Local STT is not available in this build".into());
-        }
-        prepare_installed_cleanup(&app, cleanup_required).await
+        let _ = (app, state, filename, vocabulary, cleanup_required);
+        Err("On-device speech support is not available in this build".into())
     }
 }
 
@@ -1194,30 +1167,6 @@ async fn prepare_parakeet_vocabulary(
     }
     #[cfg(not(feature = "parakeet"))]
     Err("This build does not include Parakeet support".to_string())
-}
-
-/// Remember which model to use for local STT WITHOUT loading it into memory.
-/// Used when the user's engine preference is Cloud — the model lazy-loads in
-/// transcribe_buffer if they switch to Local.
-#[tauri::command]
-fn register_local_model(
-    #[allow(unused_variables)] state: tauri::State<'_, AppState>,
-    #[allow(unused_variables)] filename: String,
-) -> Result<(), String> {
-    model_store::validate_speech_id(&filename)?;
-    #[cfg(feature = "local-stt")]
-    {
-        log::debug!(
-            "[cmd] register_local_model: {} (lazy, not loaded)",
-            filename
-        );
-        let mut guard = state
-            .local_model_filename
-            .lock()
-            .map_err(|e| e.to_string())?;
-        *guard = Some(filename);
-    }
-    Ok(())
 }
 
 /// Configure after how many minutes of inactivity the local model is unloaded
@@ -1559,11 +1508,14 @@ pub fn run() {
             // Version banner, crash marker path and panic hook, before
             // anything else in setup can fail or panic.
             logging::init(app.handle());
+            if let Err(error) = legacy_settings::remove_retired_settings(app.handle()) {
+                log::warn!("[settings] Could not finish retired-settings cleanup: {error}");
+            }
             #[cfg(target_os = "macos")]
             corrections::start(app.handle().clone());
 
             audio_input::init(app.handle())?;
-            // Tray icon (menu, engine selector, status)
+            // Tray icon (menu, language selector, status)
             tray::init_tray(app)?;
 
             if let Some(window) = app.get_webview_window("main") {
@@ -1632,9 +1584,6 @@ pub fn run() {
             history::history_audio,
             history::history_delete_audio,
             history::history_export_audio,
-            credentials::get_groq_api_key,
-            credentials::set_groq_api_key,
-            credentials::remove_groq_api_key,
             audio_input::get_audio_inputs,
             audio_input::set_audio_input,
             recover_recording,
@@ -1657,7 +1606,6 @@ pub fn run() {
             delete_model_file,
             is_local_stt_available,
             set_model_idle_unload_minutes,
-            register_local_model,
             load_local_model,
             prepare_dictation,
             prepare_parakeet_vocabulary,

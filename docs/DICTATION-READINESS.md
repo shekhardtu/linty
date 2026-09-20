@@ -28,7 +28,7 @@ later calls do not repeat inference on already prepared instances.
 
 Fresh onboarding starts the selected speech download on the welcome screen.
 After download, the loading command awaits preparation before the screen says
-“Speech Engine Ready.” Installed S1 is included in that readiness check.
+“Ready for offline dictation.” Installed S1 is included in that readiness check.
 
 Returning launches prepare proactively. The status bar shows preparation rather
 than ready until the linked components finish. Pressing the trigger opens the
@@ -61,8 +61,8 @@ No periodic inference loop keeps the processors busy.
 Core ML uses CPU and Neural Engine for the detector; Whisper and S1 can use Metal.
 This change does not alter speech thresholds, sample data, or correction prompts.
 It cannot guarantee identical first/second wall-clock latency after hardware
-sleep, under contention, or for different recording lengths. Cloud inference
-remains remote; preparation sends no warm-up API requests or microphone audio.
+sleep, under contention, or for different recording lengths. Preparation and
+inference stay on the device.
 
 Before this change, 40 fresh-process detector measurements on an M3 Pro found
 median first inference of about 3.2 ms versus 0.43 ms for the second inference.

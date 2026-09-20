@@ -132,19 +132,19 @@ mod tests {
 
     #[test]
     fn final_diff_batches_multiple_edits_and_discards_intermediate_spelling() {
-        let base = words("I have to go to YOLO with Groke");
+        let base = words("I have to go to YOLO with Figna");
         let now = Instant::now();
         let input = InputState::default();
         let mut pending = PendingCorrection::new(base.join(" "));
         pending.update(
-            "I have to go to YU with Groke".into(),
+            "I have to go to YU with Figna".into(),
             &input,
             &input,
             now,
             now,
         );
         pending.update(
-            "I have to go to YULU with Groq".into(),
+            "I have to go to YULU with Figma".into(),
             &input,
             &input,
             now + Duration::from_secs(5),
@@ -160,8 +160,8 @@ mod tests {
                 },
                 ObservedPair {
                     kind: "substitution",
-                    from: "Groke".into(),
-                    to: "Groq".into()
+                    from: "Figna".into(),
+                    to: "Figma".into()
                 },
             ]
         );
@@ -199,15 +199,15 @@ mod tests {
     #[test]
     fn pairs_adjacent_delete_and_insert_as_substitutions() {
         let edits = word_diff(
-            &words("names like Tari, Zustan and Groke are spelled"),
-            &words("names like Tauri, Zustand and Groq are spelled"),
+            &words("names like Tari, Zustan and Figna are spelled"),
+            &words("names like Tauri, Zustand and Figma are spelled"),
         );
         assert_eq!(
             edits,
             vec![
                 sub(2, "Tari,", "Tauri,"),
                 sub(3, "Zustan", "Zustand"),
-                sub(5, "Groke", "Groq")
+                sub(5, "Figna", "Figma")
             ]
         );
     }

@@ -90,7 +90,7 @@ try {
     application: { name: 'Notes' }, secondsAfterPaste: 15,
     pairs: [{ kind: 'substitution', from: 'Jolo', to: 'yolo' }],
   }, { transcriptId: 'qa-1', wordCount: 8, application: { name: 'Notes' }, secondsAfterPaste: 5,
-    pairs: [{ kind: 'substitution', from: 'Groc', to: 'Groq' }],
+    pairs: [{ kind: 'substitution', from: 'Figna', to: 'Figma' }],
   }] }));
   await waitForCount(6);
   assert.equal(await page.evaluate(() => window.__QA__.calls.filter(c => c === "plugin:store|save").length), savesBeforeBatch + 1, 'All dictations in the session share one dictionary save');
@@ -103,7 +103,7 @@ try {
   await page.evaluate(action => window.__QA__.emit('correction-feedback-action', action), undo);
   await waitForCount(8);
   assert.equal(await page.evaluate(() => window.__QA__.correctionFeedback.at(-1).title), 'Learning undone');
-  assert.equal(await page.evaluate(() => window.__QA__.stores[4].entries.some(e => ['yolo', 'Groq'].includes(e.right))), false);
+  assert.equal(await page.evaluate(() => window.__QA__.stores[4].entries.some(e => ['yolo', 'Figma'].includes(e.right))), false);
   assert.equal(await page.evaluate(() => window.__QA__.stores[4].entries.some(e => e.right === 'LaterWord')), true);
 
   await page.evaluate(() => window.__QA__.emit('correction-capture-unavailable', 'qa-0'));

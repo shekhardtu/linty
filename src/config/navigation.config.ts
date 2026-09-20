@@ -2,7 +2,6 @@ import {
   BarChart3,
   BookOpen,
   Clock,
-  Cpu,
   Info,
   Keyboard,
   Languages,
@@ -118,19 +117,11 @@ export const SETTINGS_SECTIONS = [
     keywords: "input device mic source sample quality rate khz",
   },
   {
-    id: "models",
-    label: "Speech engine",
-    description: "Choose where and how your speech is transcribed.",
-    icon: Cpu,
-    keywords:
-      "stt local cloud groq api key token whisper parakeet model processing",
-  },
-  {
     id: "language",
     label: "Language",
-    description: "Set the language you dictate in.",
+    description: "Choose your language. Linty prepares the rest.",
     icon: Languages,
-    keywords: "transcription language spoken english auto-detect",
+    keywords: "transcription language spoken english hindi multilingual auto-detect speech support model whisper parakeet",
   },
   {
     id: "appearance",
@@ -145,7 +136,7 @@ export const SETTINGS_SECTIONS = [
     description: "Understand and control what Linty saves.",
     icon: Shield,
     keywords:
-      "history retention storage location attribution dictionary learning corrections audio recording voice save consent privacy",
+      "history retention storage location attribution dictionary learning corrections audio recording voice save consent privacy local processing",
   },
 ] as const;
 

@@ -21,7 +21,7 @@ export function ProcessingBreakdown({ transcript }: { transcript: TranscriptReco
   if (metrics) {
     stages.push({ label: "S1-mini reformatting", time: metrics.roundTripMs ?? transcript.reformatTimeMs });
   } else if ((transcript.correctionTimeMs ?? 0) > 0) {
-    stages.push({ label: "Cloud refinement", time: transcript.correctionTimeMs });
+    stages.push({ label: "Text refinement (previous version)", time: transcript.correctionTimeMs });
   }
 
   if (!stages.length && !measured(transcript.pasteTimeMs)) return null;

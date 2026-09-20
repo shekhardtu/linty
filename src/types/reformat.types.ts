@@ -1,6 +1,6 @@
 export type ReformatStyle = "casual" | "semi-casual" | "semi-formal" | "formal";
 export type ReformatContext = "auto" | "general" | "email";
-export type CleanupMode = "off" | "local" | "cloud";
+export type CleanupMode = "off" | "local";
 export interface ReformatOptions {
   styling: ReformatStyle;
   structure: "prose" | "lists";

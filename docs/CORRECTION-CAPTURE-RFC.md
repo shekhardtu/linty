@@ -151,7 +151,7 @@ Capturing an edit and deciding whether it is a reusable recognition correction a
 
 Start with local deterministic candidate extraction and a review path. Measure whether optional local semantic/phonetic scoring improves decisions before adding it. Model training is not required for the first dictionary feature. Saving vocabulary or a replacement is also not the same as learning a person's acoustic pronunciation.
 
-Important examples: `Hari Shekhar → Harishekhar` is a split/join candidate; `YOLO → YULU` is a substitution candidate. `Tuesday → Wednesday` may be a changed plan, and `cloud → Claude` may depend on context. Capitalization alone should not grant a permanent global replacement.
+Important examples: `Hari Shekhar → Harishekhar` is a split/join candidate; `YOLO → YULU` is a substitution candidate. `Tuesday → Wednesday` may be a changed plan, and `clod → Claude` may depend on context. Capitalization alone should not grant a permanent global replacement.
 
 ## Proposed Linty session model
 

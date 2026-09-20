@@ -24,8 +24,8 @@ const EMPTY: UsageResult = {
   applications: [],
   timeline: [],
   recent: [],
-  engines: ["local", "cloud"].map((engine) => ({
-    engine: engine as "local" | "cloud",
+  engines: ["local"].map((engine) => ({
+    engine,
     sessions: 0,
     share: null,
     rate: null,

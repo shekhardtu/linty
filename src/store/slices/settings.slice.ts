@@ -2,7 +2,6 @@ import type { StateCreator } from "zustand";
 import { DEFAULT_TYPING_SPEED } from "@/lib/payoff.util";
 import type { ReformatContext, ReformatStyle } from "@/types/reformat.types";
 
-export type SttMode = "cloud" | "local";
 export type ThemePreference = "light" | "dark" | "system";
 
 /** Sentinel value for the fn-key trigger. */
@@ -58,9 +57,6 @@ export const TRIGGER_KEY_OPTIONS: TriggerKeyOption[] = [
 ];
 
 export interface SettingsSlice {
-  groqApiKey: string;
-  sttMode: SttMode;
-  correctionEnabled: boolean;
   reformatEnabled: boolean;
   reformatStyle: ReformatStyle;
   reformatLists: boolean;
@@ -73,7 +69,6 @@ export interface SettingsSlice {
   isLocalModelDownloaded: boolean;
   theme: ThemePreference;
   whisperPrompt: string;
-  correctionPrompt: string;
   onboardingComplete: boolean;
   transcriptionLanguage: string;
   loadedModelFilename: string | null;
@@ -95,14 +90,10 @@ export interface SettingsSlice {
   setTrackApplicationUsage: (enabled: boolean) => void;
   setLoadedModelFilename: (filename: string | null) => void;
   setSelectedModelFilename: (filename: string | null) => void;
-  setGroqApiKey: (key: string) => void;
-  setSttMode: (mode: SttMode) => void;
-  setCorrectionEnabled: (enabled: boolean) => void;
   setLocalModelPath: (path: string | null) => void;
   setIsLocalModelDownloaded: (downloaded: boolean) => void;
   setTheme: (theme: ThemePreference) => void;
   setWhisperPrompt: (prompt: string) => void;
-  setCorrectionPrompt: (prompt: string) => void;
   setOnboardingComplete: (complete: boolean) => void;
   setTranscriptionLanguage: (language: string) => void;
   setModelIdleUnloadMinutes: (minutes: number) => void;
@@ -116,9 +107,6 @@ export interface SettingsSlice {
 export const DEFAULT_MODEL_IDLE_UNLOAD_MINUTES = 15;
 
 export const createSettingsSlice: StateCreator<SettingsSlice> = (set) => ({
-  groqApiKey: "",
-  sttMode: "local",
-  correctionEnabled: true,
   reformatEnabled: false,
   reformatStyle: "semi-formal",
   reformatLists: true,
@@ -131,7 +119,6 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set) => ({
   isLocalModelDownloaded: false,
   theme: "system",
   whisperPrompt: "",
-  correctionPrompt: "",
   onboardingComplete: false,
   transcriptionLanguage: "auto",
   loadedModelFilename: null,
@@ -148,15 +135,11 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set) => ({
   setTrackApplicationUsage: (trackApplicationUsage) => set({ trackApplicationUsage }),
   setLoadedModelFilename: (loadedModelFilename) => set({ loadedModelFilename }),
   setSelectedModelFilename: (selectedModelFilename) => set({ selectedModelFilename }),
-  setGroqApiKey: (groqApiKey) => set({ groqApiKey }),
-  setSttMode: (sttMode) => set({ sttMode }),
-  setCorrectionEnabled: (correctionEnabled) => set({ correctionEnabled }),
   setLocalModelPath: (localModelPath) => set({ localModelPath }),
   setIsLocalModelDownloaded: (isLocalModelDownloaded) =>
     set({ isLocalModelDownloaded }),
   setTheme: (theme) => set({ theme }),
   setWhisperPrompt: (whisperPrompt) => set({ whisperPrompt }),
-  setCorrectionPrompt: (correctionPrompt) => set({ correctionPrompt }),
   setOnboardingComplete: (onboardingComplete) => set({ onboardingComplete }),
   setTranscriptionLanguage: (transcriptionLanguage) => set({ transcriptionLanguage }),
   setModelIdleUnloadMinutes: (modelIdleUnloadMinutes) => set({ modelIdleUnloadMinutes }),

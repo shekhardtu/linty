@@ -38,9 +38,10 @@ try {
     await page.getByRole('region',{name:'Selected transcription',exact:true}).waitFor();
     await capture(`history-${theme}`);
     await page.getByRole('button',{name:'Settings',exact:true}).click();
-    await page.getByRole('button',{name:'Speech engine',exact:true}).click();
-    await page.getByRole('heading',{name:'Speech engine',exact:true}).waitFor();
-    await capture(`engines-${theme}`);
+    await page.getByRole('button',{name:'Language',exact:true}).click();
+    await page.getByRole('heading',{name:'Language',exact:true}).waitFor();
+    await page.getByText('Ready for offline dictation', { exact: true }).waitFor();
+    await capture(`language-${theme}`);
   }
   assert.deepEqual(errors,[]);
 } finally { await browser.close(); }

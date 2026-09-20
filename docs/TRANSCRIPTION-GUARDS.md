@@ -2,7 +2,7 @@
 
 Linty preserves ordinary words, short responses, and intentional repetition.
 There is no list of forbidden transcript phrases and no minimum text length.
-This applies to Whisper, Groq cloud, and both Parakeet paths (with or without
+This applies to Whisper and both Parakeet paths (with or without
 the personal dictionary). Dictionary spelling replacements remain separate.
 
 ## Decisions based on evidence
@@ -11,12 +11,11 @@ the personal dictionary). Dictionary spelling replacements remain separate.
 | --- | --- |
 | All engines | Empty/effectively digitally silent audio: no finite sample above `1e-10` in absolute amplitude. This is a minimal signal check, not a voice activity detector. |
 | Local Whisper | whisper.cpp's existing paired defaults: no-speech probability above `0.6` **and** average log probability below `-1.0`. High-confidence text overrides the silence prediction. |
-| Groq Whisper | Requests `verbose_json`. Applies the same paired confidence rule to segments, only when the segment text reconstructs the complete top-level transcript. Missing, null, invalid, or incomplete confidence evidence preserves text. |
 | Parakeet | Silero v6 speech presence at threshold `0.3` / minimum speech `100 ms`. A bounded, detector-only gain pass rescues quiet speech. Original ASR samples stay intact. An unavailable or failed detector permits transcription. No cutoff is applied to Parakeet token confidence. |
 
 The [September 18 VAD evaluation](VAD-EVALUATION-2026-09-18.md) supersedes the
 earlier decision to leave VAD disabled for Parakeet. It does not change Whisper
-or cloud filtering. Parakeet's average token confidence is not a no-speech
+filtering. Parakeet's average token confidence is not a no-speech
 probability and cannot share Whisper's confidence thresholds.
 
 The former `0.01` RMS / `2%` active-window gate could reject quiet voices and
@@ -34,15 +33,13 @@ speak louder.
 
 - [Investigation of Whisper ASR Hallucinations Induced by Non-Speech Audio, Section III](https://arxiv.org/html/2501.11378v1#S3) excludes everyday phrases from its removal dictionary because of false positives. It also evaluates VAD and audio alignment as supporting evidence.
 - [whisper.cpp](https://github.com/ggml-org/whisper.cpp/blob/master/src/whisper.cpp) combines silence probability and average log probability. Linty's installed `whisper-rs 0.15.1` / `whisper-rs-sys 0.14.1` source was checked directly before retaining these defaults.
-- [Groq metadata documentation](https://console.groq.com/docs/speech-to-text#understanding-metadata-fields) documents `verbose_json`, `no_speech_prob`, and `avg_logprob`.
 - FluidAudio `0.14.8`: `Sources/FluidAudio/VAD/VadManager.swift` defines the digital-silence floor; `ASR/Parakeet/SlidingWindow/TDT/AsrManager+TokenProcessing.swift` defines the separate Parakeet confidence calculation.
 
 ## Repeatable evaluation
 
 Unit tests live in `src-tauri/src/transcribe_tests.rs`. They exercise all former
 blocked phrases, single-byte and Unicode responses, repetition, quiet signals,
-long pauses, silence without a network call, paired confidence boundaries, and
-incomplete cloud metadata. Run:
+long pauses, and digital silence. Run:
 
 ```sh
 cd src-tauri
@@ -79,9 +76,6 @@ It uses a fresh VAD context per recording. These candidates do not modify the
 app's output or crop audio; segment-based audio trimming is a different
 experiment. The tool reports recognition mismatches instead of treating them
 as passing accuracy tests.
-
-Cloud confidence behavior is covered with response fixtures, not live Groq
-requests. Offline engine results do not establish cloud recognition accuracy.
 
 ## Measured result: September 17, 2026
 

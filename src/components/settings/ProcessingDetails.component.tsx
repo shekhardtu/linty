@@ -40,7 +40,7 @@ export function ProcessingDetails() {
               {rows.map((row) => (
                 <tr key={row.engine}>
                   <th scope="row">
-                    {row.engine === "local" ? "On-device" : "Cloud"}
+                    {row.engine === "local" ? "On-device" : "Previous version"}
                   </th>
                   <td>{row.sessions.toLocaleString()}</td>
                   <td>{row.share === null ? "—" : `${row.share}%`}</td>

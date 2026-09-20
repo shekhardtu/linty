@@ -1569,11 +1569,6 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/mime/0.3.17/source/LICENSE-MIT
   License text: 8b87502eddb2d7fa23d54ed2caf5681ab5fbbdc8eb553e8ade710240842f9097
 
-Cargo: mime_guess 2.0.5
-Declared license: MIT
-  Source: https://docs.rs/crate/mime_guess/2.0.5/source/LICENSE
-  License text: 14373973f98d640ebefcf8161adb9363188fedc7695bdc5604003b17288c4e1f
-
 Cargo: minimal-lexical 0.2.1
 Declared license: MIT/Apache-2.0
   Source: https://docs.rs/crate/minimal-lexical/0.2.1/source/LICENSE-APACHE
@@ -3242,13 +3237,6 @@ Declared license: MIT/Apache-2.0
   License text: 143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4
   Source: https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-MIT
   License text: 23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3
-
-Cargo: unicase 2.9.0
-Declared license: MIT OR Apache-2.0
-  Source: https://docs.rs/crate/unicase/2.9.0/source/LICENSE-APACHE
-  License text: 143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4
-  Source: https://docs.rs/crate/unicase/2.9.0/source/LICENSE-MIT
-  License text: 2d01890414494742ba4a509fcec8efa40f6d8be22cbd72be7cff08d6fda4ec89
 
 Cargo: unicode-ident 1.0.24
 Declared license: (MIT OR Apache-2.0) AND Unicode-3.0
@@ -5253,29 +5241,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-=== License text SHA-256: 14373973f98d640ebefcf8161adb9363188fedc7695bdc5604003b17288c4e1f ===
-The MIT License (MIT)
-
-Copyright (c) 2015 Austin Bonander
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 
 === License text SHA-256: 15a3f724ebf7b20fb1b34a9a46510e806d7707f110cc6e9db936e71643626a1a ===
 Copyright (c) 2017 Sean McArthur
@@ -7354,27 +7319,6 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
   This Source Code Form is "Incompatible With Secondary Licenses", as
   defined by the Mozilla Public License, v. 2.0.
-
-=== License text SHA-256: 2d01890414494742ba4a509fcec8efa40f6d8be22cbd72be7cff08d6fda4ec89 ===
-Copyright (c) 2014-2026 Sean McArthur
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
 
 === License text SHA-256: 2efd6a447c8c5d5f27b34282a9b2bfa999b2c56b450cb25e336553da6eb0d1cd ===
 Apache License

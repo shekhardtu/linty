@@ -27,10 +27,8 @@ struct TrayLanguage {
 #[serde(rename_all = "camelCase")]
 struct TrayState {
     status: String,
-    stt_mode: String,
     local_engine: Option<String>,
     local_ready: bool,
-    cloud_ready: bool,
     setup_complete: bool,
     trigger_label: String,
     recent_transcripts: Vec<TrayTranscript>,
@@ -179,14 +177,6 @@ fn build_menu(app: &tauri::AppHandle, state: &TrayState) -> Result<Menu<tauri::W
             None => input.default_device.is_some(),
         };
     let ready = state.setup_complete && input_available && !busy(state) && state.status != "error";
-    let engine_label = |label: String, selected: bool, configured: bool| {
-        if selected && configured && ready {
-            format!("{label} 🟢")
-        } else {
-            label
-        }
-    };
-    let local_selected = state.stt_mode == "local";
     let activity = MenuItem::with_id(
         app,
         "tray-activity",
@@ -194,32 +184,15 @@ fn build_menu(app: &tauri::AppHandle, state: &TrayState) -> Result<Menu<tauri::W
         false,
         None::<&str>,
     )?;
-    let local = CheckMenuItem::with_id(
+    let local = MenuItem::with_id(
         app,
-        "tray-engine-local",
-        engine_label(
-            local_engine_label(state.local_engine.as_deref()),
-            local_selected,
-            state.local_ready,
-        ),
-        !busy(state),
-        local_selected,
-        None::<&str>,
-    )?;
-    let cloud = CheckMenuItem::with_id(
-        app,
-        "tray-engine-cloud",
-        engine_label(
-            if state.cloud_ready {
-                "Groq · Cloud".into()
-            } else {
-                "Groq · Cloud (API key required)".into()
-            },
-            !local_selected,
-            state.cloud_ready,
-        ),
-        !busy(state) && state.cloud_ready,
-        !local_selected,
+        "tray-speech-status",
+        if ready && state.local_ready {
+            "On-device · Ready"
+        } else {
+            "On-device"
+        },
+        false,
         None::<&str>,
     )?;
     let microphone = microphone_menu(app, state.status == "recording")?;
@@ -299,7 +272,6 @@ fn build_menu(app: &tauri::AppHandle, state: &TrayState) -> Result<Menu<tauri::W
         &[
             &activity,
             &local,
-            &cloud,
             &microphone,
             &language_menu,
             &PredefinedMenuItem::separator(app)?,
@@ -323,11 +295,7 @@ fn refresh_menu(app: &tauri::AppHandle) {
             }
             Err(error) => log::warn!("[tray] Could not refresh menu: {error}"),
         }
-        let engine = if state.stt_mode == "local" {
-            local_engine_label(state.local_engine.as_deref())
-        } else {
-            "Groq · Cloud".into()
-        };
+        let engine = local_engine_label(state.local_engine.as_deref());
         let _ = tray.set_tooltip(Some(format!(
             "Linty — {} · {engine}",
             activity_label(&state)
@@ -378,10 +346,8 @@ fn copy_transcript(app: &tauri::AppHandle, id: String) {
 pub fn init_tray(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     app.manage(TrayMenuState(Mutex::new(TrayState {
         status: "idle".into(),
-        stt_mode: "local".into(),
         local_engine: None,
         local_ready: false,
-        cloud_ready: false,
         setup_complete: false,
         trigger_label: "fn".into(),
         recent_transcripts: vec![],
@@ -400,18 +366,6 @@ pub fn init_tray(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>>
             if !busy(&snapshot(app)) {
                 app.exit(0);
             }
-        }
-        "tray-engine-local" | "tray-engine-cloud" => {
-            let state = snapshot(app);
-            if !busy(&state) && (event.id.as_ref() != "tray-engine-cloud" || state.cloud_ready) {
-                let mode = if event.id.as_ref() == "tray-engine-local" {
-                    "local"
-                } else {
-                    "cloud"
-                };
-                let _ = app.emit_to("main", "tray-engine-changed", mode);
-            }
-            refresh_menu(app);
         }
         "tray-microphone-default" => select_microphone(app, None),
         "tray-copy-latest" => {
@@ -462,7 +416,6 @@ pub fn init_tray(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>>
         crate::audio_input::CHANGED,
         "recording-started",
         "recording-stopped",
-        "tray-engine-result",
         "tray-language-result",
     ] {
         let handle = app.handle().clone();
