@@ -104,10 +104,10 @@ export const SETTINGS_SECTIONS = [
   {
     id: "general",
     label: "Dictation",
-    description: "Keep your words as spoken, or tidy them automatically.",
+    description: "Choose your spoken languages and how your words are cleaned up.",
     icon: Sparkles,
     keywords:
-      "refine transcription grammar punctuation correction instructions clipboard paste output reformat s1 mini Superwhisper local cleanup lists",
+      "languages auto-detect spoken multilingual refine transcription grammar punctuation correction instructions clipboard paste output reformat s1 mini Superwhisper local cleanup lists",
   },
   {
     id: "audio",

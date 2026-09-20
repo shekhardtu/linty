@@ -1,5 +1,10 @@
 import type { ReformatContext, ReformatMetrics, ReformatOptions, ReformatStyle } from "../types/reformat.types.ts";
 
+/** Auto-detect still requires confidently English text in the native engine. */
+export function supportsLocalCleanup(language: string): boolean {
+  return language === "en" || language === "auto";
+}
+
 export function reformatOptions(style: ReformatStyle, lists: boolean, context: ReformatContext, bundleId?: string | null): ReformatOptions {
   const mailApp = ["com.apple.mail", "com.microsoft.Outlook", "com.readdle.smartemail-Mac"].includes(bundleId ?? "");
   return { styling: style, structure: lists ? "lists" : "prose", context: context === "email" || (context === "auto" && mailApp) ? "email" : "general" };

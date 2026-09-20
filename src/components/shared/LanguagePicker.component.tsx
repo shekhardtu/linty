@@ -5,12 +5,14 @@ import { cn } from "@/lib/utils";
 
 const languages = TRANSCRIPTION_LANGUAGES.map((language) => ({ ...language, native: nativeLanguageLabel(language.code) }));
 
-export function LanguagePicker({ value, onChange, disabled = false, label = "Transcription language", className }: {
+export function LanguagePicker({ value, onChange, disabled = false, label = "Transcription language", className, exclude = [], placeholder }: {
   value: string;
   onChange: (language: string) => void;
   disabled?: boolean;
   label?: string;
   className?: string;
+  exclude?: readonly string[];
+  placeholder?: string;
 }) {
   const id = useId();
   const trigger = useRef<HTMLButtonElement>(null);
@@ -20,7 +22,7 @@ export function LanguagePicker({ value, onChange, disabled = false, label = "Tra
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(value);
   const [position, setPosition] = useState({ left: 0, top: 0, width: 320, maxHeight: 360 });
-  const filtered = languages.filter(({ code, label, native }) => `${label} ${native} ${code}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+  const filtered = languages.filter(({ code, label, native }) => !exclude.includes(code) && `${label} ${native} ${code}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
   const activeCode = filtered.some((language) => language.code === active) ? active : filtered[0]?.code;
   const close = (restore = true) => {
     popup.current?.hidePopover();
@@ -78,7 +80,7 @@ export function LanguagePicker({ value, onChange, disabled = false, label = "Tra
       onKeyDown={(event) => {
         if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) { event.preventDefault(); show(); }
       }}>
-      <span>{languageLabel(value)}</span><ChevronDown size={14} aria-hidden="true" />
+      <span>{value ? languageLabel(value) : placeholder ?? "Choose a language"}</span><ChevronDown size={14} aria-hidden="true" />
     </button>
     <div ref={popup} id={`${id}-popup`} popover="auto" role="dialog" aria-label="Choose a language" className="language-picker-popup" style={position}
       onToggle={(event) => { if (event.newState === "closed") setOpen(false); }}

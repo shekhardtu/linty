@@ -2,6 +2,7 @@
  * Native names are bundled from ICU so browser locale coverage cannot hide them. */
 export const AUTO_LANGUAGE = "auto";
 export const DEFAULT_TRANSCRIPTION_LANGUAGE = "en";
+export const MAX_AUTO_DETECT_LANGUAGES = 3;
 export const PARAKEET_MODEL = "parakeet-tdt-0.6b-v3";
 export const WHISPER_MODEL = "ggml-large-v3-turbo-q5_0.bin";
 
@@ -116,6 +117,19 @@ export const TRANSCRIPTION_LANGUAGES: { code: string; label: string; nativeLabel
 
 export function isSupportedLanguage(code: string | null | undefined): boolean {
   return TRANSCRIPTION_LANGUAGES.some((language) => language.code === code);
+}
+
+/** Validate persisted choices without letting unknown codes reach the decoder. */
+export function normalizeAutoDetectLanguages(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.filter((code): code is string =>
+    typeof code === "string" && code !== AUTO_LANGUAGE && isSupportedLanguage(code),
+  ))].slice(0, MAX_AUTO_DETECT_LANGUAGES);
+}
+
+export function validAutoDetectLanguages(value: readonly string[]): boolean {
+  return value.length >= 1 && value.length <= MAX_AUTO_DETECT_LANGUAGES &&
+    new Set(value).size === value.length && value.every(code => code !== AUTO_LANGUAGE && isSupportedLanguage(code));
 }
 
 export function languageLabel(code: string): string {

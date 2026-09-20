@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "@/store/app.store";
 import { initializeDictionary } from "@/services/dictionary.service";
+import { supportsLocalCleanup } from "@/lib/reformat.util";
 
 type Readiness = "idle" | "preparing" | "ready" | "error";
 let readiness: Readiness = "idle";
@@ -26,8 +27,9 @@ function requestedPreparation() {
   if (!state.settingsLoaded) throw new Error("Settings are still loading. Please try again.");
   return {
     filename: state.loadedModelFilename ?? state.selectedModelFilename,
+    language: state.transcriptionLanguage,
     vocabulary: state.dictionaryEnabled && state.dictionaryEntries.some((entry) => entry.enabled),
-    cleanupRequired: state.reformatEnabled,
+    cleanupRequired: state.reformatEnabled && supportsLocalCleanup(state.transcriptionLanguage),
   };
 }
 
@@ -58,6 +60,7 @@ export async function prepareDictation() {
 /** Installation is the user's opt-in to keeping S1 prepared. Never download
  * or enable autocorrection here. The native engine coalesces actual warm-up. */
 export async function prepareInstalledCleanup() {
+  if (!supportsLocalCleanup(useAppStore.getState().transcriptionLanguage)) return;
   const status = await invoke<{ downloaded: boolean }>("s1_model_status");
-  if (status.downloaded) await invoke("prepare_s1_model");
+  if (status.downloaded && supportsLocalCleanup(useAppStore.getState().transcriptionLanguage)) await invoke("prepare_s1_model");
 }

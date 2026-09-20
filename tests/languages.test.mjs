@@ -1,8 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { AUTO_LANGUAGE, TRANSCRIPTION_LANGUAGES, PARAKEET_LANGUAGES, PARAKEET_MODEL, WHISPER_MODEL, isSupportedLanguage, languageLabel, nativeLanguageLabel, modelForLanguage, modelSupportsLanguage } from "../src/lib/languages.util.ts";
+import { AUTO_LANGUAGE, TRANSCRIPTION_LANGUAGES, PARAKEET_LANGUAGES, PARAKEET_MODEL, WHISPER_MODEL, isSupportedLanguage, languageLabel, nativeLanguageLabel, modelForLanguage, modelSupportsLanguage, normalizeAutoDetectLanguages, validAutoDetectLanguages } from "../src/lib/languages.util.ts";
 
 const catalog = [{ filename: PARAKEET_MODEL }, { filename: WHISPER_MODEL }];
+test("frequent languages require one to three supported, distinct choices", () => {
+  for (const value of [["en"], ["en", "hi"], ["en", "hi", "ta"]]) assert.equal(validAutoDetectLanguages(value), true);
+  for (const value of [[], ["auto"], ["xx"], ["hi", "hi"], ["en", "hi", "ta", "ur"]]) assert.equal(validAutoDetectLanguages(value), false);
+  assert.deepEqual(normalizeAutoDetectLanguages(["auto", "hi", "hi", 2, "xx", "en", "ta", "ur"]), ["hi", "en", "ta"]);
+  for (const missing of [null, undefined, "en"]) assert.deepEqual(normalizeAutoDetectLanguages(missing), []);
+});
 test("every selectable language has compatible speech support", () => {
   const codes = TRANSCRIPTION_LANGUAGES.map(({ code }) => code);
   assert.equal(new Set(codes).size, codes.length);

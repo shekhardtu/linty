@@ -8,6 +8,7 @@ import { Toggle } from "@/components/shared/Toggle.component";
 import { Select } from "@/components/shared/Select.component";
 import { SectionCard, SettingRow } from "@/components/shared/SettingsLayout.component";
 import { languageLabel } from "@/lib/languages.util";
+import { supportsLocalCleanup } from "@/lib/reformat.util";
 import type { CleanupMode, ReformatContext, ReformatStyle } from "@/types/reformat.types";
 
 interface ModelStatus { downloaded: boolean; downloading: boolean; progress: number }
@@ -34,8 +35,11 @@ export function Reformatting() {
   const [error, setError] = useState<string | null>(null);
   const busy = useAppStore((s) => s.isRecording || ["preparing", "transcribing", "correcting", "pasting"].includes(s.status));
   const activeMode: CleanupMode = reformatEnabled ? "local" : "off";
-  const selectedMode = pendingLocal ? "local" : activeMode;
   const disabled = saving || busy || downloading;
+  const localSupported = supportsLocalCleanup(transcriptionLanguage);
+  const showSetup = pendingLocal && localSupported;
+  const selectedMode = showSetup ? "local" : activeMode;
+  const localPaused = activeMode === "local" && !localSupported;
 
   useEffect(() => { if (reformatEnabled) setPendingLocal(false); }, [reformatEnabled]);
   const refresh = useCallback(async () => {
@@ -101,14 +105,14 @@ export function Reformatting() {
           <Select<CleanupMode> label="Text cleanup" value={selectedMode} disabled={disabled}
             onChange={(mode) => void choose(mode)} options={[
               { value: "off", label: "Keep as spoken" },
-              { value: "local", label: "Clean up on this Mac" },
+              { value: "local", label: localPaused ? "Clean up on this Mac (paused)" : "Clean up on this Mac", disabled: !localSupported },
             ]} />
         } />
-        {activeMode === "local" && !pendingLocal && <p className="cleanup-caption">S1-mini by Superwhisper</p>}
+        {activeMode === "local" && !showSetup && <p className="cleanup-caption">S1-mini by Superwhisper</p>}
         {preparing && <p className="cleanup-caption flex items-center gap-2" role="status">
           <Loader2 size={14} className="animate-spin" /> Preparing on-device cleanup…
         </p>}
-        {pendingLocal && !preparing && <div className="cleanup-setup">
+        {showSetup && !preparing && <div className="cleanup-setup">
           <p>Download S1-mini by Superwhisper to use on-device cleanup. About 496 MB, once.</p>
           <p className="cleanup-caption">Your current dictation stays unchanged until setup is complete.</p>
           <div className="cleanup-setup-actions">
@@ -123,11 +127,13 @@ export function Reformatting() {
       </SectionCard>
 
       {error && <p className="cleanup-error" role="alert">{error}</p>}
-      {activeMode === "local" && !pendingLocal && transcriptionLanguage !== "en" && transcriptionLanguage !== "auto" && (
-        <p className="cleanup-caption">S1-mini supports English. Your {languageLabel(transcriptionLanguage)} dictations will stay as spoken.</p>
+      {!localSupported && (
+        <p className="cleanup-caption" role="status">{localPaused
+          ? `On-device cleanup is paused for ${languageLabel(transcriptionLanguage)}. Your transcript stays as spoken. Cleanup resumes when you select English.`
+          : "On-device cleanup supports English only. Select English or Auto-detect to use it."}</p>
       )}
 
-      {activeMode !== "off" && !pendingLocal && <details className="cleanup-options" key={activeMode}>
+      {activeMode !== "off" && !showSetup && !localPaused && <details className="cleanup-options" key={activeMode}>
         <summary>Customize cleanup <ChevronDown size={14} /></summary>
         <div className="cleanup-options-content">
             <SettingRow label="Writing style" right={<Select<ReformatStyle> label="Reformatting writing style" value={reformatStyle} disabled={disabled} onChange={(style) => void saveOption("reformatStyle", style)} options={[

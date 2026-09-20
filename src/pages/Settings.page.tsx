@@ -1,5 +1,5 @@
 import { Select } from "@/components/shared/Select.component";
-import { useState, useEffect, useSyncExternalStore } from "react";
+import { useState, useEffect } from "react";
 import {
   Languages,
   Mic,
@@ -33,9 +33,7 @@ import { ThemePreview } from "@/components/settings/ThemePreview.component";
 import { BrandMark } from "@/components/shared/BrandMark.component";
 import { HistoryStorage } from "@/components/settings/HistoryStorage.component";
 import { AudioStorage } from "@/components/settings/AudioStorage.component";
-import { LanguagePicker } from "@/components/shared/LanguagePicker.component";
-import { LanguageReadiness } from "@/components/settings/LanguageReadiness.component";
-import { languagePreparation } from "@/services/language-preparation.service";
+import { DictationLanguages } from "@/components/settings/DictationLanguages.component";
 import { modelLabel } from "@/lib/model-labels.util";
 import { Reformatting } from "@/components/settings/Reformatting.component";
 import type { ThemePreference } from "@/store/slices/settings.slice";
@@ -79,7 +77,7 @@ export function SettingsPage() {
       <div className="settings-pane">
         {(visited.has("general") || section === "general") && (
           <div hidden={section !== "general"}>
-            <GeneralSection />
+            <GeneralSection showLanguages={section === "general"} />
           </div>
         )}
         {(visited.has("audio") || section === "audio") && (
@@ -108,9 +106,10 @@ export function SettingsPage() {
 }
 
 /* ═══ General ═══ */
-function GeneralSection() {
+function GeneralSection({ showLanguages }: { showLanguages: boolean }) {
   const { modelIdleUnloadMinutes, saveModelIdleUnloadMinutes } = useSettings();
   return <div className="settings-section">
+    {showLanguages && <DictationLanguages />}
     <Reformatting />
     <SectionCard>
       <SettingRow label="Free memory when idle" description="Releases speech and cleanup models after inactivity. They prepare automatically when needed."
@@ -162,13 +161,12 @@ function AudioSection() {
 /* ═══ Language ═══ */
 
 function LanguageSection() {
-  const { transcriptionLanguage, saveTranscriptionLanguage } = useSettings();
-  const preparation = useSyncExternalStore(languagePreparation.subscribe, languagePreparation.getSnapshot);
+  const active = useAppStore(state => state.settingsSection === "language");
+  const { transcriptionLanguage, autoDetectLanguages } = useSettings();
   const loadedModel = useAppStore((state) => state.loadedModelFilename);
   const setCurrentView = useAppStore((state) => state.setCurrentView);
   const dictating = useAppStore((state) => state.isRecording || ["preparing", "recording", "transcribing", "correcting", "pasting"].includes(state.status));
   const ready = modelSupportsLanguage(loadedModel, transcriptionLanguage);
-  const choice = preparation.language ?? transcriptionLanguage;
 
   return <div className="settings-section language-settings">
     <SectionHeader title="Language" />
@@ -177,22 +175,10 @@ function LanguageSection() {
       <div>
         <span className="eyebrow">YOUR DICTATION LANGUAGE</span>
         <h3>{languageLabel(transcriptionLanguage)}{transcriptionLanguage !== AUTO_LANGUAGE && nativeLanguageLabel(transcriptionLanguage).toLowerCase() !== languageLabel(transcriptionLanguage).toLowerCase() && <span className="language-native" lang={transcriptionLanguage}>{nativeLanguageLabel(transcriptionLanguage)}</span>}</h3>
-        <p>{transcriptionLanguage === AUTO_LANGUAGE ? "Speak naturally. Linty recognizes the language you use." : "Your voice, in your own words."}</p>
+        <p>{transcriptionLanguage === AUTO_LANGUAGE ? autoDetectLanguages.length ? `Auto-detect chooses from ${autoDetectLanguages.map(languageLabel).join(", ")}.` : "Choose up to three frequently spoken languages for Auto-detect." : "Your voice, in your own words."}</p>
       </div>
     </div>
-    <SectionCard>
-      <div className="language-choice-row">
-        <div>
-          <label className="field-label">Spoken language</label>
-          <p>Choose the language you usually dictate in. Linty takes care of speech support.</p>
-        </div>
-        <LanguagePicker value={choice} disabled={dictating} onChange={(language) => {
-          void saveTranscriptionLanguage(language).catch(() => {});
-        }} />
-      </div>
-      <p className="preferences-footnote">{dictating ? "Finish dictating before changing language." : "App menus stay in English. This preference controls speech recognition, not translation."}</p>
-    </SectionCard>
-    <LanguageReadiness />
+    {active && <DictationLanguages />}
     <div className="language-notes">
       <div><h4>One language or auto-detect</h4><p>Choose a language for a more focused transcription, or use Auto-detect when you switch between languages. Accuracy varies by language and recording.</p></div>
       <div><h4>Prepared once, ready again</h4><p>Many languages share the same speech support. Downloads are reused when you change languages or return to an earlier choice.</p></div>

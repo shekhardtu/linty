@@ -15,9 +15,10 @@ transcription. Recording opens the microphone without waiting for model loading.
 - Parakeet vocabulary: installed CTC models run keyword-spotter inference on
   synthetic audio before becoming ready. Enabled dictionary words cause missing
   CTC assets to prepare before transcription. No user transcript is needed to warm CTC.
-- S1-mini: any installed copy is prepared, even when correction is disabled,
+- S1-mini: for English or Auto-detect, any installed copy is prepared, even when correction is disabled,
   as requested. Prefill and two decode passes finish, GPU work synchronizes,
-  and the synthetic KV cache is cleared. This never downloads or enables S1.
+  and the synthetic KV cache is cleared. Explicit non-English languages skip S1
+  preparation and cleanup. This never downloads or enables S1.
 
 The speech engine is published only after its own preparation finishes. The
 `prepare_dictation` command then checks the linked vocabulary and installed S1
@@ -26,7 +27,7 @@ later calls do not repeat inference on already prepared instances.
 
 ## Lifecycle and interaction
 
-Fresh onboarding starts the selected speech download on the welcome screen.
+Fresh onboarding starts the selected speech download after the language choice is confirmed.
 After download, the loading command awaits preparation before the screen says
 “Ready for offline dictation.” Installed S1 is included in that readiness check.
 
@@ -52,6 +53,28 @@ reload. Active preparation and refreshed use timestamps protect freshly warmed
 instances from the idle watchdog.
 
 ## Costs and limits
+
+Auto-detect requires one to three saved spoken languages. Onboarding and
+Settings → Dictation show this shortlist only when Auto-detect is selected;
+an explicit language bypasses automatic language selection. Existing users with
+Auto-detect and no saved shortlist must choose their languages before recording.
+Each native session captures the list at start, so edits affect later recordings.
+The limit is enforced in both the interface and the native capture command.
+
+Whisper's language probabilities select the highest-scoring allowed language.
+With one candidate, detection is skipped. With two or three, this replaces
+Whisper's unrestricted detection pass; transcription receives an explicit code
+and does not run language detection again. The wrapper recomputes the mel
+features for transcription, but does not add another language-detection encoder
+pass. Location, IP address, and time zone are not used to guess spoken languages.
+
+A local replay of ten recent recordings with English/Hindi selected corrected
+two Urdu-script outputs to Hindi and preserved all four English recordings.
+One short Hindi recording still produced English. In separate warm runs on the
+maintainer Mac, median Auto-detect time was 2.20 seconds unrestricted and
+2.23 seconds with the shortlist. These single runs are not a latency guarantee
+or a general accuracy benchmark. No private audio or transcript text is committed.
+Short, noisy, or distorted recordings can still be recognized incorrectly.
 
 Preparation overlaps computation with capture; it does not remove that work.
 A short recording after idle can still wait for loading/compilation after stop.

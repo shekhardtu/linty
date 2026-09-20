@@ -15,7 +15,9 @@ import { formatTriggerLabel } from "@/lib/trigger.util";
 import { FnKeyConflictWarning } from "@/components/shared/FnKeyConflictWarning.component";
 import { TriggerKeyPicker } from "@/components/shared/TriggerKeyPicker.component";
 import { cn } from "@/lib/utils";
+import { FrequentLanguages } from "@/components/shared/FrequentLanguages.component";
 import { LanguagePicker } from "@/components/shared/LanguagePicker.component";
+import { AUTO_LANGUAGE, validAutoDetectLanguages } from "@/lib/languages.util";
 import { LanguageReadiness } from "@/components/settings/LanguageReadiness.component";
 import { languagePreparation } from "@/services/language-preparation.service";
 
@@ -23,7 +25,7 @@ type Step = "welcome" | "language" | "microphone" | "accessibility" | "trigger" 
 
 const STEP_LABELS: Record<Step, string> = {
   welcome: "Welcome",
-  language: "Dictation language",
+  language: "Spoken languages",
   microphone: "Microphone",
   accessibility: "Accessibility",
   trigger: "Trigger key",
@@ -81,7 +83,7 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
       <p className="text-[14px] text-text-secondary leading-relaxed mb-8">
         Voice-to-text that works anywhere on your Mac.
         <br />
-        Choose your dictation language, then grant a couple of permissions.
+        Choose the languages you speak most, then grant a couple of permissions.
         <br />
         Speech support for your language downloads in the background during setup.
       </p>
@@ -105,8 +107,10 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
 /* ── Dictation Language Step ── */
 
 function LanguageStep({ onNext }: { onNext: () => void }) {
-  const { transcriptionLanguage, saveTranscriptionLanguage } = useSettings();
+  const { transcriptionLanguage, autoDetectLanguages, saveTranscriptionLanguage, saveAutoDetectLanguages } = useSettings();
   const [language, setLanguage] = useState(transcriptionLanguage);
+  const [languages, setLanguages] = useState(() => autoDetectLanguages.length ? autoDetectLanguages
+    : transcriptionLanguage === AUTO_LANGUAGE ? [] : [transcriptionLanguage]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const savingRef = useRef(false);
@@ -117,10 +121,11 @@ function LanguageStep({ onNext }: { onNext: () => void }) {
     setSaving(true);
     setError("");
     try {
+      if (language === AUTO_LANGUAGE) await saveAutoDetectLanguages(languages);
       await saveTranscriptionLanguage(language);
       onNext();
     } catch (error) {
-      setError(`Could not save your dictation language. ${error instanceof Error ? error.message : String(error)}`);
+      setError(`Could not save your spoken languages. ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       savingRef.current = false;
       setSaving(false);
@@ -136,24 +141,23 @@ function LanguageStep({ onNext }: { onNext: () => void }) {
         Choose your dictation language
       </h1>
       <p className="text-[14px] text-text-secondary leading-relaxed mb-6">
-        Choose the language you usually speak, or use auto-detect.
+        Select the language you speak most, or choose Auto-detect.
         <br />
         You can change it anytime in Settings → Language.
       </p>
-      <LanguagePicker
-        label="Dictation language"
-        value={language}
-        onChange={value => { setLanguage(value); setError(""); }}
-        disabled={saving}
-        className="w-full max-w-[340px]"
-      />
+      <LanguagePicker label="Dictation language" value={language} disabled={saving}
+        onChange={value => { setLanguage(value); setError(""); }} className="w-full max-w-[340px]" />
+      {language === AUTO_LANGUAGE && <div className="mt-4 w-full max-w-[440px] text-left">
+        <p className="text-[13px] text-text-secondary mb-3">Which languages do you speak most? Choose up to three. Auto-detect will try to identify the language of each recording using only these languages.</p>
+        <FrequentLanguages value={languages} onChange={value => { setLanguages(value); setError(""); }} disabled={saving} />
+      </div>}
       <p className="text-[12px] text-text-muted mt-3 mb-6">
-        This sets your spoken language. App menus stay in English.
+        App menus stay in English.
       </p>
       {error && <p role="alert" className="text-[13px] text-error max-w-[380px] mb-4">{error}</p>}
       <button
         onClick={() => { void continueSetup(); }}
-        disabled={saving}
+        disabled={saving || language === AUTO_LANGUAGE && !validAutoDetectLanguages(languages)}
         className={cn(
           "flex items-center gap-2 rounded-xl px-6 py-2.5 text-[14px] font-semibold",
           "bg-accent text-white hover:bg-accent-soft active:scale-[0.97]",

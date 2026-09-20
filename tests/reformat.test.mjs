@@ -1,6 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { initialReformatMetrics, reformatOptions, reformatApplied } from "../src/lib/reformat.util.ts";
+import { initialReformatMetrics, reformatOptions, reformatApplied, supportsLocalCleanup } from "../src/lib/reformat.util.ts";
+
+test("local cleanup supports English and guarded auto-detection only", () => {
+  assert.equal(supportsLocalCleanup("en"), true);
+  assert.equal(supportsLocalCleanup("auto"), true);
+  for (const language of ["hi", "es", "fr", "ar", "zh", "", "unknown"]) {
+    assert.equal(supportsLocalCleanup(language), false, language);
+  }
+});
 
 test("context uses known mail apps only, with explicit overrides and privacy fallback", () => {
   assert.equal(reformatOptions("semi-formal", true, "auto", "com.apple.mail").context, "email");

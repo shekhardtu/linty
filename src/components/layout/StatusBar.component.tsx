@@ -3,23 +3,25 @@ import { AlertCircle, AudioLines, Check, Cpu, HardDrive, Loader2 } from "lucide-
 import { useAppStore } from "@/store/app.store";
 import { settingsSaveFeedback } from "@/lib/settings-save-feedback";
 import { dictationPreparation } from "@/services/dictation-preparation.service";
-import { modelSupportsLanguage } from "@/lib/languages.util";
+import { AUTO_LANGUAGE, modelSupportsLanguage, validAutoDetectLanguages } from "@/lib/languages.util";
 
 export function StatusBar() {
-  const { status, isRecording, error, loadedModelFilename, transcriptionLanguage, setSettingsSection } = useAppStore();
+  const { status, isRecording, error, loadedModelFilename, transcriptionLanguage, autoDetectLanguages, setSettingsSection } = useAppStore();
   const saveStatus = useSyncExternalStore(settingsSaveFeedback.subscribe, settingsSaveFeedback.getSnapshot);
   const preparation = useSyncExternalStore(dictationPreparation.subscribe, dictationPreparation.getSnapshot);
   const saveLabel = saveStatus === "saving" ? "Saving changes…" : saveStatus === "saved" ? "Changes saved locally" : saveStatus === "error" ? "Couldn't save changes. Try again." : "Changes are saved locally";
   const recording = isRecording || status === "recording";
   const preparing = status === "preparing" || preparation === "preparing";
   const busy = preparing || ["transcribing", "correcting", "pasting"].includes(status);
-  const ready = preparation === "ready" && modelSupportsLanguage(loadedModelFilename, transcriptionLanguage);
+  const needsLanguages = transcriptionLanguage === AUTO_LANGUAGE && !validAutoDetectLanguages(autoDetectLanguages);
+  const ready = !needsLanguages && preparation === "ready" && modelSupportsLanguage(loadedModelFilename, transcriptionLanguage);
   const engineState = recording ? "recording" : busy ? "processing" : status === "error" || !ready ? "unavailable" : "ready";
   const engine = "On-device";
   const labels: Record<string, string> = { transcribing: "Transcribing", correcting: "Refining text", pasting: "Pasting" };
   const activity = recording ? "Recording" : preparing ? "Preparing" : busy ? labels[status] : status === "error" ? "Error" : !ready ? "Not ready" : "Ready";
   const detail = status === "error" ? error || "Transcription failed"
     : preparation === "error" ? "Preparation failed. Try dictating again."
+    : needsLanguages ? "Choose one to three languages in Dictation settings"
     : !ready && !recording && !busy ? loadedModelFilename ? "Dictation will prepare while you speak" : "Prepare dictation in Language settings"
     : activity;
   return (

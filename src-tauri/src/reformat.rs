@@ -614,6 +614,11 @@ pub fn cancel_reformatting(state: tauri::State<'_, ReformatState>) {
     state.cancel();
 }
 
+/// Auto-detect is eligible only after the text passes the English confidence check.
+pub(crate) fn supports_language(language: &str) -> bool {
+    matches!(language, "en" | "auto")
+}
+
 pub fn run(
     engine: &mut Option<Engine>,
     dir: &Path,
@@ -632,7 +637,7 @@ pub fn run(
             metrics.reason = Some("empty_input".into());
             return Ok(None);
         }
-        if language != "auto" && language != "en" {
+        if !supports_language(language) {
             metrics.reason = Some("unsupported_language".into());
             return Ok(None);
         }
@@ -770,6 +775,29 @@ mod tests {
             "[Styling: semi-formal] [Structure: lists] [Context: general]\nBuy apples.<|im_end|>"
         ));
         assert!(rendered.ends_with("<|im_start|>assistant\n<think>\n\n</think>\n\n"));
+    }
+    #[test]
+    fn hindi_is_skipped_even_when_the_recognizer_returns_latin_text() {
+        for text in [
+            "आप क्या कर रहे हो?",
+            "Aap kya kar rahe ho?",
+            "Unexpected Latin output",
+        ] {
+            let mut engine = None;
+            let out = run(
+                &mut engine,
+                Path::new("/nonexistent"),
+                text,
+                "hi",
+                options(),
+                || false,
+            );
+            assert_eq!(out.text, text);
+            assert_eq!(out.metrics.status, "skipped");
+            assert_eq!(out.metrics.reason.as_deref(), Some("unsupported_language"));
+            assert_eq!(out.metrics.generated_tokens, 0);
+            assert!(engine.is_none());
+        }
     }
     #[test]
     fn unsupported_language_and_missing_model_preserve_all_text() {

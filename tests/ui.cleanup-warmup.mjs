@@ -92,6 +92,15 @@ try {
   await page.waitForFunction(()=>window.__QA__.warmups.length===3);
   await page.evaluate(()=>window.__QA__.warmups[2].resolve());
   await page.waitForFunction(()=>window.__QA__.stores[1].reformatEnabled===true);
+  // A non-English choice pauses cleanup without forgetting the English preference.
+  await store.evaluate(s=>s.setState({transcriptionLanguage:'hi',loadedModelFilename:'ggml-large-v3-turbo-q5_0.bin'}));
+  await page.getByRole('combobox',{name:'Text cleanup',exact:true}).filter({hasText:'(paused)'}).waitFor();
+  await page.getByRole('status').filter({hasText:'On-device cleanup is paused for Hindi'}).waitFor();
+  assert.equal(await store.evaluate(s=>s.getState().reformatEnabled),true);
+  await page.waitForFunction(()=>window.__QA__.preparations.some(args=>args.language==='hi'&&args.cleanupRequired===false));
+  await store.evaluate(s=>s.setState({transcriptionLanguage:'en'}));
+  await page.waitForFunction(()=>window.__QA__.preparations.at(-1)?.language==='en'&&window.__QA__.preparations.at(-1)?.cleanupRequired===true);
+  assert.equal(await page.getByRole('combobox',{name:'Text cleanup',exact:true}).textContent(),'Clean up on this Mac');
   await choose('Keep as spoken');await page.waitForFunction(()=>window.__QA__.stores[1].reformatEnabled===false);
   assert.equal(await page.evaluate(()=>window.__QA__.calls.includes('unload_s1_model')),false);
   assert.deepEqual(errors,[]);

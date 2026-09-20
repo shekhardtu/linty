@@ -56,6 +56,7 @@ impl Backend for NativeBackend {
             self.app.state(),
             prompt,
             language,
+            options.auto_detect_languages.clone(),
             Some(options.vocabulary.clone()),
             options.filename.clone(),
         )
