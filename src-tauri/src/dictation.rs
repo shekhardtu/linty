@@ -265,25 +265,28 @@ pub async fn dictation_result(app: tauri::AppHandle, generation: u64) -> Result<
         notified.await;
     }
 }
+fn delivery_feedback(outcome: &Outcome) -> (&'static str, Option<String>) {
+    match outcome
+        .record
+        .as_ref()
+        .and_then(|r| r["deliveryStatus"].as_str())
+    {
+        None | Some("skipped") => ("idle", None),
+        Some("verified") => ("done", None),
+        // Some apps accept paste without exposing readable Accessibility text.
+        // Dismiss quietly; History retains the verification details.
+        Some("unverified" | "pasted") => ("idle", None),
+        Some("failed") => ("error", Some("Paste failed · copy from History".into())),
+        _ => ("error", Some("Text ready · copy from History".into())),
+    }
+}
 fn terminal(app: &tauri::AppHandle, session: &Session, result: &Result<Outcome, String>) {
     if session.check().is_err() {
         return;
     }
     let generation = session.generation.load(Ordering::SeqCst);
     let (state, message) = match result {
-        Ok(outcome) => match outcome
-            .record
-            .as_ref()
-            .and_then(|r| r["deliveryStatus"].as_str())
-        {
-            None | Some("skipped") => ("idle", None),
-            Some("verified") => ("done", None),
-            Some("failed") => ("error", Some("Paste failed · copy from History".into())),
-            _ => (
-                "error",
-                Some("Paste unconfirmed · check destination".into()),
-            ),
-        },
+        Ok(outcome) => delivery_feedback(outcome),
         Err(_) => ("error", Some("Dictation stopped · open Linty".into())),
     };
     #[cfg(target_os = "macos")]
