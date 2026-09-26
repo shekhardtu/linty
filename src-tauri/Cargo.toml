@@ -51,7 +51,7 @@ whatlang = "0.18"
 
 # macOS-only dependencies
 [target.'cfg(target_os = "macos")'.dependencies]
-objc2 = "0.5"          # NSEvent monitoring for fn/globe key
+objc2 = "0.6"          # NSEvent monitoring for fn/globe key
 block2 = "0.5"
 cocoa = "0.27"          # Activation policy (Dock/menu bar)
 objc = "0.2"
