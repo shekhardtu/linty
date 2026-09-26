@@ -37,7 +37,7 @@ base64 = "0.22"          # app icons as data URLs
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
 
 # CPU inference is available on both Mac architectures.
-whisper-rs = { version = "0.15", optional = true }
+whisper-rs = { version = "0.16", optional = true }
 hound = { version = "3.5", optional = true }
 rusqlite = { version = "0.40.2", features = ["bundled", "blob"] }
 tauri-plugin-dialog = "2"
