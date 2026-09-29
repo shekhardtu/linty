@@ -6,11 +6,9 @@
 
 <p align="center">
   <!-- dmg-downloads:start -->
-  <a href="https://github.com/shekhardtu/linty/releases"><img alt="19 DMG downloads across all releases; checked 2026-09-29" src="website/downloads.svg?v=be6640dbac4b" /></a>
+  <a href="https://github.com/shekhardtu/linty/releases"><img alt="19 downloads across all releases; checked 2026-09-29" src="website/downloads.svg?v=65bd1dc2bfd2" /></a>
   <!-- dmg-downloads:end -->
   <a href="https://github.com/shekhardtu/linty/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/shekhardtu/linty?style=flat-square&color=28756f" /></a>
-  <a href="https://github.com/shekhardtu/linty/actions/workflows/checks.yml?query=event%3Apull_request"><img alt="Latest PR checks" src="https://img.shields.io/github/actions/workflow/status/shekhardtu/linty/checks.yml?event=pull_request&style=flat-square&label=PR%20checks" /></a>
-  <a href="docs/runbooks/local-releases.md#release-checks-badge"><img alt="Local release checks for current main" src="https://img.shields.io/github/checks-status/shekhardtu/linty/main?style=flat-square&label=release%20checks" /></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/shekhardtu/linty?style=flat-square&color=28756f" /></a>
   <img alt="macOS 14 or later" src="https://img.shields.io/badge/macOS-14%2B-425c6b?style=flat-square&logo=apple&logoColor=white" />
 </p>

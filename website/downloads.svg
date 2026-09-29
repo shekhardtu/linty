@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="140" height="20" role="img" aria-label="DMG downloads: 19; checked 2026-09-29">
-  <title>DMG downloads: 19; checked 2026-09-29. All published releases, including prereleases. Not unique users.</title>
-  <path fill="#555" d="M0 0h104v20H0z"/>
-  <path fill="#28756f" d="M104 0h36v20H104z"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="114" height="20" role="img" aria-label="Downloads: 19; checked 2026-09-29">
+  <title>Downloads: 19; checked 2026-09-29. DMG installers across all published releases, including prereleases. Not unique users.</title>
+  <path fill="#555" d="M0 0h78v20H0z"/>
+  <path fill="#28756f" d="M78 0h36v20H78z"/>
   <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
-    <text x="52" y="14">DMG downloads</text>
-    <text x="122" y="14">19</text>
+    <text x="39" y="14">Downloads</text>
+    <text x="96" y="14">19</text>
   </g>
 </svg>

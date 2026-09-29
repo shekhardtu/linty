@@ -15,20 +15,21 @@ export function renderDownloadCount(snapshot) {
   const date = snapshot.checkedAt.slice(0, 10);
   const number = snapshot.downloads.toLocaleString('en-US');
   const valueWidth = Math.max(36, number.length * 8 + 14);
-  const width = 104 + valueWidth;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="20" role="img" aria-label="DMG downloads: ${number}; checked ${date}">
-  <title>DMG downloads: ${number}; checked ${date}. All published releases, including prereleases. Not unique users.</title>
-  <path fill="#555" d="M0 0h104v20H0z"/>
-  <path fill="#28756f" d="M104 0h${valueWidth}v20H104z"/>
+  const labelWidth = 78;
+  const width = labelWidth + valueWidth;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="20" role="img" aria-label="Downloads: ${number}; checked ${date}">
+  <title>Downloads: ${number}; checked ${date}. DMG installers across all published releases, including prereleases. Not unique users.</title>
+  <path fill="#555" d="M0 0h${labelWidth}v20H0z"/>
+  <path fill="#28756f" d="M${labelWidth} 0h${valueWidth}v20H${labelWidth}z"/>
   <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
-    <text x="52" y="14">DMG downloads</text>
-    <text x="${104 + valueWidth / 2}" y="14">${number}</text>
+    <text x="${labelWidth / 2}" y="14">Downloads</text>
+    <text x="${labelWidth + valueWidth / 2}" y="14">${number}</text>
   </g>
 </svg>
 `;
   const version = createHash('sha256').update(svg).digest('hex').slice(0, 12);
   const readme = `<!-- dmg-downloads:start -->
-  <a href="https://github.com/shekhardtu/linty/releases"><img alt="${number} DMG downloads across all releases; checked ${date}" src="website/downloads.svg?v=${version}" /></a>
+  <a href="https://github.com/shekhardtu/linty/releases"><img alt="${number} downloads across all releases; checked ${date}" src="website/downloads.svg?v=${version}" /></a>
   <!-- dmg-downloads:end -->`;
   const website = `<!-- dmg-downloads:start -->
           <span data-dmg-download-count> · <a href="https://github.com/shekhardtu/linty/releases" title="Installer downloads across all published releases, including prereleases. Not unique users. Checked ${date}.">${number} downloads</a><time hidden datetime="${snapshot.checkedAt}">${date}</time></span>
