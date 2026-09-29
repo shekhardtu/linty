@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
 import { chromium, webkit } from 'playwright';
+import AxeBuilder from '@axe-core/playwright';
 import { fixture } from './ui.fixture.mjs';
 
 const port = process.env.UI_PORT ?? '1497';
@@ -46,6 +48,36 @@ try {
   await page.getByRole('button', { name: 'License & terms', exact: true }).click();
   await page.getByRole('dialog').getByRole('heading', { name: 'Recording and content', exact: true }).waitFor();
   await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
+
+  const creditsButton = page.getByRole('button', { name: 'Credits and licenses', exact: true });
+  await creditsButton.click();
+  const credits = page.getByRole('dialog', { name: 'Credits and licenses', exact: true });
+  await credits.waitFor();
+  for (const name of ['Whisper by OpenAI', 'Parakeet by NVIDIA', 'FluidAudio by FluidInference', 'S1-mini by Superwhisper', 'Qwen by Alibaba Cloud', 'Candle by Hugging Face', 'Tauri', 'React', 'Lucide']) {
+    assert.equal(await credits.getByRole('button', { name, exact: true }).count(), 1, `Credits include ${name}`);
+  }
+  assert.match(await credits.textContent(), /Available offline/);
+  const audit = await new AxeBuilder({ page }).analyze();
+  assert.deepEqual(audit.violations.map(violation => violation.id), [], 'Credits dialog is accessible');
+  const documentPicker = credits.getByRole('combobox', { name: 'View', exact: true });
+  for (const [value, path] of [
+    ['software', 'THIRD_PARTY_NOTICES.txt'], ['models', 'MODELS.md'],
+    ['s1License', 's1-mini/LICENSE'], ['s1Notice', 's1-mini/NOTICE'],
+  ]) {
+    await documentPicker.selectOption(value);
+    await credits.locator('pre').waitFor();
+    assert.equal(await credits.locator('pre').textContent(), await readFile(`src-tauri/licenses/${path}`, 'utf8'), `Viewer preserves ${path} verbatim`);
+  }
+  await page.setViewportSize({ width: 640, height: 480 });
+  assert.equal(await credits.evaluate(element => element.scrollWidth <= element.clientWidth + 1), true, 'Credits fit the minimum window');
+  assert.equal(await credits.locator('.credits-reader').evaluate(element => element.scrollWidth <= element.clientWidth + 1), true, 'License text wraps within its reader');
+  await page.keyboard.press('Escape');
+  await credits.waitFor({ state: 'hidden' });
+  assert.equal(await creditsButton.evaluate(element => element === document.activeElement), true, 'Closing credits restores focus');
+  await creditsButton.click();
+  assert.equal(await documentPicker.inputValue(), 'credits', 'Reopening starts at acknowledgments');
+  await credits.getByRole('button', { name: 'Close', exact: true }).click();
+  await page.setViewportSize({ width: 900, height: 650 });
 
   await navigate('Settings');
   await navigate('Privacy & storage');

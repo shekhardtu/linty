@@ -145,9 +145,26 @@ cargo fmt --check
 cargo check --features local-stt,parakeet
 ```
 
-Built with **Tauri 2 + Rust + React**, [whisper.cpp](https://github.com/ggml-org/whisper.cpp) through whisper-rs, and [FluidAudio](https://github.com/FluidInference/FluidAudio). See [Development setup](docs/DEV-SETUP.md) for release signing and architecture. Third-party engines and models retain their own licenses. The app bundles [dependency notices](src-tauri/licenses/THIRD_PARTY_NOTICES.txt) and [model attribution](src-tauri/licenses/MODELS.md).
+See [Development setup](docs/DEV-SETUP.md) for release signing and architecture.
 
 Each release includes customer-facing improvements in `RELEASE_NOTES.md`, shared by the app, updater feed, and GitHub release. See the [release runbook](docs/runbooks/releases.md) before merging a release change.
+
+## Acknowledgments
+
+Linty is made possible by the people who build and maintain these projects. Thank you for sharing your work.
+
+| Project and creators | Contribution to Linty |
+|---|---|
+| [Whisper by OpenAI](https://github.com/openai/whisper) | Speech recognition models. |
+| [whisper.cpp](https://github.com/ggml-org/whisper.cpp) by the ggml authors and contributors, and [whisper-rs](https://codeberg.org/tazz4843/whisper-rs) | Local speech inference and its Rust bindings. |
+| [Parakeet by NVIDIA](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3) and [FluidAudio by FluidInference](https://github.com/FluidInference/FluidAudio) | Speech and vocabulary models, Core ML conversions, and Apple speech inference. |
+| [S1-mini by Superwhisper](https://huggingface.co/superwhisper/s1-mini-GGUF), derived from [Qwen3-0.6B by Alibaba Cloud](https://huggingface.co/Qwen/Qwen3-0.6B) | Optional on-device text cleanup. |
+| [Candle by Hugging Face](https://github.com/huggingface/candle) | Local text-cleanup inference in Rust. |
+| [Tauri](https://github.com/tauri-apps/tauri), [React](https://github.com/facebook/react), and [Lucide](https://github.com/lucide-icons/lucide) | The desktop framework, application interface, and icons. |
+
+These credits highlight the main projects; the complete [dependency notices](src-tauri/licenses/THIRD_PARTY_NOTICES.txt) and [inventory](src-tauri/licenses/inventory.json) also acknowledge their dependencies. Models have separate [attribution and terms](src-tauri/licenses/MODELS.md), including the full S1-mini [license](src-tauri/licenses/s1-mini/LICENSE) and [notice](src-tauri/licenses/s1-mini/NOTICE). Each component and model retains its own license.
+
+The app includes these documents for its installed version. Open **About → Credits and licenses** to read them offline.
 
 ## Build with me
 

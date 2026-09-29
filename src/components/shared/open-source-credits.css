@@ -1,0 +1,52 @@
+.about-credits {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-bottom: 24px;
+  padding: 20px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  background: var(--color-bg-elevated);
+}
+.about-credits > div > h2 { font-size: 14px; font-weight: 550; }
+.about-credits > div > p { margin-top: 6px; font-size: 12px; line-height: 1.6; color: var(--color-text-secondary); }
+.about-credits > .text-link { flex-shrink: 0; font-size: 13px; }
+.confirmation-dialog.credits-dialog {
+  width: min(760px, calc(100vw - 32px));
+  height: min(680px, calc(100dvh - 48px));
+  max-height: calc(100dvh - 48px);
+  overflow: hidden;
+  text-align: left;
+}
+.credits-dialog[open] { display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 20px; }
+.credits-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.credits-heading > .standard-button { flex-shrink: 0; }
+.credits-heading p { margin-top: 0; font-size: 12px; }
+.credits-document-picker { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.credits-document-picker label { color: var(--color-text-secondary); }
+.credits-document-picker select {
+  flex: 1;
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px 10px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  font: inherit;
+}
+.credits-reader { overflow-y: auto; min-height: 0; padding: 4px; overflow-wrap: anywhere; }
+.credits-reader > p:first-child { margin-top: 0; }
+.credits-projects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; margin-block: 24px; list-style: none; padding: 0; }
+.credits-projects .text-link { text-align: left; white-space: normal; font-size: 13px; }
+.credits-projects p { margin-top: 5px; font-size: 12px; }
+.credits-reader pre { margin: 0; white-space: pre-wrap; font-family: var(--font-code); font-size: 12px; line-height: 1.65; color: var(--color-text-primary); }
+.credits-reader .standard-button { margin-top: 12px; }
+@container page (max-width: 620px) {
+  .about-credits { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 560px) {
+  .confirmation-dialog.credits-dialog { padding: 20px; }
+  .credits-projects { grid-template-columns: minmax(0, 1fr); }
+}
