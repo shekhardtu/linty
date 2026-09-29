@@ -13,7 +13,9 @@ if (( $# > 1 )) || [[ "${1:-}" != "" && "${1:-}" != --unsigned ]]; then
   echo "Usage: yarn build:mac [--unsigned]" >&2
   exit 1
 fi
-TARGET_DIR="${CARGO_TARGET_DIR:-src-tauri/target}/universal-apple-darwin/release"
+# Keep locally built .apps out of Spotlight without hiding the installed app.
+export CARGO_TARGET_DIR="$(node -p 'require("node:path").resolve(process.env.CARGO_TARGET_DIR || "src-tauri/target", "linty.noindex")')"
+TARGET_DIR="$CARGO_TARGET_DIR/universal-apple-darwin/release"
 DMG_DIR="$TARGET_DIR/bundle/dmg"
 APP_DIR="$TARGET_DIR/bundle/macos"
 BUILD_ARGS=(--target universal-apple-darwin --bundles dmg,app --features local-stt,parakeet)
@@ -38,6 +40,7 @@ if (( ${#DMGS[@]} != 1 )); then
 fi
 DMG_PATH="${DMGS[0]}"
 VERSION="$(node -p 'require("./package.json").version')"
+node scripts/prepare-macos-dmg.mjs "$DMG_PATH"
 
 # Copy DMG to release/
 mkdir -p release

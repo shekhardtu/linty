@@ -77,6 +77,102 @@ mod tests {
     use tauri::test::{mock_builder, mock_context, noop_assets};
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
+    #[cfg(target_os = "macos")]
+    #[tokio::test]
+    async fn macos_update_replaces_the_existing_bundle_without_an_extra_app() {
+        // Exercise the actual plugin installer on a disposable app, never /Applications.
+        let root = tempfile::tempdir().unwrap();
+        let applications = root.path().join("Applications");
+        let installed = applications.join("Linty.app");
+        let executable = installed.join("Contents/MacOS/linty");
+        std::fs::create_dir_all(executable.parent().unwrap()).unwrap();
+        std::fs::write(&executable, "old executable").unwrap();
+        std::fs::write(installed.join("Contents/obsolete"), "old resource").unwrap();
+        let unrelated = applications.join("Other.app");
+        std::fs::create_dir(&unrelated).unwrap();
+        std::fs::write(unrelated.join("keep"), "untouched").unwrap();
+        let customer_data = root
+            .path()
+            .join("Library/Application Support/Linty/history.json");
+        std::fs::create_dir_all(customer_data.parent().unwrap()).unwrap();
+        std::fs::write(&customer_data, "saved customer history").unwrap();
+        let stage = root.path().join("stage");
+        let incoming = stage.join("Linty.app/Contents/MacOS");
+        std::fs::create_dir_all(&incoming).unwrap();
+        std::fs::write(incoming.join("linty"), "new executable").unwrap();
+        let archive = root.path().join("update.tar.gz");
+        assert!(std::process::Command::new("/usr/bin/tar")
+            .arg("--no-mac-metadata")
+            .arg("-czf")
+            .arg(&archive)
+            .arg("-C")
+            .arg(&stage)
+            .arg("Linty.app")
+            .status()
+            .unwrap()
+            .success());
+
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let body = json!({ "version": "999.0.0", "url": format!("http://{address}/archive"), "signature": "unused-in-install-test" }).to_string();
+        let server = tokio::spawn(async move {
+            let (mut stream, _) = listener.accept().await.unwrap();
+            let mut request = [0; 4096];
+            stream.read(&mut request).await.unwrap();
+            let headers = format!("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n", body.len());
+            stream.write_all(headers.as_bytes()).await.unwrap();
+            stream.write_all(body.as_bytes()).await.unwrap();
+        });
+        let mut context = mock_context(noop_assets());
+        context.config_mut().plugins.0.insert(
+            "updater".into(),
+            json!({
+                "pubkey": "unused-in-install-test", "dangerousInsecureTransportProtocol": true,
+            }),
+        );
+        let app = mock_builder()
+            .plugin(tauri_plugin_updater::Builder::new().build())
+            .build(context)
+            .unwrap();
+        let update = app
+            .updater_builder()
+            .executable_path(&executable)
+            .endpoints(vec![format!("http://{address}/latest.json")
+                .parse()
+                .unwrap()])
+            .unwrap()
+            .build()
+            .unwrap()
+            .check()
+            .await
+            .unwrap()
+            .unwrap();
+        // Download signature enforcement is covered by the adjacent test. These
+        // synthetic bytes exercise only replacement, with no installed customer app.
+        update.install(std::fs::read(archive).unwrap()).unwrap();
+        server.await.unwrap();
+        assert_eq!(
+            std::fs::read_to_string(executable).unwrap(),
+            "new executable"
+        );
+        assert!(!installed.join("Contents/obsolete").exists());
+        assert!(!installed.join(".metadata_never_index").exists());
+        assert_eq!(
+            std::fs::read_to_string(unrelated.join("keep")).unwrap(),
+            "untouched"
+        );
+        assert_eq!(
+            std::fs::read_to_string(customer_data).unwrap(),
+            "saved customer history"
+        );
+        let mut entries: Vec<_> = std::fs::read_dir(applications)
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect();
+        entries.sort();
+        assert_eq!(entries, ["Linty.app", "Other.app"]);
+    }
+
     #[tokio::test]
     async fn native_check_preserves_required_metadata_and_signed_download_resource() {
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
