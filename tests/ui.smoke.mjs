@@ -170,6 +170,7 @@ try {
   }
   // An old History search must not hide a recent row selected from Overview.
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'History', exact: true }).click();
+  assert.equal(await page.locator('.history-detail').count(), 0, 'Returning to History restores the list instead of an old selection');
   await page.getByRole('searchbox', { name: 'Search transcripts or apps' }).fill('no-such-previous-search');
   await backToOverview();
   await firstRecent.locator('.transcript-select').click();

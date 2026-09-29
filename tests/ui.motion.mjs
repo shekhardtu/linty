@@ -138,7 +138,6 @@ try {
       await page.waitForFunction(()=>!document.documentElement.classList.contains('theme-changing'));
       assert.equal(await page.locator('main').evaluate(el=>el.getAnimations().length),0);
       await navigate(page,'History');
-      if (await page.getByRole('button',{name:'Back to history',exact:true}).count()) await page.getByRole('button',{name:'Back to history',exact:true}).click();
       await page.locator('[data-transcript-id="qa-49"]').waitFor();
       const historyList=page.locator('.history-list');
       await historyList.evaluate(el=>{el.scrollTop=460;});
