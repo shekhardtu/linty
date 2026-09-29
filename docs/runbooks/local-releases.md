@@ -160,8 +160,8 @@ The README has two independent badges:
 
 - **PR checks** reports the latest `pull_request` run of `checks.yml`, across PR
   branches. Its checks depend on the changed files: website/docs checks, Node
-  tests and app build, corpus tests, native source/security checks, and Chromium
-  and WebKit UI suites. It does not represent a local release or native compilation.
+  tests and app build, corpus tests, native source/security checks, and WebKit UI
+  suites. It does not represent a local release or native compilation.
 - **release checks** reads GitHub's commit status for the current `main`. The
   local release command writes the `release/local` context on the exact source
   commit, pending before validation, failure if validation/building fails, and
@@ -171,7 +171,7 @@ The README has two independent badges:
 The local suite includes Node tests and app build, dependency audits and license
 notices, corpus tests, Rust formatting/logging/security checks, Rust tests for
 Apple Silicon and Intel (through Rosetta), Swift tests, supervisor tests, and
-eight browser suites in both Chromium and WebKit. Browser results are reused
+eight browser suites in WebKit. Browser results are reused
 only with verified PR evidence for the identical source tree; native tests
 always run locally. A passing PR badge alone cannot authorize publication.
 
