@@ -101,11 +101,6 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/base64/0.23.1/source/LICENSE-MIT
   License text: ab499c75a0f0da8e0fe83bf9ba3a27e5c39705310f07107c6c66b69958d2401c
 
-Cargo: bindgen 0.71.1
-Declared license: BSD-3-Clause
-  Source: https://docs.rs/crate/bindgen/0.71.1/source/LICENSE
-  License text: c23953d9deb0a3312dbeaf6c128a657f3591acee45067612fa68405eaa4525db
-
 Cargo: bindgen 0.72.1
 Declared license: BSD-3-Clause
   Source: https://docs.rs/crate/bindgen/0.72.1/source/LICENSE
@@ -157,11 +152,6 @@ Declared license: MIT OR Apache-2.0
   License text: 6aed14a79871456730ce9c74d0e927e9097e63b4085c4395af363d431ede5c8f
   Source: https://docs.rs/crate/block-buffer/0.12.1/source/LICENSE-MIT
   License text: 98181e7249d0c01737645ec982499ce99a0f07eb8f7d625b8840d799d10dbc01
-
-Cargo: block2 0.5.1
-Declared license: MIT
-  Source: https://raw.githubusercontent.com/madsmtm/objc2/4fc083f1c6d6784577e38b0ee8dbd344481e2fd2/LICENSE.txt
-  License text: e353f37b12aefbb9f9b29490e837cfee05d9bda70804b3562839a3285c1df1e5
 
 Cargo: block2 0.6.2
 Declared license: MIT
@@ -1733,16 +1723,6 @@ Declared license: MIT
   Source: registry+https://github.com/rust-lang/crates.io-index (Cargo metadata; upstream omits license file)
   License text: 57afd1570c0f1c44e86fc34f4a2e89ac93bcca746a97eb7a34887674eef69975
 
-Cargo: objc-sys 0.3.5
-Declared license: MIT
-  Source: https://raw.githubusercontent.com/madsmtm/objc2/4fc083f1c6d6784577e38b0ee8dbd344481e2fd2/LICENSE.txt
-  License text: e353f37b12aefbb9f9b29490e837cfee05d9bda70804b3562839a3285c1df1e5
-
-Cargo: objc2 0.5.2
-Declared license: MIT
-  Source: https://raw.githubusercontent.com/madsmtm/objc2/4fc083f1c6d6784577e38b0ee8dbd344481e2fd2/LICENSE.txt
-  License text: e353f37b12aefbb9f9b29490e837cfee05d9bda70804b3562839a3285c1df1e5
-
 Cargo: objc2 0.6.4
 Declared license: MIT
   Source: https://raw.githubusercontent.com/madsmtm/objc2/8852b424193ca41602281b3d7540d7c8ed51e49a/LICENSE.md
@@ -2780,11 +2760,11 @@ Declared license: MIT OR Apache-2.0
   Source: https://docs.rs/crate/tar/0.4.46/source/LICENSE-MIT
   License text: 8ca6b96cea9e67c6c5c63f452c31bd396db8bd2406231fdea5d48ef462b48077
 
-Cargo: tauri 2.11.5
+Cargo: tauri 2.11.6
 Declared license: Apache-2.0 OR MIT
-  Source: https://docs.rs/crate/tauri/2.11.5/source/LICENSE_APACHE-2.0
+  Source: https://docs.rs/crate/tauri/2.11.6/source/LICENSE_APACHE-2.0
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/tauri/2.11.5/source/LICENSE_MIT
+  Source: https://docs.rs/crate/tauri/2.11.6/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
 Cargo: tauri-build 2.6.3
@@ -2860,13 +2840,13 @@ Declared license: Apache-2.0 OR MIT
   Source: https://docs.rs/crate/tauri-plugin-global-shortcut/2.3.2/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
-Cargo: tauri-plugin-log 2.9.1
+Cargo: tauri-plugin-log 2.9.2
 Declared license: Apache-2.0 OR MIT
-  Source: https://docs.rs/crate/tauri-plugin-log/2.9.1/source/LICENSE.spdx
+  Source: https://docs.rs/crate/tauri-plugin-log/2.9.2/source/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
-  Source: https://docs.rs/crate/tauri-plugin-log/2.9.1/source/LICENSE_APACHE-2.0
+  Source: https://docs.rs/crate/tauri-plugin-log/2.9.2/source/LICENSE_APACHE-2.0
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/tauri-plugin-log/2.9.1/source/LICENSE_MIT
+  Source: https://docs.rs/crate/tauri-plugin-log/2.9.2/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
 Cargo: tauri-plugin-process 2.3.1
@@ -2887,13 +2867,13 @@ Declared license: Apache-2.0 OR MIT
   Source: https://docs.rs/crate/tauri-plugin-shell/2.3.6/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
-Cargo: tauri-plugin-single-instance 2.4.4
+Cargo: tauri-plugin-single-instance 2.4.5
 Declared license: Apache-2.0 OR MIT
-  Source: https://docs.rs/crate/tauri-plugin-single-instance/2.4.4/source/LICENSE.spdx
+  Source: https://docs.rs/crate/tauri-plugin-single-instance/2.4.5/source/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
-  Source: https://docs.rs/crate/tauri-plugin-single-instance/2.4.4/source/LICENSE_APACHE-2.0
+  Source: https://docs.rs/crate/tauri-plugin-single-instance/2.4.5/source/LICENSE_APACHE-2.0
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/tauri-plugin-single-instance/2.4.4/source/LICENSE_MIT
+  Source: https://docs.rs/crate/tauri-plugin-single-instance/2.4.5/source/LICENSE_MIT
   License text: af76c60594af325c4efdcbcd27f5d34ff441c11f09b46b627b378d04d5aa1f1d
 
 Cargo: tauri-plugin-store 2.4.5
@@ -2905,13 +2885,13 @@ Declared license: Apache-2.0 OR MIT
   Source: https://docs.rs/crate/tauri-plugin-store/2.4.5/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
-Cargo: tauri-plugin-updater 2.11.0
+Cargo: tauri-plugin-updater 2.12.0
 Declared license: Apache-2.0 OR MIT
-  Source: https://docs.rs/crate/tauri-plugin-updater/2.11.0/source/LICENSE.spdx
+  Source: https://docs.rs/crate/tauri-plugin-updater/2.12.0/source/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
-  Source: https://docs.rs/crate/tauri-plugin-updater/2.11.0/source/LICENSE_APACHE-2.0
+  Source: https://docs.rs/crate/tauri-plugin-updater/2.12.0/source/LICENSE_APACHE-2.0
   License text: bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec
-  Source: https://docs.rs/crate/tauri-plugin-updater/2.11.0/source/LICENSE_MIT
+  Source: https://docs.rs/crate/tauri-plugin-updater/2.12.0/source/LICENSE_MIT
   License text: 9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d
 
 Cargo: tauri-runtime 2.11.3
@@ -3357,14 +3337,14 @@ Declared license: MIT
   Source: https://raw.githubusercontent.com/greyblake/whatlang-rs/584009bbdbd715681fc1c144ac986814104bedbc/LICENSE
   License text: 9fb62b415784b27e358a03677cac6b56de73425f4fdbb5f4ecf19650af5dfe0c
 
-Cargo: whisper-rs 0.15.1
+Cargo: whisper-rs 0.16.0
 Declared license: Unlicense
-  Source: https://docs.rs/crate/whisper-rs/0.15.1/source/LICENSE
+  Source: https://docs.rs/crate/whisper-rs/0.16.0/source/LICENSE
   License text: 6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e
 
-Cargo: whisper-rs-sys 0.14.1
+Cargo: whisper-rs-sys 0.15.0
 Declared license: Unlicense
-  Source: https://docs.rs/crate/whisper-rs-sys/0.14.1/source/whisper.cpp/LICENSE
+  Source: https://docs.rs/crate/whisper-rs-sys/0.15.0/source/whisper.cpp/LICENSE
   License text: e562a2ddfaf8280537795ac5ecd34e3012b6582a147ef69ba6a6a5c08c84757d
 
 Cargo: window-vibrancy 0.6.0
@@ -3550,9 +3530,9 @@ Declared license: MIT OR Apache-2.0
   Source: npm:@tauri-apps/plugin-store@2.4.5/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
 
-npm: @tauri-apps/plugin-updater 2.11.0
+npm: @tauri-apps/plugin-updater 2.12.0
 Declared license: MIT OR Apache-2.0
-  Source: npm:@tauri-apps/plugin-updater@2.11.0/LICENSE.spdx
+  Source: npm:@tauri-apps/plugin-updater@2.12.0/LICENSE.spdx
   License text: 9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759
 
 npm: clsx 2.1.1
@@ -3560,13 +3540,13 @@ Declared license: MIT
   Source: npm:clsx@2.1.1/license
   License text: 9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97
 
-npm: lucide-react 1.46.0
+npm: lucide-react 1.47.0
 Declared license: ISC
-  Source: npm:lucide-react@1.46.0/LICENSE
+  Source: npm:lucide-react@1.47.0/LICENSE
   License text: b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57
-  Source: npm:lucide-react@1.46.0/dist/esm/icons/copyright.mjs
-  License text: aaafba6c52867d64b95f9926d7bad5e64a61c4eb92063975fca0fefe970fd1ee
-  Source: npm:lucide-react@1.46.0/dist/esm/icons/copyright.mjs.map
+  Source: npm:lucide-react@1.47.0/dist/esm/icons/copyright.mjs
+  License text: 440d697db3c5955f4926ade95f3d45da3a163997e3e2d297d4f1e057b251f066
+  Source: npm:lucide-react@1.47.0/dist/esm/icons/copyright.mjs.map
   License text: f1f3f54ef8b20ee3e35a8e0821081d6f41486b8598ae30ca872e1bb047960446
 
 npm: react 19.3.0
@@ -9288,6 +9268,30 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
+
+=== License text SHA-256: 440d697db3c5955f4926ade95f3d45da3a163997e3e2d297d4f1e057b251f066 ===
+/**
+ * @license lucide-react v1.47.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+import createLucideIcon from '../createLucideIcon.mjs';
+
+const __iconData = {
+  name: "copyright",
+  size: 24,
+  node: [
+    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+    ["path", { d: "M14.83 14.83a4 4 0 1 1 0-5.66", key: "1i56pz" }]
+  ]
+};
+__iconData.node;
+const Copyright = createLucideIcon(__iconData);
+
+export { __iconData, Copyright as default };
+//# sourceMappingURL=copyright.mjs.map
 
 === License text SHA-256: 44181d1db740d9841dbe6d7fa1963a23067f335567127fc15a9d050476af71a6 ===
 SPDXVersion: SPDX-2.1
@@ -15048,30 +15052,6 @@ Apache License
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-
-=== License text SHA-256: aaafba6c52867d64b95f9926d7bad5e64a61c4eb92063975fca0fefe970fd1ee ===
-/**
- * @license lucide-react v1.46.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-import createLucideIcon from '../createLucideIcon.mjs';
-
-const __iconData = {
-  name: "copyright",
-  size: 24,
-  node: [
-    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-    ["path", { d: "M14.83 14.83a4 4 0 1 1 0-5.66", key: "1i56pz" }]
-  ]
-};
-__iconData.node;
-const Copyright = createLucideIcon(__iconData);
-
-export { __iconData, Copyright as default };
-//# sourceMappingURL=copyright.mjs.map
 
 === License text SHA-256: aacc68583a2ebef047784547317d915214d6a9a5abc580b72844eabbbac5e742 ===
 Apache License
