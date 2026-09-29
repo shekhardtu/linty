@@ -25,7 +25,7 @@ diff, including deleted paths, rather than maintaining a growing exclusion list.
 | Watched inputs | Checks |
 | --- | --- |
 | `src/**`, `public/**`, app HTML entry points, Vite/TypeScript configuration, `tests/ui.*`, browser preview fixtures | Node tests/build plus browser-app suites; no macOS jobs |
-| `src-tauri/**`, native validation scripts, benchmark tooling and Python tests | Node tests/build plus macOS native, corpus and logging checks; no browser-app jobs |
+| `src-tauri/**`, native validation scripts, benchmark tooling and Python tests | Node tests/build plus Apple Silicon macOS native, corpus and logging checks; no browser-app jobs |
 | Both app and native inputs | Full suite |
 | Package manifests/lockfiles, release/build tooling, workflow/actions files, or the scope rule/tests | Full suite |
 | Other `scripts/**` or `tests/**` changes | Node tests, website JavaScript syntax, production app build/typecheck, audit and notices |
@@ -37,6 +37,12 @@ JSON is under `src/`, so it gets app checks without native builds. Any dependenc
 build or CI watch wins over cheaper scopes. Missing, malformed or unreadable diffs
 and release/non-PR runs require full validation. CI rule changes validate themselves
 with one full run.
+
+Hosted native checks run only on Apple Silicon to conserve GitHub Actions
+minutes. Intel compilation and tests belong to the local release flow, which
+always tests both Rust targets (Intel through Rosetta), builds the universal app,
+and verifies both executable architectures before publication. A full PR suite
+does not replace these local native checks.
 
 The `Required checks` gate requires every selected job to succeed and rejects
 failures, cancellations, missing jobs, and unexpected skips. Only full successful
