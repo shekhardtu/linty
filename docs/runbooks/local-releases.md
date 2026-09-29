@@ -156,13 +156,14 @@ It also updates the release-check status after validating the signed build.
 
 ## Release checks badge
 
-The README has two independent badges:
+The public README shows the latest published release version. PR checks and
+local release validation are maintainer signals and are inspected separately:
 
-- **PR checks** reports the latest `pull_request` run of `checks.yml`, across PR
-  branches. Its checks depend on the changed files: website/docs checks, Node
+- **[PR checks](https://github.com/shekhardtu/linty/actions/workflows/checks.yml?query=event%3Apull_request)**
+  report `pull_request` runs of `checks.yml`. Their checks depend on the changed files: website/docs checks, Node
   tests and app build, corpus tests, native source/security checks, and WebKit UI
   suites. It does not represent a local release or native compilation.
-- **release checks** reads GitHub's commit status for the current `main`. The
+- **Local release validation** uses GitHub's commit status on the source commit. The
   local release command writes the `release/local` context on the exact source
   commit, pending before validation, failure if validation/building fails, and
   success only after the full validation, universal build, signatures,
@@ -173,14 +174,16 @@ notices, corpus tests, Rust formatting/logging/security checks, Rust tests for
 Apple Silicon and Intel (through Rosetta), Swift tests, supervisor tests, and
 eight browser suites in WebKit. Browser results are reused
 only with verified PR evidence for the identical source tree; native tests
-always run locally. A passing PR badge alone cannot authorize publication.
+always run locally. Passing PR checks alone cannot authorize publication.
 
 `$deploy` uses this reporting automatically through `release-local.mjs`.
 `--check` is still read-only and does not mark tests passed. A new main commit
-with no local validation shows pending; it never inherits another commit's
-success. An interrupted process may leave pending until rerun, and Shields/GitHub
-image caching may delay a badge refresh. The badge reports validation, so a later
-upload failure leaves the successfully verified build marked passed.
+with no local validation has no `release/local` status; it never inherits another
+commit's success. A combined-status badge pointed at that commit can show pending,
+which is why the public README uses the published release version instead.
+An interrupted process may leave pending until rerun. The status reports
+validation, so a later upload failure leaves the successfully verified build
+marked passed.
 
 GitHub authentication needs commit-status write access (`repo:status` or `repo`
 for a classic token; **Commit statuses: Read and write** for a fine-grained
@@ -188,9 +191,9 @@ token), in addition to release access. Failure to record pending or success
 stops the command before publishing. If failure reporting itself is unavailable,
 the original error is preserved and the command warns that GitHub may be stale.
 No status contains local paths, credentials, or raw command output. Status
-updates start no Actions jobs. The release badge uses GitHub's combined commit
-status; currently `release/local` is its only context on main. If another
-integration adds commit statuses, those will also contribute to the badge.
+updates start no Actions jobs. Inspect the `release/local` context on the source
+commit for local validation; GitHub's combined status may also include contexts
+from other integrations.
 
 ## Inspect and retry
 
