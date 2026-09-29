@@ -84,8 +84,12 @@ try {
   assert.equal(await page.locator('.microphone-test').count(), 0, 'System Check has no embedded recorder');
   assert.equal(await page.getByText('Ready for offline dictation', { exact: true }).count(), 0, 'Ready status is not repeated');
   assert.equal(await focus.count(), 0, 'Navigation alone does not open dictation');
-  await audit('System Check');
-  await page.screenshot({ path: `${output}/system-check-dark.png` });
+  for (const theme of ['dark', 'light']) {
+    await store.evaluate((s, theme) => s.getState().setTheme(theme), theme);
+    await audit(`System Check ${theme}`);
+    await page.screenshot({ path: `${output}/system-check-${theme}.png` });
+  }
+  await store.evaluate(s => s.getState().setTheme('dark'));
   await navigate('settings');
   await store.evaluate(s => s.getState().setSettingsSection('general'));
   await page.getByRole('combobox', { name: 'Transcription language', exact: true }).waitFor();
