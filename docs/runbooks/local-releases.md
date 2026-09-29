@@ -110,7 +110,8 @@ main is synchronized. It does not change Git, build, or publish. The second:
 3. Runs corpus, logging, Node, Rust, Swift and security checks on the versioned
    source. Browser suites reuse the latest successful PR result only when its
    saved tested commit has exactly the same complete tree as main. Missing,
-   expired, failed or mismatched evidence runs both full browser suites locally.
+   expired, failed or mismatched evidence runs every browser suite locally in
+   WebKit, the engine used by the macOS app. Chromium is not part of release validation.
    Rust, Swift, Python and package caches remain on the Mac.
 4. Tests both Rust targets (Intel through Rosetta), builds the universal app,
    verifies that its executable contains both ARM64 and x86_64, signs the app and updater archive, verifies app notarization,

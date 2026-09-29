@@ -6,14 +6,13 @@ import path from 'node:path';
 import test from 'node:test';
 import { assertMainMatches, localUiSuites, parseArgs, publishBuiltRelease, readPreviousManifest, runBrowserChecks, selectReleaseType, synchronizeMain, updaterManifest } from '../scripts/release-local.mjs';
 
-test('browser validation is reused only with verified evidence; otherwise both complete suites run', () => {
+test('browser validation is reused only with verified evidence; otherwise every suite runs once in WebKit', () => {
   for (const evidence of [undefined, {}, { reused: false }, { reused: 'true' }]) {
     const calls = [];
-    runBrowserChecks((command, args, options) => calls.push({ command, args, options }), {}, evidence);
-    assert.deepEqual(calls[0].args, ['playwright', 'install', 'chromium', 'webkit']);
-    for (const browser of ['chromium', 'webkit']) {
-      assert.deepEqual(calls.filter(call => call.options?.env.UI_BROWSER === browser).map(call => call.args[0]), localUiSuites.map(suite => `test:${suite}`));
-    }
+    runBrowserChecks((command, args, options) => calls.push({ command, args, options }), { UI_BROWSER: 'chromium' }, evidence);
+    assert.deepEqual(calls[0].args, ['playwright', 'install', 'webkit']);
+    assert.deepEqual(calls.slice(1).map(call => call.args[0]), localUiSuites.map(suite => `test:${suite}`));
+    assert.ok(calls.slice(1).every(call => call.options.env.UI_BROWSER === 'webkit'));
   }
   runBrowserChecks(() => assert.fail('verified browser checks should not be repeated'), {}, { reused: true });
 });

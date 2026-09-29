@@ -18,9 +18,9 @@ export const localUiSuites = ['security', 'ui', 'onboarding', 'audio-history', '
 
 export function runBrowserChecks(build, env, checkedSource) {
   if (checkedSource?.reused === true) return;
-  build('yarn', ['playwright', 'install', 'chromium', 'webkit']);
-  for (const browser of ['chromium', 'webkit']) for (const suite of localUiSuites) {
-    build('yarn', [`test:${suite}`], { env: { ...env, UI_BROWSER: browser } });
+  build('yarn', ['playwright', 'install', 'webkit']);
+  for (const suite of localUiSuites) {
+    build('yarn', [`test:${suite}`], { env: { ...env, UI_BROWSER: 'webkit' } });
   }
 }
 
