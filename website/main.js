@@ -1,4 +1,4 @@
-import { refreshDownloadInfo, latestDownloadUrl, latestReleaseUrl } from './downloads.js?v=065518fbb4b5';
+import { refreshDownloadInfo, latestDownloadUrl, latestReleaseUrl } from './downloads.js?v=affcda230291';
 
 /* Static product page. Its walkthrough is an illustration, not a speech benchmark. */
 (() => {

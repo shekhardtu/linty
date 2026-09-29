@@ -36,7 +36,9 @@ optional `v` before versions, prerelease versions, and ARM/Intel/universal suffi
 signatures, metadata, and draft releases are excluded. Repeated downloads count;
 this is not a count of unique people, website clicks, or completed installations.
 Deleted releases/assets no longer contribute. GitHub may delay count updates;
-the page does not increment the number when someone clicks a button.
+the page does not increment the number when someone clicks a button. The page
+shows a compact “19 downloads” label; its hover detail explains the total and
+last-checked date. The GitHub repository link sits beside the main download button.
 
 A separate request to GitHub's designated latest stable release refreshes the
 links to its actual versioned DMG asset. Normal clicks recheck the latest release
