@@ -1,10 +1,10 @@
 {
   "inputs": {
-    "yarn.lock": "5dc0643a7d889e87b8f7caa1b24ec13792b188a0354c1a00603932184db248ac",
-    "src-tauri/Cargo.lock": "003f40a587a29957bcbdebf0a58075392ee5af96f8bac6e4522ae4fd8abf334c",
+    "yarn.lock": "c8697aa3ce720a430506a65a5a380469c81c613f2ee5fa5d2a97aa93fff19b66",
+    "src-tauri/Cargo.lock": "7793b53e4a53a3350ced9d7fff3541ba400b6ca503a938d143654f703880474b",
     "src-tauri/swift/Package.resolved": "51ca7f28c7e3ec9a6078527ab7a67f6ab6517c21a8d3f6ee2f260941cb682e12"
   },
-  "notices_sha256": "b128e1b1ab6465b122a602e1e5956fe2fc126a1b078e148e9921f07d5b6e74f2",
+  "notices_sha256": "8d90931403cc6a75533dd632513200e963f736059885ee5f81d2e7e981f263a6",
   "components": [
     {
       "ecosystem": "Cargo",
@@ -247,19 +247,6 @@
     {
       "ecosystem": "Cargo",
       "name": "bindgen",
-      "version": "0.71.1",
-      "license": "BSD-3-Clause",
-      "repository": "https://github.com/rust-lang/rust-bindgen",
-      "notices": [
-        {
-          "source": "https://docs.rs/crate/bindgen/0.71.1/source/LICENSE",
-          "sha256": "c23953d9deb0a3312dbeaf6c128a657f3591acee45067612fa68405eaa4525db"
-        }
-      ]
-    },
-    {
-      "ecosystem": "Cargo",
-      "name": "bindgen",
       "version": "0.72.1",
       "license": "BSD-3-Clause",
       "repository": "https://github.com/rust-lang/rust-bindgen",
@@ -382,19 +369,6 @@
         {
           "source": "https://docs.rs/crate/block-buffer/0.12.1/source/LICENSE-MIT",
           "sha256": "98181e7249d0c01737645ec982499ce99a0f07eb8f7d625b8840d799d10dbc01"
-        }
-      ]
-    },
-    {
-      "ecosystem": "Cargo",
-      "name": "block2",
-      "version": "0.5.1",
-      "license": "MIT",
-      "repository": "https://github.com/madsmtm/objc2",
-      "notices": [
-        {
-          "source": "https://raw.githubusercontent.com/madsmtm/objc2/4fc083f1c6d6784577e38b0ee8dbd344481e2fd2/LICENSE.txt",
-          "sha256": "e353f37b12aefbb9f9b29490e837cfee05d9bda70804b3562839a3285c1df1e5"
         }
       ]
     },
@@ -4272,32 +4246,6 @@
     },
     {
       "ecosystem": "Cargo",
-      "name": "objc-sys",
-      "version": "0.3.5",
-      "license": "MIT",
-      "repository": "https://github.com/madsmtm/objc2",
-      "notices": [
-        {
-          "source": "https://raw.githubusercontent.com/madsmtm/objc2/4fc083f1c6d6784577e38b0ee8dbd344481e2fd2/LICENSE.txt",
-          "sha256": "e353f37b12aefbb9f9b29490e837cfee05d9bda70804b3562839a3285c1df1e5"
-        }
-      ]
-    },
-    {
-      "ecosystem": "Cargo",
-      "name": "objc2",
-      "version": "0.5.2",
-      "license": "MIT",
-      "repository": "https://github.com/madsmtm/objc2",
-      "notices": [
-        {
-          "source": "https://raw.githubusercontent.com/madsmtm/objc2/4fc083f1c6d6784577e38b0ee8dbd344481e2fd2/LICENSE.txt",
-          "sha256": "e353f37b12aefbb9f9b29490e837cfee05d9bda70804b3562839a3285c1df1e5"
-        }
-      ]
-    },
-    {
-      "ecosystem": "Cargo",
       "name": "objc2",
       "version": "0.6.4",
       "license": "MIT",
@@ -6856,16 +6804,16 @@
     {
       "ecosystem": "Cargo",
       "name": "tauri",
-      "version": "2.11.5",
+      "version": "2.11.6",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/tauri-apps/tauri",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tauri/2.11.5/source/LICENSE_APACHE-2.0",
+          "source": "https://docs.rs/crate/tauri/2.11.6/source/LICENSE_APACHE-2.0",
           "sha256": "bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec"
         },
         {
-          "source": "https://docs.rs/crate/tauri/2.11.5/source/LICENSE_MIT",
+          "source": "https://docs.rs/crate/tauri/2.11.6/source/LICENSE_MIT",
           "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d"
         }
       ]
@@ -7046,20 +6994,20 @@
     {
       "ecosystem": "Cargo",
       "name": "tauri-plugin-log",
-      "version": "2.9.1",
+      "version": "2.9.2",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/tauri-apps/plugins-workspace",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tauri-plugin-log/2.9.1/source/LICENSE.spdx",
+          "source": "https://docs.rs/crate/tauri-plugin-log/2.9.2/source/LICENSE.spdx",
           "sha256": "9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759"
         },
         {
-          "source": "https://docs.rs/crate/tauri-plugin-log/2.9.1/source/LICENSE_APACHE-2.0",
+          "source": "https://docs.rs/crate/tauri-plugin-log/2.9.2/source/LICENSE_APACHE-2.0",
           "sha256": "bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec"
         },
         {
-          "source": "https://docs.rs/crate/tauri-plugin-log/2.9.1/source/LICENSE_MIT",
+          "source": "https://docs.rs/crate/tauri-plugin-log/2.9.2/source/LICENSE_MIT",
           "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d"
         }
       ]
@@ -7109,20 +7057,20 @@
     {
       "ecosystem": "Cargo",
       "name": "tauri-plugin-single-instance",
-      "version": "2.4.4",
+      "version": "2.4.5",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/tauri-apps/plugins-workspace",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tauri-plugin-single-instance/2.4.4/source/LICENSE.spdx",
+          "source": "https://docs.rs/crate/tauri-plugin-single-instance/2.4.5/source/LICENSE.spdx",
           "sha256": "9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759"
         },
         {
-          "source": "https://docs.rs/crate/tauri-plugin-single-instance/2.4.4/source/LICENSE_APACHE-2.0",
+          "source": "https://docs.rs/crate/tauri-plugin-single-instance/2.4.5/source/LICENSE_APACHE-2.0",
           "sha256": "bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec"
         },
         {
-          "source": "https://docs.rs/crate/tauri-plugin-single-instance/2.4.4/source/LICENSE_MIT",
+          "source": "https://docs.rs/crate/tauri-plugin-single-instance/2.4.5/source/LICENSE_MIT",
           "sha256": "af76c60594af325c4efdcbcd27f5d34ff441c11f09b46b627b378d04d5aa1f1d"
         }
       ]
@@ -7151,20 +7099,20 @@
     {
       "ecosystem": "Cargo",
       "name": "tauri-plugin-updater",
-      "version": "2.11.0",
+      "version": "2.12.0",
       "license": "Apache-2.0 OR MIT",
       "repository": "https://github.com/tauri-apps/plugins-workspace",
       "notices": [
         {
-          "source": "https://docs.rs/crate/tauri-plugin-updater/2.11.0/source/LICENSE.spdx",
+          "source": "https://docs.rs/crate/tauri-plugin-updater/2.12.0/source/LICENSE.spdx",
           "sha256": "9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759"
         },
         {
-          "source": "https://docs.rs/crate/tauri-plugin-updater/2.11.0/source/LICENSE_APACHE-2.0",
+          "source": "https://docs.rs/crate/tauri-plugin-updater/2.12.0/source/LICENSE_APACHE-2.0",
           "sha256": "bb28c48e3e078166e91cfc2b6db7ffebb8a0973b9e23b3df060561292d8d69ec"
         },
         {
-          "source": "https://docs.rs/crate/tauri-plugin-updater/2.11.0/source/LICENSE_MIT",
+          "source": "https://docs.rs/crate/tauri-plugin-updater/2.12.0/source/LICENSE_MIT",
           "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d"
         }
       ]
@@ -8253,12 +8201,12 @@
     {
       "ecosystem": "Cargo",
       "name": "whisper-rs",
-      "version": "0.15.1",
+      "version": "0.16.0",
       "license": "Unlicense",
       "repository": "https://codeberg.org/tazz4843/whisper-rs",
       "notices": [
         {
-          "source": "https://docs.rs/crate/whisper-rs/0.15.1/source/LICENSE",
+          "source": "https://docs.rs/crate/whisper-rs/0.16.0/source/LICENSE",
           "sha256": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e"
         }
       ]
@@ -8266,12 +8214,12 @@
     {
       "ecosystem": "Cargo",
       "name": "whisper-rs-sys",
-      "version": "0.14.1",
+      "version": "0.15.0",
       "license": "Unlicense",
       "repository": "https://codeberg.org/tazz4843/whisper-rs",
       "notices": [
         {
-          "source": "https://docs.rs/crate/whisper-rs-sys/0.14.1/source/whisper.cpp/LICENSE",
+          "source": "https://docs.rs/crate/whisper-rs-sys/0.15.0/source/whisper.cpp/LICENSE",
           "sha256": "e562a2ddfaf8280537795ac5ecd34e3012b6582a147ef69ba6a6a5c08c84757d"
         }
       ]
@@ -8733,12 +8681,12 @@
     {
       "ecosystem": "npm",
       "name": "@tauri-apps/plugin-updater",
-      "version": "2.11.0",
+      "version": "2.12.0",
       "license": "MIT OR Apache-2.0",
       "repository": "https://github.com/tauri-apps/plugins-workspace",
       "notices": [
         {
-          "source": "npm:@tauri-apps/plugin-updater@2.11.0/LICENSE.spdx",
+          "source": "npm:@tauri-apps/plugin-updater@2.12.0/LICENSE.spdx",
           "sha256": "9c1db6b7e7eb83e1cb2af973b5df2bdc63651ede0f38506ab98dfa0940487759"
         }
       ]
@@ -8759,7 +8707,7 @@
     {
       "ecosystem": "npm",
       "name": "lucide-react",
-      "version": "1.46.0",
+      "version": "1.47.0",
       "license": "ISC",
       "repository": {
         "type": "git",
@@ -8768,15 +8716,15 @@
       },
       "notices": [
         {
-          "source": "npm:lucide-react@1.46.0/LICENSE",
+          "source": "npm:lucide-react@1.47.0/LICENSE",
           "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57"
         },
         {
-          "source": "npm:lucide-react@1.46.0/dist/esm/icons/copyright.mjs",
-          "sha256": "aaafba6c52867d64b95f9926d7bad5e64a61c4eb92063975fca0fefe970fd1ee"
+          "source": "npm:lucide-react@1.47.0/dist/esm/icons/copyright.mjs",
+          "sha256": "440d697db3c5955f4926ade95f3d45da3a163997e3e2d297d4f1e057b251f066"
         },
         {
-          "source": "npm:lucide-react@1.46.0/dist/esm/icons/copyright.mjs.map",
+          "source": "npm:lucide-react@1.47.0/dist/esm/icons/copyright.mjs.map",
           "sha256": "f1f3f54ef8b20ee3e35a8e0821081d6f41486b8598ae30ca872e1bb047960446"
         }
       ]

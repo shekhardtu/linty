@@ -1,5 +1,7 @@
 ## What's new
 
+- Refresh local speech, macOS integration, and app update dependencies on Intel and Apple silicon.
+
 - Keep the unlisted GTM and architecture guides available across website deployments.
 
 - Use one Mac installer on Intel and Apple silicon, with Whisper dictation and CPU cleanup on Intel.

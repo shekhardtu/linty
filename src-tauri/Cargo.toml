@@ -59,7 +59,7 @@ security-framework = "3.7"
 
 # Intel Macs use CPU inference. Metal kernels are built only for Apple silicon.
 [target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
-whisper-rs = { version = "0.15", features = ["metal"], optional = true }
+whisper-rs = { version = "0.16", features = ["metal"], optional = true }
 candle-core = { version = "=0.11.0", features = ["metal"] }
 candle-transformers = { version = "=0.11.0", features = ["metal"] }
 
