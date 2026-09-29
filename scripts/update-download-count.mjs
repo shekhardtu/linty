@@ -31,7 +31,7 @@ export function renderDownloadCount(snapshot) {
   <a href="https://github.com/shekhardtu/linty/releases"><img alt="${number} DMG downloads across all releases; checked ${date}" src="website/downloads.svg?v=${version}" /></a>
   <!-- dmg-downloads:end -->`;
   const website = `<!-- dmg-downloads:start -->
-          <p class="fine-print" data-dmg-download-count><a href="https://github.com/shekhardtu/linty/releases" title="Installer downloads across all published releases, including prereleases. Not unique users. Checked ${date}.">${number} downloads</a><time hidden datetime="${snapshot.checkedAt}">${date}</time></p>
+          <span data-dmg-download-count> · <a href="https://github.com/shekhardtu/linty/releases" title="Installer downloads across all published releases, including prereleases. Not unique users. Checked ${date}.">${number} downloads</a><time hidden datetime="${snapshot.checkedAt}">${date}</time></span>
           <!-- dmg-downloads:end -->`;
   return { svg, readme, website };
 }
@@ -59,7 +59,7 @@ async function main() {
     ['website/downloads.json', `${JSON.stringify(snapshot, null, 2)}\n`],
     ['website/downloads.svg', rendered.svg],
     ['README.md', readme.replace(marker, rendered.readme)],
-    ['website/index.html', website.replace(marker, rendered.website)],
+    ['website/index.html', website.replace(new RegExp(marker.source, 'g'), rendered.website)],
   ];
   for (const [path, content] of outputs) {
     if (check) {
