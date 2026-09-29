@@ -112,6 +112,8 @@ main is synchronized. It does not change Git, build, or publish. The second:
    saved tested commit has exactly the same complete tree as main. Missing,
    expired, failed or mismatched evidence runs every browser suite locally in
    WebKit, the engine used by the macOS app. Chromium is not part of release validation.
+   The same `yarn test:browsers` runner serves PRs and local releases: two suites
+   run concurrently, each on a separate port, with the longest suites first.
    Rust, Swift, Python and package caches remain on the Mac.
    Records a pending `release/local` commit status on the source main commit
    before validation; any validation/build failure records failure and stops.
@@ -119,6 +121,10 @@ main is synchronized. It does not change Git, build, or publish. The second:
    verifies that its executable contains both ARM64 and x86_64, signs the app and updater archive, verifies app notarization,
    notarizes/staples the DMG, and verifies the updater signature against the
    application's configured public key using Minisign.
+   Browser checks overlap universal compilation, app signing and app notarization.
+   Packaging reuses the already validated frontend build, so it cannot rewrite
+   files while the security suite reads them. Both branches must pass before
+   artifact verification or publication proceeds; failure cancels the other branch.
 5. Creates `latest.json`, preserving the latest release's required-update
    minimum for Optional, or raising it to the new version for Required. An
    unavailable previous manifest stops publication, except the explicitly

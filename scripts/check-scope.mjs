@@ -8,6 +8,7 @@ const fullWatch = [
   /^\.github\/(?:workflows|actions)\//,
   /^(?:package\.json|yarn\.lock|package-lock\.json|pnpm-lock\.yaml|bun\.lockb?)$/,
   /^(?:scripts\/check-scope\.mjs|tests\/check-scope\.test\.mjs)$/,
+  /^scripts\/(?:run-tasks|run-ui-checks)\.mjs$/,
   /^scripts\/(?:build-mac|prepare-release|publish-release|release-[^/]+|force-update|generate-icons)\.(?:mjs|sh)$/,
 ];
 const appWatch = [

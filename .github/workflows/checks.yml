@@ -128,14 +128,7 @@ jobs:
       - run: yarn install --frozen-lockfile --ignore-scripts
       - run: yarn playwright install --with-deps webkit
       - run: yarn build
-      - run: yarn test:security
-      - run: yarn test:ui
-      - run: yarn test:onboarding
-      - run: yarn test:audio-history
-      - run: yarn test:correction-feedback
-      - run: yarn test:updates
-      - run: yarn test:privacy
-      - run: yarn test:microphone
+      - run: yarn test:browsers
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: failure()
         with:
