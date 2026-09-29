@@ -35,11 +35,11 @@ const STEP_LABELS: Record<Step, string> = {
 
 interface OnboardingPageProps {
   onComplete: () => void | Promise<void>;
-  startAtMic?: boolean;
+  initialStep?: "welcome" | "microphone" | "accessibility";
 }
 
-export function OnboardingPage({ onComplete, startAtMic }: OnboardingPageProps) {
-  const [step, setStep] = useState<Step>(startAtMic ? "microphone" : "welcome");
+export function OnboardingPage({ onComplete, initialStep = "welcome" }: OnboardingPageProps) {
+  const [step, setStep] = useState<Step>(initialStep);
   const contentRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const heading = contentRef.current?.querySelector("h1");
@@ -48,6 +48,20 @@ export function OnboardingPage({ onComplete, startAtMic }: OnboardingPageProps) 
     contentRef.current?.scrollIntoView({ block: "start" });
   }, [step]);
   const progressSteps: Step[] = ["welcome", "language", "microphone", "accessibility", "trigger", "done"];
+
+  const completeSetup = async () => {
+    // Permissions can change while downloads finish or the customer chooses a
+    // shortcut. Return to the missing permission instead of completing setup.
+    const [microphone, accessibility] = await Promise.all([
+      checkMicrophonePermission(), checkAccessibility(),
+    ]);
+    if (microphone !== "authorized" || !accessibility) {
+      setStep(microphone !== "authorized" ? "microphone" : "accessibility");
+      return false;
+    }
+    await onComplete();
+    return true;
+  };
 
   return (
     <div className="onboarding-shell">
@@ -60,17 +74,17 @@ export function OnboardingPage({ onComplete, startAtMic }: OnboardingPageProps) 
         {step === "welcome" && <WelcomeStep onNext={() => setStep("language")} />}
         {step === "language" && <LanguageStep onNext={() => setStep("microphone")} />}
         {step === "microphone" && (
-          <MicrophoneStep onNext={startAtMic ? onComplete : () => setStep("accessibility")} />
+          <MicrophoneStep onNext={() => setStep("accessibility")} />
         )}
         {step === "accessibility" && (
           <AccessibilityStep onNext={() => setStep("trigger")} />
         )}
         {step === "trigger" && <TriggerStep onNext={() => setStep("done")} />}
-        {step === "done" && <DoneStep onComplete={onComplete} onChangeLanguage={() => setStep("language")} />}
+        {step === "done" && <DoneStep onComplete={completeSetup} onChangeLanguage={() => setStep("language")} />}
 
         <div className="onboarding-progress" aria-label="Setup progress">
-          <p>{startAtMic ? "Restore microphone access" : `Step ${progressSteps.indexOf(step) + 1} of ${progressSteps.length} · ${STEP_LABELS[step]}`}</p>
-          {!startAtMic && <ol>{progressSteps.map((item) => <li key={item} aria-current={item === step ? "step" : undefined}><span className="sr-only">{STEP_LABELS[item]}</span></li>)}</ol>}
+          <p>{`Step ${progressSteps.indexOf(step) + 1} of ${progressSteps.length} · ${STEP_LABELS[step]}`}</p>
+          <ol>{progressSteps.map((item) => <li key={item} aria-current={item === step ? "step" : undefined}><span className="sr-only">{STEP_LABELS[item]}</span></li>)}</ol>
         </div>
       </main>
     </div>
@@ -462,7 +476,7 @@ function TriggerStep({ onNext }: { onNext: () => void }) {
 
 /* ── Done Step ── */
 
-function DoneStep({ onComplete, onChangeLanguage }: { onComplete: () => void | Promise<void>; onChangeLanguage: () => void }) {
+function DoneStep({ onComplete, onChangeLanguage }: { onComplete: () => Promise<boolean>; onChangeLanguage: () => void }) {
   const { triggerKey, transcriptionLanguage } = useAppStore();
   const preparation = useSyncExternalStore(languagePreparation.subscribe, languagePreparation.getSnapshot);
   const triggerLabel = formatTriggerLabel(triggerKey);
@@ -475,8 +489,7 @@ function DoneStep({ onComplete, onChangeLanguage }: { onComplete: () => void | P
     savingRef.current = true;
     setSaving(true); setError("");
     try {
-      await onComplete();
-      useAppStore.getState().setCurrentView("system-check");
+      if (await onComplete()) useAppStore.getState().setCurrentView("system-check");
     } catch {
       setError("Could not finish setup. Please try again.");
     } finally {

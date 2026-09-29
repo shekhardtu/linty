@@ -1,0 +1,38 @@
+{
+  "reviewDate": "2026-09-29",
+  "basePR": "https://github.com/shekhardtu/linty/pull/101",
+  "scope": "Merged PR #101 plus the permission-recovery and parallel-download follow-up",
+  "screenshots": 13,
+  "captureSource": "PR #101 September 21 app captures with simulated permissions and downloads",
+  "htmlChecks": {
+    "allScreensOpen": true,
+    "allImagesLoaded": true,
+    "everyScreenHasRequirementLabel": true,
+    "escapeDismissesAndRestoresFocus": true,
+    "horizontalOverflow": false,
+    "browserErrors": []
+  },
+  "codeValidation": {
+    "productionBuild": "passed",
+    "onboardingChromium": "passed",
+    "onboardingWebKit": "passed",
+    "fullUIChromium": "passed",
+    "privacyChromium": "passed"
+  },
+  "limitations": [
+    "Native macOS permission prompts and System Settings are not pictured or exercised by the browser fixtures.",
+    "Real speech recognition and pasting into external apps were not tested in this review."
+  ],
+  "parallelDownloadValidation": {
+    "productionBuild": "passed",
+    "onboardingChromium": "passed",
+    "onboardingWebKit": "passed",
+    "covered": [
+      "Speech and cleanup both start on Welcome before clicks, with either speech backend",
+      "Progress carries through the permission steps to Ready",
+      "A failed transfer remains retryable while the other progresses",
+      "Retry shares in-flight downloads and reuses completed files",
+      "Language changes and saved cleanup opt-outs are preserved"
+    ]
+  }
+}

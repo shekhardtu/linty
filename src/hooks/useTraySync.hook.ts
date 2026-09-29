@@ -7,6 +7,7 @@ import { dictationPreparation } from "@/services/dictation-preparation.service";
 
 export function useTraySync(
   saveTranscriptionLanguage: (language: string) => Promise<void>,
+  setupComplete: boolean,
 ) {
   const status = useAppStore((s) => s.status);
   const preparation = useSyncExternalStore(dictationPreparation.subscribe, dictationPreparation.getSnapshot);
@@ -15,7 +16,6 @@ export function useTraySync(
   const settingsLoaded = useAppStore((s) => s.settingsLoaded);
   const triggerKey = useAppStore((s) => s.triggerKey);
   const transcriptionLanguage = useAppStore((s) => s.transcriptionLanguage);
-  const setupComplete = useAppStore((s) => s.onboardingComplete);
   const localReady = preparation === "ready" && modelSupportsLanguage(loadedModelFilename, transcriptionLanguage) && (!selectedModelFilename || selectedModelFilename === loadedModelFilename);
   useEffect(() => {
     const unlisten = listen<string>("audio-input-error", ({ payload }) => {

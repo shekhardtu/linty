@@ -87,7 +87,7 @@ export function useSettings() {
 
         if (savedTheme) setTheme(savedTheme);
         if (savedWhisperPrompt) setWhisperPrompt(savedWhisperPrompt);
-        if (savedOnboarding) setOnboardingComplete(savedOnboarding);
+        setOnboardingComplete(savedOnboarding === true);
         // Fresh setup defaults to English. Preserve a saved choice (including
         // auto-detect) and the former default for existing users without a language preference.
         const language = savedLanguage

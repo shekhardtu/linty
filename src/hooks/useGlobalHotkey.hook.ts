@@ -15,7 +15,9 @@ import { useAppStore } from "@/store/app.store";
 import { FALLBACK_TRIGGER_ACCELERATOR } from "@/store/slices/settings.slice";
 import { isModifierHoldTrigger, triggerModifierName, formatTriggerLabel } from "@/lib/trigger.util";
 
-export function useGlobalHotkey() {
+export function useGlobalHotkey(enabled = true) {
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
   const { startRecording, stopRecording } = useRecording();
   const { processAudio, clearPendingTimers } = useTranscription();
   const resetRecording = useAppStore((s) => s.resetRecording);
@@ -51,7 +53,7 @@ export function useGlobalHotkey() {
   }, []);
 
   const handlePress = useCallback(async () => {
-    if (isRecordingRef.current || processingRef.current || isRecoveringDictation()) {
+    if (!enabledRef.current || isRecordingRef.current || processingRef.current || isRecoveringDictation()) {
       gestureRef.current?.reset();
       return;
     }
