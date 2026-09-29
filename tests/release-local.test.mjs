@@ -4,7 +4,71 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { assertMainMatches, localUiSuites, parseArgs, publishBuiltRelease, readPreviousManifest, runBrowserChecks, selectReleaseType, synchronizeMain, updaterManifest } from '../scripts/release-local.mjs';
+import { assertMainMatches, localUiSuites, parseArgs, publishBuiltRelease, readPreviousManifest, releaseCheckReporter, runBrowserChecks, selectReleaseType, synchronizeMain, updaterManifest } from '../scripts/release-local.mjs';
+
+function statusRecorder() {
+  const statuses = [];
+  const gh = args => {
+    assert.deepEqual(args.slice(0, 3), ['api', '--method', 'POST']);
+    const fields = Object.fromEntries(args.slice(4).filter((_, index) => index % 2 === 1).map(field => {
+      const at = field.indexOf('=');
+      return [field.slice(0, at), field.slice(at + 1)];
+    }));
+    statuses.push({ endpoint: args[3], ...fields });
+  };
+  return { statuses, gh };
+}
+
+test('release validation reports on its exact main source and keeps success after upload failure', () => {
+  const { statuses, gh } = statusRecorder();
+  const sourceSha = 'a'.repeat(40);
+  const reporter = releaseCheckReporter({ gh, sourceSha });
+  reporter.start();
+  reporter.pass();
+  reporter.fail(); // A subsequent upload or main-synchronization failure.
+  assert.deepEqual(statuses.map(status => status.state), ['pending', 'success']);
+  for (const status of statuses) {
+    assert.equal(status.endpoint, `repos/shekhardtu/linty/statuses/${sourceSha}`);
+    assert.equal(status.context, 'release/local');
+    assert.equal(status.target_url, `https://github.com/shekhardtu/linty/blob/${sourceSha}/docs/runbooks/local-releases.md#release-checks-badge`);
+    assert.ok(status.description.length <= 140);
+  }
+});
+
+test('failed validation replaces pending with failure and never reports success', () => {
+  const { statuses, gh } = statusRecorder();
+  const reporter = releaseCheckReporter({ gh, sourceSha: 'b'.repeat(40) });
+  reporter.start();
+  reporter.fail();
+  assert.deepEqual(statuses.map(status => status.state), ['pending', 'failure']);
+});
+
+test('status write failures stop validation/publication and preserve the original failure', () => {
+  const { statuses, gh } = statusRecorder();
+  const warnings = [];
+  let unavailableState;
+  const reporter = releaseCheckReporter({ sourceSha: 'c'.repeat(40), warn: text => warnings.push(text), gh: args => {
+    if (args.includes(`state=${unavailableState}`)) throw new Error('status service unavailable');
+    gh(args);
+  } });
+  unavailableState = 'pending';
+  assert.throws(() => reporter.start(), /status service unavailable/);
+  unavailableState = 'success';
+  reporter.start();
+  assert.throws(() => reporter.pass(), /status service unavailable/);
+  reporter.fail();
+  assert.deepEqual(statuses.map(status => status.state), ['pending', 'failure']);
+  unavailableState = 'failure';
+  assert.doesNotThrow(() => reporter.fail());
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /Could not update/);
+});
+
+test('release status cannot be attached to a moving branch or an unverified reference', () => {
+  for (const sourceSha of [undefined, 'main', 'v0.0.1', 'abcd1234']) {
+    assert.throws(() => releaseCheckReporter({ gh: () => assert.fail('must not call GitHub'), sourceSha }), /exact source commit/);
+  }
+});
 
 test('browser validation is reused only with verified evidence; otherwise both complete suites run', () => {
   for (const evidence of [undefined, {}, { reused: false }, { reused: 'true' }]) {

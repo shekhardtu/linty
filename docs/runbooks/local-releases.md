@@ -2,7 +2,7 @@
 
 Official releases are published locally. GitHub's **Build macOS DMG** workflow
 is disabled in repository settings; PR checks remain enabled. Local deployment
-uses GitHub only to synchronize Git and upload release assets. It does not
+uses GitHub to synchronize Git, report release checks, and upload release assets. It does not
 dispatch an Actions workflow or use a self-hosted Actions runner.
 
 In Codex, invoke the `deploy` skill as `$deploy` or select it in the skill picker.
@@ -112,6 +112,8 @@ main is synchronized. It does not change Git, build, or publish. The second:
    saved tested commit has exactly the same complete tree as main. Missing,
    expired, failed or mismatched evidence runs both full browser suites locally.
    Rust, Swift, Python and package caches remain on the Mac.
+   Records a pending `release/local` commit status on the source main commit
+   before validation; any validation/build failure records failure and stops.
 4. Tests both Rust targets (Intel through Rosetta), builds the universal app,
    verifies that its executable contains both ARM64 and x86_64, signs the app and updater archive, verifies app notarization,
    notarizes/staples the DMG, and verifies the updater signature against the
@@ -123,6 +125,8 @@ main is synchronized. It does not change Git, build, or publish. The second:
 6. Fetches again and checks that local main, remote main, and the build's source
    still match. It rejects a competing release tag or an enabled/running remote
    release workflow.
+   All validation and artifact verification must pass, and GitHub must accept
+   the successful release-check status, before publication can start.
 7. Pushes the version tag, creates a draft GitHub release, uploads the DMG,
    updater archive, signature and manifest, then publishes after all uploads
    succeed. No main or tag push from this process starts a release runner while
@@ -147,6 +151,45 @@ yarn release:local --build-only
 
 This still synchronizes/pushes main and runs validation, but creates no release
 tag or GitHub release. It permits unchanged release notes for timing runs.
+It also updates the release-check status after validating the signed build.
+
+## Release checks badge
+
+The README has two independent badges:
+
+- **PR checks** reports the latest `pull_request` run of `checks.yml`, across PR
+  branches. Its checks depend on the changed files: website/docs checks, Node
+  tests and app build, corpus tests, native source/security checks, and Chromium
+  and WebKit UI suites. It does not represent a local release or native compilation.
+- **release checks** reads GitHub's commit status for the current `main`. The
+  local release command writes the `release/local` context on the exact source
+  commit, pending before validation, failure if validation/building fails, and
+  success only after the full validation, universal build, signatures,
+  notarization, updater verification, manifest and build record succeed.
+
+The local suite includes Node tests and app build, dependency audits and license
+notices, corpus tests, Rust formatting/logging/security checks, Rust tests for
+Apple Silicon and Intel (through Rosetta), Swift tests, supervisor tests, and
+eight browser suites in both Chromium and WebKit. Browser results are reused
+only with verified PR evidence for the identical source tree; native tests
+always run locally. A passing PR badge alone cannot authorize publication.
+
+`$deploy` uses this reporting automatically through `release-local.mjs`.
+`--check` is still read-only and does not mark tests passed. A new main commit
+with no local validation shows pending; it never inherits another commit's
+success. An interrupted process may leave pending until rerun, and Shields/GitHub
+image caching may delay a badge refresh. The badge reports validation, so a later
+upload failure leaves the successfully verified build marked passed.
+
+GitHub authentication needs commit-status write access (`repo:status` or `repo`
+for a classic token; **Commit statuses: Read and write** for a fine-grained
+token), in addition to release access. Failure to record pending or success
+stops the command before publishing. If failure reporting itself is unavailable,
+the original error is preserved and the command warns that GitHub may be stale.
+No status contains local paths, credentials, or raw command output. Status
+updates start no Actions jobs. The release badge uses GitHub's combined commit
+status; currently `release/local` is its only context on main. If another
+integration adds commit statuses, those will also contribute to the badge.
 
 ## Inspect and retry
 
