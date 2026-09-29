@@ -653,63 +653,41 @@ fn force_reinit_fn_key_monitor(app: tauri::AppHandle) {
     }
 }
 
-/// Open a macOS System Settings pane via NSWorkspace.
-/// Bypasses Tauri shell plugin URL validation which blocks x-apple.systempreferences: URLs.
+/// Open the exact settings URL in System Settings and bring the app forward.
+/// Selecting the app explicitly avoids a successful URL handoff that leaves
+/// Settings in the background. This also bypasses the shell plugin's URL filter.
 #[tauri::command]
-fn open_system_settings(pane: String) -> Result<(), String> {
+async fn open_system_settings(pane: String) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
-        use std::ffi::c_void;
-        unsafe {
-            let objc_get_class: unsafe extern "C" fn(*const u8) -> *const c_void =
-                fnkey_ffi::objc_getClass;
-            let sel_register: unsafe extern "C" fn(*const u8) -> *const c_void =
-                fnkey_ffi::sel_registerName;
+        if !matches!(
+            pane.as_str(),
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"
+                | "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+                | "x-apple.systempreferences:com.apple.Keyboard-Settings.extension"
+        ) {
+            return Err("Unsupported System Settings pane".into());
+        }
 
-            // Create NSURL from string
-            let ns_string_class = objc_get_class(b"NSString\0".as_ptr());
-            let url_bytes = format!("{}\0", pane);
-            let alloc_sel = sel_register(b"stringWithUTF8String:\0".as_ptr());
-            let send_str: unsafe extern "C" fn(
-                *const c_void,
-                *const c_void,
-                *const u8,
-            ) -> *const c_void = std::mem::transmute(fnkey_ffi::objc_msgSend as *const c_void);
-            let ns_string = send_str(ns_string_class, alloc_sel, url_bytes.as_ptr());
+        let output = tokio::time::timeout(
+            std::time::Duration::from_secs(10),
+            tokio::process::Command::new("/usr/bin/open")
+                .args(["-b", "com.apple.systempreferences", &pane])
+                .kill_on_drop(true)
+                .output(),
+        )
+        .await
+        .map_err(|_| "Opening System Settings timed out".to_string())?
+        .map_err(|error| format!("Could not launch System Settings: {error}"))?;
 
-            let nsurl_class = objc_get_class(b"NSURL\0".as_ptr());
-            let url_sel = sel_register(b"URLWithString:\0".as_ptr());
-            let send_url: unsafe extern "C" fn(
-                *const c_void,
-                *const c_void,
-                *const c_void,
-            ) -> *const c_void = std::mem::transmute(fnkey_ffi::objc_msgSend as *const c_void);
-            let nsurl = send_url(nsurl_class, url_sel, ns_string);
-
-            if nsurl.is_null() {
-                return Err(format!("Invalid URL: {}", pane));
-            }
-
-            // [[NSWorkspace sharedWorkspace] openURL:nsurl]
-            let ws_class = objc_get_class(b"NSWorkspace\0".as_ptr());
-            let shared_sel = sel_register(b"sharedWorkspace\0".as_ptr());
-            let send_ws: unsafe extern "C" fn(*const c_void, *const c_void) -> *const c_void =
-                std::mem::transmute(fnkey_ffi::objc_msgSend as *const c_void);
-            let workspace = send_ws(ws_class, shared_sel);
-
-            let open_sel = sel_register(b"openURL:\0".as_ptr());
-            let send_open: unsafe extern "C" fn(
-                *const c_void,
-                *const c_void,
-                *const c_void,
-            ) -> bool = std::mem::transmute(fnkey_ffi::objc_msgSend as *const c_void);
-            let opened = send_open(workspace, open_sel, nsurl);
-
-            if opened {
-                Ok(())
-            } else {
-                Err(format!("Failed to open: {}", pane))
-            }
+        if output.status.success() {
+            Ok(())
+        } else {
+            Err(format!(
+                "Could not open System Settings ({}): {}",
+                output.status,
+                String::from_utf8_lossy(&output.stderr).trim()
+            ))
         }
     }
     #[cfg(not(target_os = "macos"))]
@@ -719,7 +697,7 @@ fn open_system_settings(pane: String) -> Result<(), String> {
     }
 }
 
-// Re-export FFI symbols for use in open_system_settings
+// Objective-C FFI symbols for workspace notifications.
 #[cfg(target_os = "macos")]
 mod fnkey_ffi {
     use std::ffi::c_void;

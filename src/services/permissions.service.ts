@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { useAppStore } from "@/store/app.store";
 
 export async function checkMicrophonePermission(): Promise<string> {
   return invoke<string>("check_microphone");
@@ -36,5 +37,18 @@ export async function openSystemSettings(pane: "microphone" | "accessibility" | 
     accessibility: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
     keyboard: "x-apple.systempreferences:com.apple.Keyboard-Settings.extension",
   };
-  return invoke("open_system_settings", { pane: urls[pane] });
+  try {
+    await invoke("open_system_settings", { pane: urls[pane] });
+  } catch (error) {
+    console.error(`Could not open ${pane} settings:`, error);
+    const paths = {
+      microphone: "Privacy & Security → Microphone",
+      accessibility: "Privacy & Security → Accessibility",
+      keyboard: "Keyboard",
+    };
+    useAppStore.getState().addToast({
+      type: "error",
+      message: `Could not open System Settings. Go to System Settings → ${paths[pane]}.`,
+    });
+  }
 }
