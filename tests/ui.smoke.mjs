@@ -771,7 +771,8 @@ try {
   await setup.getByRole('button',{name:'Continue',exact:true}).click();
   await setup.getByRole('button',{name:'Try dictation'}).waitFor();
   await setup.getByRole('button',{name:'Try dictation'}).click();
-  await setup.getByRole('heading',{name:'Microphone Test',exact:true}).waitFor();
+  await setup.getByRole('heading',{name:'All set to listen.',exact:true}).waitFor();
+  assert.equal(await setup.locator('.microphone-test').count(),0,'Onboarding finishes without opening a recorder');
   await setup.getByRole('button',{name:'Overview',exact:true}).click();
   await setup.getByText('Ready for your first dictation').waitFor();
   assert.equal(await setup.getByRole('region', {name:'Dictation summary'}).getByText('0', {exact:true}).count(), 1);
