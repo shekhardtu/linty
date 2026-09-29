@@ -104,18 +104,12 @@ jobs:
       - run: python3 scripts/third-party-notices.py --check
 
   native-tests:
-    name: macOS native tests (${{ matrix.arch }})
+    name: macOS native tests (arm64)
     needs: changes
     if: needs.changes.outputs.scope == 'full' || needs.changes.outputs.scope == 'native'
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-14
-            arch: arm64
-          - runner: macos-15-intel
-            arch: x86_64
-    runs-on: ${{ matrix.runner }}
+    # Intel tests and universal compilation run in the local release flow.
+    # Keep PR feedback on Apple Silicon without a duplicate hosted Intel build.
+    runs-on: macos-14
     env:
       CARGO_INCREMENTAL: '1'
       LINTY_PARAKEET_LIB_DIR: ${{ github.workspace }}/src-tauri/swift/.build/ci-prebuilt
@@ -133,7 +127,6 @@ jobs:
         with:
           components: rustfmt
       - name: Restore or build Swift bridge
-        if: matrix.arch == 'arm64'
         id: swift-bridge
         uses: ./.github/actions/swift-bridge
       - name: Identify Rust compiler
@@ -160,7 +153,6 @@ jobs:
       - name: Build native application with production assets
         run: node node_modules/@tauri-apps/cli/tauri.js build --debug --no-bundle --features local-stt,parakeet
       - run: swift test --package-path src-tauri/swift --scratch-path src-tauri/swift/.build/ci-tests --disable-automatic-resolution
-        if: matrix.arch == 'arm64'
       - run: python3 tests/supervisor.test.py
       - run: python3 scripts/check-rust-advisories.py
 
