@@ -4,7 +4,8 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { assertMainMatches, localUiSuites, parseArgs, publishBuiltRelease, readPreviousManifest, releaseCheckReporter, runBrowserChecks, selectReleaseType, synchronizeMain, updaterManifest } from '../scripts/release-local.mjs';
+import { assertMainMatches, buildAndCheckBrowsers, parseArgs, publishBuiltRelease, readPreviousManifest, releaseCheckReporter, runBrowserChecks, selectReleaseType, synchronizeMain, updaterManifest } from '../scripts/release-local.mjs';
+import { uiSuites } from '../scripts/run-ui-checks.mjs';
 
 function statusRecorder() {
   const statuses = [];
@@ -70,24 +71,81 @@ test('release status cannot be attached to a moving branch or an unverified refe
   }
 });
 
-test('browser validation is reused only with verified evidence; otherwise every suite runs once in WebKit', () => {
+test('browser validation is reused only with verified evidence; otherwise every suite runs once in WebKit', async () => {
   for (const evidence of [undefined, {}, { reused: false }, { reused: 'true' }]) {
     const calls = [];
-    runBrowserChecks((command, args, options) => calls.push({ command, args, options }), { UI_BROWSER: 'chromium' }, evidence);
+    await runBrowserChecks((command, args, options) => calls.push({ command, args, options }), { UI_BROWSER: 'chromium' }, evidence);
     assert.deepEqual(calls[0].args, ['playwright', 'install', 'webkit']);
-    assert.deepEqual(calls.slice(1).map(call => call.args[0]), localUiSuites.map(suite => `test:${suite}`));
+    assert.deepEqual(calls.slice(1).map(call => call.args[0]), uiSuites.map(suite => `test:${suite}`));
     assert.ok(calls.slice(1).every(call => call.options.env.UI_BROWSER === 'webkit'));
+    assert.equal(new Set(calls.slice(1).map(call => call.options.env.UI_PORT)).size, uiSuites.length);
   }
-  runBrowserChecks(() => assert.fail('verified browser checks should not be repeated'), {}, { reused: true });
+  await runBrowserChecks(() => assert.fail('verified browser checks should not be repeated'), {}, { reused: true });
 });
 
 test('local releases include every browser suite required by the PR workflow', () => {
   const workflow = readFileSync(new URL('../.github/workflows/checks.yml', import.meta.url), 'utf8');
   const uiJob = workflow.split('\n  ui-tests:\n')[1].split('\n  required-checks:\n')[0];
-  const required = [...uiJob.matchAll(/run: yarn test:([a-z-]+)/g)].map(match => match[1]);
-  assert.ok(required.length > 0);
-  assert.deepEqual([...localUiSuites].sort(), required.sort());
+  assert.deepEqual([...uiJob.matchAll(/run: yarn test:([a-z-]+)/g)].map(match => match[1]), ['browsers']);
+  const scripts = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).scripts;
+  assert.equal(scripts['test:browsers'], 'node scripts/run-ui-checks.mjs');
+  assert.deepEqual([...uiSuites].sort(), ['audio-history', 'correction-feedback', 'microphone', 'onboarding', 'privacy', 'security', 'ui', 'updates']);
+  assert.ok(uiSuites.every(suite => scripts[`test:${suite}`]));
 });
+
+test('packaging overlaps browser checks, reuses dist and keeps signing credentials out of tests', async () => {
+  const packaging = Promise.withResolvers();
+  const browsersStarted = Promise.withResolvers();
+  const calls = [];
+  let finished = false;
+  const result = buildAndCheckBrowsers({
+    env: { CHECK: 'browser' }, signedEnv: { CHECK: 'signed' }, browserChecks: { reused: false },
+    build: async (command, args, options) => {
+      calls.push(args[0]);
+      if (args[0] === 'tauri') {
+        assert.equal(options.env.CHECK, 'signed');
+        assert.deepEqual(JSON.parse(args[args.indexOf('--config') + 1]), { build: { beforeBuildCommand: null } });
+        await packaging.promise;
+      } else {
+        assert.equal(options.env.CHECK, 'browser');
+        if (args[0].startsWith('test:')) browsersStarted.resolve();
+      }
+    },
+  }).then(() => { finished = true; });
+  await browsersStarted.promise;
+  assert.ok(calls.includes('tauri'), 'packaging must be running before browsers finish');
+  assert.equal(finished, false);
+  packaging.resolve();
+  await result;
+  assert.equal(finished, true);
+});
+
+for (const failing of ['browser', 'packaging']) {
+  test(`${failing} failure cancels the other branch and prevents the release gate completing`, async () => {
+    const bothStarted = Promise.withResolvers();
+    const error = new Error(`${failing} failed`);
+    let started = 0;
+    let cancelled = false;
+    let passed = false;
+    const result = buildAndCheckBrowsers({ env: {}, signedEnv: {}, browserChecks: {},
+      build: async (command, args, { signal }) => {
+        const branch = args[0] === 'tauri' ? 'packaging' : 'browser';
+        if (++started === 2) bothStarted.resolve();
+        await bothStarted.promise;
+        if (branch === failing) throw error;
+        await new Promise(resolve => signal.addEventListener('abort', () => {
+          cancelled = true;
+          resolve();
+        }, { once: true }));
+        signal.throwIfAborted();
+      },
+    }).then(() => { passed = true; });
+    await assert.rejects(result, actual => actual === error);
+    assert.equal(cancelled, true);
+    assert.equal(passed, false);
+    assert.equal(started, 2);
+  });
+}
 
 function repo(t) {
   const root = mkdtempSync(path.join(tmpdir(), 'linty-local-release-'));
