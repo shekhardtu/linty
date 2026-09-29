@@ -180,8 +180,12 @@ try {
     assert.equal(await pill.locator('.capsule-feedback').count(), 0, 'Feedback waits for processing to finish');
     await send({ state: 'done' }); await pill.clock.runFor(1400);
     await pill.locator('.capsule-feedback').waitFor();
+    const hidesBeforeDismiss = await pill.evaluate(() => window.__QA__.calls.filter(call => call === 'hide_capsule').length);
     await pill.getByRole('button', { name: 'Dismiss', exact: true }).click();
     await pill.clock.runFor(200);
+    assert.equal(await pill.evaluate(() => window.__QA__.calls.filter(call => call === 'hide_capsule').length), hidesBeforeDismiss + 1, 'Dismiss hides the capsule before its automatic timeout');
+    // The timer has fired; allow React to commit its queued removal before inspecting the DOM.
+    await pill.locator('.capsule-pill').waitFor({ state: 'detached' });
     assert.equal(await pill.locator('.capsule-pill').count(), 0, 'The acknowledgment can be dismissed');
     await pill.evaluate(() => window.__QA__.emit('correction-feedback', {
       title: '2 corrections learned', message: 'I’ll remember it next time.', learned: true,

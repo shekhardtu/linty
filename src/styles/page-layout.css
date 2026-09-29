@@ -512,33 +512,6 @@
   padding: 14px 0;
   font-size: 12px;
 }
-.system-readiness {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 8px 0 30px;
-}
-.system-readiness > svg {
-  color: var(--color-accent);
-  width: 42px;
-  height: 42px;
-  stroke-width: 1;
-  flex-shrink: 0;
-}
-.system-readiness.is-ready > svg {
-  color: var(--color-success);
-}
-.system-readiness h2 {
-  font-size: 24px;
-  line-height: 1.3;
-  font-weight: 450;
-  letter-spacing: -0.03em;
-}
-.system-readiness p {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  margin-top: 6px;
-}
 .permission-row {
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr) auto;

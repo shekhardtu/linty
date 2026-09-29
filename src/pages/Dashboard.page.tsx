@@ -24,7 +24,7 @@ import { formatTriggerLabel } from "@/lib/trigger.util";
 const number = (value: number) => value.toLocaleString();
 
 export function DashboardPage() {
-  const { total, deleteTranscript, setSearchQuery } = useHistory();
+  const { total, deleteTranscript, setSearchQuery, setSelectedTranscriptId } = useHistory();
   const setCurrentView = useAppStore((s) => s.setCurrentView);
   const triggerKey = useAppStore((s) => s.triggerKey);
   const tracking = useAppStore((s) => s.trackApplicationUsage);
@@ -101,7 +101,11 @@ export function DashboardPage() {
                   <TranscriptRow
                     key={t.transcriptId}
                     transcript={t}
-                    copyOnClick
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedTranscriptId(t.transcriptId);
+                      setCurrentView("history");
+                    }}
                     onDelete={deleteTranscript}
                     actions={
                       <TranscriptActions

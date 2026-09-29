@@ -45,10 +45,13 @@ try {
         assert.deepEqual(await rect(row),rowRect,'Hover preserves row geometry');
         assert.equal(await rowHandle.evaluate(el=>el.isConnected),true,'Hover preserves the DOM');
       }
+      const rowText=await row.locator('.transcript-preview').textContent();
       const rowBox=await row.boundingBox();
       await row.click({position:{x:rowBox.width-4,y:rowBox.height-8}});
-      await page.waitForFunction(()=>window.__QA__.clipboard.length>0);
-      assert.equal(await page.evaluate(()=>window.__QA__.clipboard),await row.locator('.transcript-preview').textContent(),'Press feedback preserves the stretched row action');
+      await page.locator('.history-detail .reading-text').waitFor();
+      assert.equal(await page.locator('.history-detail .reading-text').textContent(),rowText,'Press feedback preserves the stretched row action');
+      await page.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name:'Overview',exact:true}).click();
+      await row.waitFor();
       if(theme==='light' && reducedMotion==='no-preference') {
         const copy=row.getByRole('button',{name:'Copy transcript',exact:true});
         await copy.click();
@@ -98,11 +101,11 @@ try {
       await page.evaluate(()=>new Promise(requestAnimationFrame));
       const savedScroll=await pane.evaluate(el=>el.scrollTop);
       assert.ok(savedScroll>0);
-      await navigate(page,'Language');
+      await navigate(page,'Dictation');
       assert.equal(await pane.evaluate(el=>el.scrollTop),0,'A new category starts at its own position');
       await navigate(page,'Privacy & storage');
       assert.equal(await pane.evaluate(el=>el.scrollTop),savedScroll,'Returning restores category scroll');
-      await navigate(page,'Language');
+      await navigate(page,'Dictation');
       const trigger=page.getByRole('combobox',{name:'Transcription language',exact:true});
       const triggerRect=await rect(trigger);
       const selected=await trigger.innerText();
@@ -170,7 +173,7 @@ try {
       await page.screenshot({path:`${output}/${theme}-${reducedMotion}.png`});
       await page.setViewportSize({width:640,height:480});
       await navigate(page,'Settings');
-      await navigate(page,'Language');
+      await navigate(page,'Dictation');
       await page.getByRole('combobox',{name:'Transcription language',exact:true}).click();
       const smallList=page.getByRole('listbox',{name:'Transcription language',exact:true});
       await settle(smallList);

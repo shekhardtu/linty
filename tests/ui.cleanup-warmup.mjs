@@ -76,7 +76,7 @@ try {
   assert.equal(await store.evaluate(s=>s.getState().finalText),'the budget is one lakh fifty thousand rupees');
   assert.ok(await store.evaluate(s=>s.getState().toasts.some(t=>t.message.includes('original transcript was kept'))));
   // Quiet unverified delivery keeps copying available from the saved transcript.
-  await page.getByRole('button',{name:'Copy transcription: the budget is one lakh fifty thousand rupees',exact:true}).click();
+  await page.locator('.overview-transcripts .transcript-row').filter({hasText:'the budget is one lakh fifty thousand rupees'}).getByRole('button',{name:'Copy transcript',exact:true}).click();
   assert.equal(await page.evaluate(()=>window.__QA__.clipboard),'the budget is one lakh fifty thousand rupees');
   // Cleanup opt-in waits for preparation, rolls back failure, and can be retried.
   await page.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name:'Settings',exact:true}).click();

@@ -57,7 +57,7 @@ export const createHistorySlice: StateCreator<HistorySlice> = (set) => ({
           },
     ),
   setHistoryError: (historyError) => set({ historyError }),
-  setSearchQuery: (searchQuery) => set({ searchQuery }),
+  setSearchQuery: (searchQuery) => set({ searchQuery, selectedTranscriptId: null }),
   setSelectedTranscriptId: (selectedTranscriptId) =>
     set({ selectedTranscriptId }),
 });
