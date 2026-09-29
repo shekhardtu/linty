@@ -1,3 +1,5 @@
+import { refreshDownloadInfo, latestDownloadUrl, latestReleaseUrl } from './downloads.js?v=065518fbb4b5';
+
 /* Static product page. Its walkthrough is an illustration, not a speech benchmark. */
 (() => {
   const root = document.documentElement;
@@ -37,8 +39,8 @@
     document.querySelectorAll('[data-mac-download]').forEach(link => { link.hidden = false; });
   }
 
-  // Keep the native direct download. Its transfer progress belongs to the browser;
-  // this short-lived state only acknowledges the handoff, never completion.
+  // Resolve the latest installer again on activation, including long-lived tabs.
+  // Transfer progress belongs to the browser; this only acknowledges the handoff.
   const downloadStatus = document.getElementById('download-status');
   const pendingDownloads = new Map();
   document.querySelectorAll('[data-download], [data-mac-download]').forEach(link => {
@@ -52,20 +54,26 @@
       if (originalLabel === null) link.removeAttribute('aria-label');
       else link.setAttribute('aria-label', originalLabel);
     };
-    link.addEventListener('click', event => {
+    link.addEventListener('click', async event => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      if (pendingDownloads.has(link)) {
-        event.preventDefault();
-        return;
-      }
+      event.preventDefault();
+      if (pendingDownloads.has(link)) return;
       link.classList.add('is-downloading');
       link.setAttribute('aria-busy', 'true');
       link.setAttribute('aria-disabled', 'true');
       link.setAttribute('aria-label', 'Starting Linty download');
       downloadStatus.textContent = 'Starting your Linty download. Check your browser’s downloads for progress.';
-      pendingDownloads.set(link, { timer: setTimeout(reset, 5000), reset });
+      const pending = { timer: null, reset };
+      pendingDownloads.set(link, pending);
+      const url = await latestDownloadUrl();
+      if (pendingDownloads.get(link) !== pending) return;
+      link.href = url;
+      if (url === latestReleaseUrl) downloadStatus.textContent = 'Opening the latest Linty release on GitHub.';
+      window.location.assign(url);
+      pending.timer = setTimeout(reset, 5000);
     });
   });
+  void refreshDownloadInfo();
   addEventListener('pageshow', () => {
     for (const { reset } of pendingDownloads.values()) reset();
   });

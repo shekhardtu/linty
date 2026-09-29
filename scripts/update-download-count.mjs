@@ -1,52 +1,11 @@
 import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
+import { countDmgDownloads, fetchAllReleases, releasesUrl } from '../website/downloads.js';
+export { countDmgDownloads, fetchAllReleases } from '../website/downloads.js';
 
 const root = new URL('../', import.meta.url);
-const releasesUrl = 'https://api.github.com/repos/shekhardtu/linty/releases';
 const marker = /<!-- dmg-downloads:start -->[\s\S]*?<!-- dmg-downloads:end -->/;
-
-export function countDmgDownloads(releases) {
-  let downloads = 0;
-  let assets = 0;
-  for (const release of releases) {
-    if (release.draft) continue;
-    if (!Array.isArray(release.assets)) throw new Error('GitHub returned a release without assets.');
-    for (const asset of release.assets) {
-      if (!/\.dmg$/i.test(asset.name ?? '')) continue;
-      if (!Number.isSafeInteger(asset.download_count) || asset.download_count < 0) {
-        throw new Error('GitHub returned an invalid DMG download count.');
-      }
-      downloads += asset.download_count;
-      assets += 1;
-    }
-  }
-  if (!Number.isSafeInteger(downloads)) throw new Error('DMG download total is out of range.');
-  return { downloads, assets };
-}
-
-export async function fetchAllReleases({ fetchImpl = fetch, token = process.env.GITHUB_TOKEN } = {}) {
-  const releases = new Map();
-  for (let page = 1; ; page += 1) {
-    const response = await fetchImpl(`${releasesUrl}?per_page=100&page=${page}`, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-        'User-Agent': 'Linty-DMG-download-count',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      signal: AbortSignal.timeout(20_000),
-    });
-    if (!response.ok) throw new Error(`GitHub releases request failed (HTTP ${response.status}); count was not updated.`);
-    const batch = await response.json();
-    if (!Array.isArray(batch)) throw new Error('GitHub returned an invalid release list.');
-    for (const release of batch) {
-      if (!Number.isSafeInteger(release.id)) throw new Error('GitHub returned an invalid release ID.');
-      releases.set(release.id, release);
-    }
-    if (batch.length < 100) return [...releases.values()].filter(release => !release.draft);
-  }
-}
 
 export function renderDownloadCount(snapshot) {
   if (!Number.isSafeInteger(snapshot.downloads) || snapshot.downloads < 0 ||
@@ -72,7 +31,7 @@ export function renderDownloadCount(snapshot) {
   <a href="https://github.com/shekhardtu/linty/releases"><img alt="${number} DMG downloads across all releases; checked ${date}" src="website/downloads.svg?v=${version}" /></a>
   <!-- dmg-downloads:end -->`;
   const website = `<!-- dmg-downloads:start -->
-          <p class="fine-print" data-dmg-download-count><a href="https://github.com/shekhardtu/linty/releases">${number} DMG downloads</a> · Checked <time datetime="${snapshot.checkedAt}">${date}</time></p>
+          <p class="fine-print" data-dmg-download-count title="Installer downloads across all published releases, including prereleases. Not unique users."><a href="https://github.com/shekhardtu/linty/releases">${number} lifetime DMG downloads</a> · Checked <time datetime="${snapshot.checkedAt}">${date}</time></p>
           <!-- dmg-downloads:end -->`;
   return { svg, readme, website };
 }
@@ -80,7 +39,7 @@ export function renderDownloadCount(snapshot) {
 async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--help')) {
-    console.log('Usage: node scripts/update-download-count.mjs [--check]\nRefresh the README badge and landing-page snapshot from all GitHub releases.\n--check verifies generated files without network access. GITHUB_TOKEN is optional.');
+    console.log('Usage: node scripts/update-download-count.mjs [--check]\nRefresh the README badge and lifetime landing-page snapshot from all GitHub releases.\n--check verifies generated files without network access. GITHUB_TOKEN is optional.');
     return;
   }
   if (args.some(arg => arg !== '--check')) throw new Error('Unknown option. Use --help.');
@@ -91,7 +50,8 @@ async function main() {
   if (check) {
     snapshot = JSON.parse(await readFile(new URL('website/downloads.json', root), 'utf8'));
   } else {
-    const releases = await fetchAllReleases();
+    const options = { token: process.env.GITHUB_TOKEN };
+    const releases = await fetchAllReleases(options);
     snapshot = { ...countDmgDownloads(releases), releases: releases.length, checkedAt: new Date().toISOString(), source: releasesUrl };
   }
   const rendered = renderDownloadCount(snapshot);

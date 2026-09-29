@@ -7,12 +7,12 @@ const context = { URL };
 runInNewContext(readFileSync(new URL('../website/platform.js', import.meta.url), 'utf8'), context);
 const detect = context.detectDownloadPlatform;
 
-test('every installer link serves the same universal Mac download', () => {
+test('every installer fallback points to the latest release without pinning an older version', () => {
   const html = readFileSync(new URL('../website/index.html', import.meta.url), 'utf8');
   const downloads = [...html.matchAll(/<a\b[^>]*\bdata-(?:mac-)?download\b[^>]*>/g)];
   assert.ok(downloads.length >= 4, 'navigation, hero, fallback, and footer offer downloads');
   for (const [anchor] of downloads) {
-    assert.match(anchor, /href="https:\/\/github\.com\/shekhardtu\/linty\/releases\/latest\/download\/linty\.dmg"/);
+    assert.equal(anchor.match(/href="([^"]+)"/)[1], 'https://github.com/shekhardtu/linty/releases/latest');
   }
   assert.match(html, /Intel and Apple silicon Macs running macOS 14 or later/);
   assert.doesNotMatch(html, /Linty_aarch64\.dmg/);

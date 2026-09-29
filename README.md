@@ -6,7 +6,7 @@
 
 <p align="center">
   <!-- dmg-downloads:start -->
-  <a href="https://github.com/shekhardtu/linty/releases"><img alt="0 DMG downloads across all releases; checked 2026-09-20" src="website/downloads.svg?v=a8380fc1350a" /></a>
+  <a href="https://github.com/shekhardtu/linty/releases"><img alt="19 DMG downloads across all releases; checked 2026-09-29" src="website/downloads.svg?v=be6640dbac4b" /></a>
   <!-- dmg-downloads:end -->
   <a href="https://github.com/shekhardtu/linty/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/shekhardtu/linty?style=flat-square&color=28756f" /></a>
   <a href="https://github.com/shekhardtu/linty/actions/workflows/checks.yml"><img alt="Checks" src="https://img.shields.io/github/actions/workflow/status/shekhardtu/linty/checks.yml?branch=main&style=flat-square&label=checks" /></a>
@@ -72,7 +72,7 @@ Read the [privacy notice](PRIVACY.md) and [license and responsible use](TERMS.md
 - **Downloads and updates use the network.** Model hosts and GitHub receive connection metadata. Website hosting is separate from app processing; see the [website disclosure](PRIVACY.md#website-and-github).
 - **No app usage telemetry.** Linty does not send app usage analytics. Downloads and update checks still connect to GitHub.
 
-The download badge counts only `.dmg` installer downloads across all published GitHub releases, including older filenames and prereleases. It excludes updater archives, signatures, and metadata. This is a dated snapshot of downloads, not a count of unique users; [view the snapshot](website/downloads.json).
+The download badge counts only `.dmg` installer downloads across all published GitHub releases, including older filenames and prereleases. It excludes updater archives, signatures, and metadata. This badge is a dated snapshot of downloads, not a count of unique users. The website refreshes its count from GitHub on page load; [view the snapshot](website/downloads.json).
 
 <details>
 <summary>Technical comparisons and measured performance</summary>

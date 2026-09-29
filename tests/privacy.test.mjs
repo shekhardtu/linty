@@ -15,10 +15,11 @@ test('generated notices contain no proposed personal-contact fields or complianc
   }
 });
 
-test('all website entry points suppress background connections before scripts run', () => {
+test('website only permits GitHub release requests on the landing page and blocks analytics connections', () => {
   for (const path of ['index.html', 'privacy.html', 'terms.html']) {
     const html = readFileSync(`website/${path}`, 'utf8');
-    assert.match(html, /connect-src 'none'/);
+    const connectionPolicy = html.match(/connect-src ([^;]+);/)[1];
+    assert.equal(connectionPolicy, path === 'index.html' ? 'https://api.github.com' : "'none'");
     assert.match(html, /name="referrer" content="no-referrer"/);
     assert.ok(html.indexOf('http-equiv="Content-Security-Policy"') < html.indexOf('<script'));
     assert.ok(html.indexOf('privacy-guard.js') < html.indexOf('theme.js'));
