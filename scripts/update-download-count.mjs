@@ -27,7 +27,7 @@ export function renderDownloadCount(snapshot) {
 </svg>
 `;
   const readme = `<!-- dmg-downloads:start -->
-  <a href="https://github.com/shekhardtu/linty/releases"><img alt="Downloads across all published releases" src="https://raw.githubusercontent.com/shekhardtu/linty/download-stats/downloads.svg" /></a>
+  <a href="https://github.com/shekhardtu/linty/releases"><img alt="Downloads across all published releases" src="https://raw.githubusercontent.com/shekhardtu/linty/refs/heads/download-stats/downloads.svg" /></a>
   <!-- dmg-downloads:end -->`;
   const website = `<!-- dmg-downloads:start -->
           <span data-dmg-download-count> · <a href="https://github.com/shekhardtu/linty/releases" title="Installer downloads across all published releases, including prereleases. Not unique users. Checked ${date}.">${number} downloads</a><time hidden datetime="${snapshot.checkedAt}">${date}</time></span>

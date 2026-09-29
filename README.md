@@ -6,7 +6,7 @@
 
 <p align="center">
   <!-- dmg-downloads:start -->
-  <a href="https://github.com/shekhardtu/linty/releases"><img alt="Downloads across all published releases" src="https://raw.githubusercontent.com/shekhardtu/linty/download-stats/downloads.svg" /></a>
+  <a href="https://github.com/shekhardtu/linty/releases"><img alt="Downloads across all published releases" src="https://raw.githubusercontent.com/shekhardtu/linty/refs/heads/download-stats/downloads.svg" /></a>
   <!-- dmg-downloads:end -->
   <a href="https://github.com/shekhardtu/linty/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/shekhardtu/linty?style=flat-square&color=28756f" /></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/shekhardtu/linty?style=flat-square&color=28756f" /></a>
