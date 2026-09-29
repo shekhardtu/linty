@@ -74,8 +74,7 @@ export function prepareLanguage(language: string, { applyCleanupDefault = false 
   publish({ ...initial, language, applyCleanupDefault, status: "checking" });
 
   const promise = (async () => {
-    let stopProgress: (() => void) | undefined;
-    let stopCleanupProgress: (() => void) | undefined;
+    let failedResource: LanguagePreparation["resource"] | undefined;
     try {
       if (!await invoke<boolean>("is_local_stt_available")) {
         if (!current()) return;
@@ -89,32 +88,72 @@ export function prepareLanguage(language: string, { applyCleanupDefault = false 
       if (!model) throw new Error("No compatible speech support is available in this build.");
       publish({ model });
       const filename = model.filename;
-      stopProgress = await listen<{ filename: string; progress: number }>("model-download-progress", ({ payload }) => {
-        if (current() && snapshot.resource === "speech" && payload.filename === filename) publish({ progress: Math.round(Math.max(0, Math.min(100, payload.progress))) });
-      });
-      if (!current()) return;
-      if (!await invoke<boolean>("check_model_exists", { filename })) {
-        if (!current()) return;
-        publish({ status: "downloading" });
-        await downloadSpeechModel(model);
-      }
+      let speechDownloaded = false;
+      let cleanupProgress = 0;
+      let cleanupStatus: PreparationStatus = "checking";
+      const showCleanupProgress = () => {
+        if (current() && speechDownloaded && cleanup) {
+          publish({ resource: "cleanup", status: cleanupStatus, progress: cleanupProgress });
+        }
+      };
+
+      // Start both transfers on Welcome. Keep each progress listener attached
+      // throughout its download so Ready can show progress already made, even
+      // when cleanup has been downloading behind the speech progress display.
+      const downloadSpeech = async () => {
+        let stopProgress: (() => void) | undefined;
+        try {
+          stopProgress = await listen<{ filename: string; progress: number }>("model-download-progress", ({ payload }) => {
+            if (current() && !speechDownloaded && payload.filename === filename) publish({ progress: Math.round(Math.max(0, Math.min(100, payload.progress))) });
+          });
+          if (!current()) return;
+          if (!await invoke<boolean>("check_model_exists", { filename })) {
+            if (!current()) return;
+            publish({ status: "downloading" });
+            await downloadSpeechModel(model);
+          }
+          speechDownloaded = true;
+          showCleanupProgress();
+        } catch (error) {
+          failedResource ??= "speech";
+          throw error;
+        } finally {
+          stopProgress?.();
+        }
+      };
+      const downloadCleanup = async () => {
+        if (!cleanup) return;
+        let stopProgress: (() => void) | undefined;
+        try {
+          stopProgress = await listen<number>("s1-download-progress", ({ payload }) => {
+            cleanupProgress = Math.round(Math.max(0, Math.min(100, payload)));
+            showCleanupProgress();
+          });
+          if (!current()) return;
+          const status = await invoke<{ downloaded: boolean; progress: number }>("s1_model_status");
+          if (!current()) return;
+          if (!status.downloaded) {
+            cleanupStatus = "downloading";
+            cleanupProgress = status.progress;
+            showCleanupProgress();
+            await downloadCleanupModel();
+          }
+          cleanupStatus = "loading";
+          cleanupProgress = 100;
+          showCleanupProgress();
+        } catch (error) {
+          failedResource ??= "cleanup";
+          throw error;
+        } finally {
+          stopProgress?.();
+        }
+      };
+      await Promise.all([downloadSpeech(), downloadCleanup()]);
       if (!current()) return;
 
       // Selecting English includes cleanup setup. Keep the confirmed language
       // and cleanup pair intact until both models and persistence are ready.
       if (cleanup) {
-        publish({ resource: "cleanup", status: "checking", progress: 0 });
-        const status = await invoke<{ downloaded: boolean; progress: number }>("s1_model_status");
-        if (!current()) return;
-        if (!status.downloaded) {
-          stopCleanupProgress = await listen<number>("s1-download-progress", ({ payload }) => {
-            if (current()) publish({ progress: Math.round(Math.max(0, Math.min(100, payload))) });
-          });
-          if (!current()) return;
-          publish({ status: "downloading", progress: status.progress });
-          await downloadCleanupModel();
-        }
-        if (!current()) return;
         await waitUntilIdle(controller.signal);
         if (!current()) return;
         publish({ status: "loading", progress: 100 });
@@ -185,12 +224,13 @@ export function prepareLanguage(language: string, { applyCleanupDefault = false 
       await commit;
     } catch (error) {
       if (current()) {
-        publish({ status: snapshot.status === "unavailable" ? "unavailable" : "error", error: error instanceof Error ? error.message : String(error) });
+        publish({ status: snapshot.status === "unavailable" ? "unavailable" : "error", resource: failedResource ?? snapshot.resource, error: error instanceof Error ? error.message : String(error) });
+        // The other shared transfer may still finish or emit progress. Keep
+        // that work cached, but do not let it overwrite this request's error.
+        controller.abort();
         throw error;
       }
     } finally {
-      stopProgress?.();
-      stopCleanupProgress?.();
       if (request?.controller === controller) request = null;
     }
   })();

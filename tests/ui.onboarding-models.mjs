@@ -13,7 +13,7 @@ const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host
 let browser;
 const errors = [];
 
-function setupBridge({ existing = [], parakeet = true, local = true, language = 'en', languages = ['en'], fresh = false, microphone = 'authorized', accessibility = true, saved = {} } = {}) {
+function setupBridge({ existing = [], parakeet = true, local = true, language = 'en', languages = ['en'], fresh = false, microphone = 'authorized', accessibility = true, holdPermissionChecks = false, denyMicrophoneRequest = false, holdCleanupDownload = false, saved = {} } = {}) {
   const qa = window.__QA__;
   qa.stores[1].transcriptionLanguage = language;
   qa.stores[1].autoDetectLanguages = languages;
@@ -22,6 +22,8 @@ function setupBridge({ existing = [], parakeet = true, local = true, language = 
   Object.assign(qa.stores[1], saved);
   qa.microphone = microphone;
   qa.accessibility = accessibility;
+  qa.holdPermissionChecks = holdPermissionChecks;
+  qa.pendingPermissionChecks = [];
   qa.triggers = [];
   qa.installed = new Set(existing);
   qa.downloads = [];
@@ -30,13 +32,29 @@ function setupBridge({ existing = [], parakeet = true, local = true, language = 
   qa.pendingLoads = {};
   qa.holdNextLoad = false;
   qa.cleanupDownloads = 0;
+  qa.holdNextCleanupDownload = holdCleanupDownload;
+  qa.cleanupProgress = 0;
+  const emit = qa.emit;
+  qa.emit = (event, payload) => {
+    if (event === 's1-download-progress') qa.cleanupProgress = payload;
+    emit(event, payload);
+  };
   const original = window.__TAURI_INTERNALS__.invoke;
   window.__TAURI_INTERNALS__.invoke = async (command, args = {}) => {
-    if (command === 'check_microphone') return qa.microphone;
-    if (command === 'check_accessibility') return qa.accessibility;
-    if (command === 'request_microphone') qa.microphone = 'authorized';
+    if (command === 'check_microphone' || command === 'check_accessibility') {
+      if (qa.holdPermissionChecks) await new Promise(resolve => qa.pendingPermissionChecks.push(resolve));
+      await original(command, args);
+      return command === 'check_microphone' ? qa.microphone : qa.accessibility;
+    }
+    if (command === 'request_microphone') {
+      await original(command, args);
+      if (denyMicrophoneRequest) return false;
+      qa.microphone = 'authorized';
+      return true;
+    }
     if (command === 'request_accessibility') { await original(command, args); return qa.accessibility; }
     if (command === 'set_trigger_modifier') qa.triggers.push(args.modifier);
+    if (command === 's1_model_status') return { ...await original(command, args), progress: qa.cleanupProgress };
     if (command === 'download_s1_model') {
       qa.cleanupDownloads++;
       if (qa.holdNextCleanupDownload) {
@@ -138,6 +156,17 @@ try {
   assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
   assert.deepEqual(await page.evaluate(() => window.__QA__.triggers), ['right-command']);
   assert.equal(await page.evaluate(() => window.__QA__.calls.includes('request_microphone') || window.__QA__.calls.includes('request_accessibility')), false);
+  assert.equal(await page.getByRole('button', { name: 'Back to Linty', exact: true }).count(), 0);
+  // Shortcuts and background completion events must not bypass the wizard.
+  await page.evaluate(async () => {
+    window.__QA__.emit('fnkey-pressed');
+    window.__QA__.emit('fnkey-released');
+    (await import('/src/store/app.store.ts')).useAppStore.setState({ status: 'done' });
+  });
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  assert.equal(await page.evaluate(() => window.__QA__.calls.includes('start_dictation')), false);
+  assert.equal(await page.evaluate(() => Boolean(window.__QA__.stores[1].onboardingComplete)), false);
+  assert.equal(await page.evaluate(() => window.__QA__.emittedEvents.some(e => e.event === 'tray-state-changed' && e.payload.setupComplete)), false);
   await audit(page);
   await page.setViewportSize({ width: 640, height: 480 });
   await audit(page);
@@ -176,6 +205,143 @@ try {
   assert.deepEqual(await page.evaluate(() => [window.__QA__.dictationOptions.language, window.__QA__.dictationOptions.cleanup]), ['en', true]);
   await page.evaluate(() => window.__QA__.emit('fnkey-released'));
   await page.waitForFunction(() => window.__QA__.calls.includes('stop_dictation'));
+  await page.close();
+
+  // Both default downloads start on Welcome, before the user clicks anything,
+  // on either speech backend. Ready retains progress made during permissions.
+  for (const parakeet of [true, false]) {
+    const filename = parakeet ? PARAKEET : WHISPER;
+    page = await open({ fresh: true, parakeet, holdCleanupDownload: true });
+    await waitDownload(page, filename);
+    await page.waitForFunction(() => !!window.__QA__.pendingCleanupDownload);
+    await page.getByRole('heading', { name: 'Welcome to Linty', exact: true }).waitFor();
+    assert.equal(await page.evaluate(() => window.__QA__.cleanupDownloads), 1);
+    assert.equal(await page.evaluate(() => window.__QA__.calls.includes('prepare_s1_model')), false);
+    await page.evaluate(name => {
+      window.__QA__.emit('model-download-progress', { filename: name, progress: 24 });
+      window.__QA__.emit('s1-download-progress', 61);
+    }, filename);
+    await reachLanguage(page);
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await reachDone(page);
+    assert.equal(await page.getByRole('progressbar', { name: 'Speech support download' }).getAttribute('value'), '24');
+    await finishDownload(page, filename);
+    await page.getByText('Downloading English text cleanup', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('progressbar', { name: 'Text cleanup download' }).getAttribute('value'), '61');
+    assert.equal(await page.getByRole('button', { name: 'Try dictation', exact: true }).isDisabled(), true);
+    await page.evaluate(() => window.__QA__.pendingCleanupDownload.resolve());
+    await waitLanguage(page, 'en');
+    assert.deepEqual(await page.evaluate(() => window.__QA__.downloads), [filename]);
+    assert.equal(await page.evaluate(() => window.__QA__.cleanupDownloads), 1);
+    await page.close();
+  }
+
+  // One failed download must remain retryable while the other is still running.
+  // Its late progress/completion cannot clear the error or start activation.
+  for (const resource of ['speech', 'cleanup']) {
+    page = await open({ fresh: true, holdCleanupDownload: true });
+    await waitDownload(page, PARAKEET);
+    await page.waitForFunction(() => !!window.__QA__.pendingCleanupDownload);
+    await reachLanguage(page);
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await reachDone(page);
+    await page.evaluate(({ resource, filename }) => {
+      if (resource === 'speech') window.__QA__.pendingDownloads[filename].reject();
+      else window.__QA__.pendingCleanupDownload.reject(new Error('Cleanup download interrupted'));
+    }, { resource, filename: PARAKEET });
+    const errorTitle = resource === 'speech' ? 'Speech support needs attention' : 'Text cleanup needs attention';
+    await page.getByText(errorTitle, { exact: true }).waitFor();
+    await page.evaluate(name => {
+      window.__QA__.emit('model-download-progress', { filename: name, progress: 83 });
+      window.__QA__.emit('s1-download-progress', 76);
+    }, PARAKEET);
+    if (resource === 'cleanup') {
+      await finishDownload(page, PARAKEET);
+      await page.evaluate(() => { window.__QA__.holdNextCleanupDownload = true; });
+    }
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    assert.equal(await page.getByText(errorTitle, { exact: true }).isVisible(), true);
+    assert.deepEqual(await page.evaluate(() => window.__QA__.loads), []);
+    await page.getByRole('button', { name: 'Retry preparation', exact: true }).click();
+    if (resource === 'speech') {
+      await page.waitForFunction(() => window.__QA__.downloads.length === 2);
+      await finishDownload(page, PARAKEET);
+      await page.getByText('Downloading English text cleanup', { exact: true }).waitFor();
+      assert.equal(await page.getByRole('progressbar', { name: 'Text cleanup download' }).getAttribute('value'), '76');
+      assert.equal(await page.evaluate(() => window.__QA__.cleanupDownloads), 1, 'Retry shares the active cleanup download');
+    } else {
+      await page.waitForFunction(() => window.__QA__.cleanupDownloads === 2);
+      assert.equal(await page.evaluate(() => window.__QA__.downloads.length), 1, 'Retry reuses completed speech support');
+    }
+    await page.evaluate(() => window.__QA__.pendingCleanupDownload.resolve());
+    await waitLanguage(page, 'en');
+    await page.close();
+  }
+
+  // Returning installs wait for BOTH permission checks before showing the app.
+  page = await open({ returning: true, existing: [PARAKEET], holdPermissionChecks: true });
+  await page.waitForFunction(() => window.__QA__.pendingPermissionChecks.length === 2);
+  assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
+  await page.getByText('Opening Linty…', { exact: true }).waitFor();
+  await page.evaluate(() => {
+    window.__QA__.emit('fnkey-pressed');
+    window.__QA__.emit('fnkey-released');
+    window.__QA__.pendingPermissionChecks[0]();
+  });
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
+  assert.equal(await page.evaluate(() => window.__QA__.calls.includes('start_dictation')), false);
+  await page.evaluate(() => {
+    window.__QA__.holdPermissionChecks = false;
+    window.__QA__.pendingPermissionChecks[1]();
+  });
+  await page.getByRole('navigation', { name: 'Main navigation' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Get Started', exact: true }).count(), 0);
+  await page.close();
+
+  // Reinstalls with a saved completion flag recover missing access. Restoring
+  // the microphone alone cannot bypass Accessibility or the rest of setup.
+  for (const microphone of ['denied', 'authorized']) {
+    page = await open({ returning: true, existing: [PARAKEET], microphone, accessibility: false, denyMicrophoneRequest: true });
+    await waitLanguage(page, 'en');
+    if (microphone === 'denied') {
+      await page.getByRole('heading', { name: 'Microphone access', exact: true }).waitFor();
+      await page.getByRole('button', { name: 'Open System Settings', exact: true }).waitFor();
+      assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
+      await page.evaluate(() => { window.__QA__.microphone = 'authorized'; });
+    }
+    await page.getByRole('heading', { name: 'Accessibility access', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Open System Settings', exact: true }).waitFor();
+    assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Skip for now', exact: true }).count(), 0);
+    await page.evaluate(() => { window.__QA__.accessibility = true; });
+    await reachDone(page);
+    assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
+    await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
+    await page.getByRole('heading', { name: 'Microphone Test', exact: true }).waitFor();
+    await page.close();
+  }
+
+  // Access revoked after the permission steps is checked again before saving.
+  page = await open({ fresh: true, existing: [PARAKEET] });
+  await reachLanguage(page);
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await reachDone(page);
+  await page.evaluate(() => { window.__QA__.accessibility = false; });
+  await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
+  await page.getByRole('heading', { name: 'Accessibility access', exact: true }).waitFor();
+  assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
+  assert.equal(await page.evaluate(() => Boolean(window.__QA__.stores[1].onboardingComplete)), false);
+  await page.evaluate(() => { window.__QA__.accessibility = true; });
+  await reachDone(page);
+  await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).waitFor();
+  await page.close();
+
+  // Only a boolean completion flag skips first-run setup.
+  page = await open({ fresh: true, existing: [PARAKEET], saved: { onboardingComplete: 'false' } });
+  await page.getByRole('heading', { name: 'Welcome to Linty', exact: true }).waitFor();
+  assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
   await page.close();
 
   // Restarting unfinished onboarding preserves an explicit cleanup opt-out.

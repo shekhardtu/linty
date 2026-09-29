@@ -1,5 +1,5 @@
 import { refreshHistory } from "@/services/history.service";
-import { useEffect, useCallback, useState, useRef } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { flushSync } from "react-dom";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
@@ -16,7 +16,7 @@ import { useUpdater, useUpdaterAutoCheck } from "@/hooks/useUpdater.hook";
 import { useUpdateAcknowledgment } from "@/hooks/useUpdateAcknowledgment.hook";
 import { useTraySync } from "@/hooks/useTraySync.hook";
 import { useAppStore } from "@/store/app.store";
-import { checkMicrophonePermission } from "@/services/permissions.service";
+import { checkMicrophonePermission, checkAccessibility } from "@/services/permissions.service";
 import { Sidebar } from "@/components/layout/Sidebar.component";
 import { WindowToolbar } from "@/components/layout/WindowToolbar.component";
 import { StatusBar } from "@/components/layout/StatusBar.component";
@@ -45,27 +45,30 @@ export default function App() {
   const { saveTranscriptionLanguage, onboardingComplete, saveOnboardingComplete, settingsLoaded } = useSettings();
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [micPermission, setMicPermission] = useState<string | null>(null);
-  const micPollRef = useRef<ReturnType<typeof setInterval>>(undefined);
+  const [permissionState, setPermissionState] = useState<"checking" | "ready" | "microphone" | "accessibility">("checking");
+  const showingSetup = !onboardingComplete || permissionState !== "ready";
 
-  // Restore microphone access if it is lost after setup.
+  // A saved completion flag does not mean macOS still grants access (for
+  // example, after reinstalling). Check both permissions before showing the app.
+  // Fresh installs request them in context during the wizard instead.
   useEffect(() => {
-    if (!onboardingComplete || !settingsLoaded) return;
-    const poll = async () => {
-      const status = await checkMicrophonePermission().catch(() => "not_determined");
-      setMicPermission(status);
-    };
-    poll();
-    micPollRef.current = setInterval(poll, 3000);
-    return () => clearInterval(micPollRef.current);
-  }, [onboardingComplete, settingsLoaded]);
-
-  useEffect(() => {
-    if (micPermission === "authorized" && micPollRef.current) clearInterval(micPollRef.current);
-  }, [micPermission]);
+    if (!settingsLoaded) return;
+    if (!useAppStore.getState().onboardingComplete) {
+      setPermissionState("ready");
+      return;
+    }
+    let cancelled = false;
+    void Promise.all([
+      checkMicrophonePermission().catch(() => "not_determined"),
+      checkAccessibility().catch(() => false),
+    ]).then(([microphone, accessibility]) => {
+      if (!cancelled) setPermissionState(microphone !== "authorized" ? "microphone" : !accessibility ? "accessibility" : "ready");
+    });
+    return () => { cancelled = true; };
+  }, [settingsLoaded]);
 
   useTheme();
-  useGlobalHotkey();
+  useGlobalHotkey(!showingSetup);
   useCorrectionObserver();
   useParakeetVocabulary();
   useModelAutoLoad();
@@ -87,11 +90,12 @@ export default function App() {
   }, []);
   useUpdaterAutoCheck();
   useUpdateAcknowledgment();
-  useTraySync(saveTranscriptionLanguage);
+  useTraySync(saveTranscriptionLanguage, !showingSetup);
   const { checkForUpdate } = useUpdater();
 
   const handleOnboardingComplete = useCallback(async () => {
     await saveOnboardingComplete(true);
+    setPermissionState("ready");
   }, [saveOnboardingComplete]);
 
   // Menu: Check for Updates
@@ -137,7 +141,7 @@ export default function App() {
   // Commands yield to dialogs and controls that already handled the event.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!onboardingComplete || e.defaultPrevented || document.querySelector("dialog[open]")) return;
+      if (showingSetup || e.defaultPrevented || document.querySelector("dialog[open]")) return;
       if (e.metaKey && e.key === ",") {
         e.preventDefault();
         setCurrentView("settings");
@@ -170,7 +174,7 @@ export default function App() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentView, setCurrentView, onboardingComplete]);
+  }, [currentView, setCurrentView, showingSetup]);
 
   // The dictionary must be in memory before the first dictation applies it.
   useEffect(() => {
@@ -184,13 +188,14 @@ export default function App() {
   }, [setCurrentView]);
 
   // Avoid flashing the first-run flow while saved preferences hydrate.
-  if (!settingsLoaded) {
+  if (!settingsLoaded || permissionState === "checking") {
     return <div className="app-loading" role="status"><span className="loading-mark" />Opening Linty…</div>;
   }
 
-  if (!onboardingComplete || (micPermission !== null && micPermission !== "authorized")) {
+  if (showingSetup) {
     return <>
-      <OnboardingPage onComplete={handleOnboardingComplete} startAtMic={onboardingComplete} />
+      <OnboardingPage onComplete={handleOnboardingComplete}
+        initialStep={onboardingComplete && permissionState !== "ready" ? permissionState : "welcome"} />
       <ToastContainer />
       <RecordingFocus />
       <UpdateRequiredDialogue />
