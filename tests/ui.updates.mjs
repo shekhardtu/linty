@@ -24,13 +24,13 @@ try {
   await mkdir(output, { recursive: true });
   browser = await engine.launch({ headless: true });
 
-  const launch = async ({ previous = '0.0.0', running = version, theme = 'light', onboarding = false, offer = null, offline = false, clock = false } = {}) => {
+  const launch = async ({ previous = '0.0.0', running = version, theme = 'light', onboarding = false, offer = null, offline = false, clock = false, reloadOnRestart = true } = {}) => {
     const context = await browser.newContext({ viewport: { width: 1080, height: 760 } });
     const page = await context.newPage();
     if (clock) await page.clock.install();
     page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(fixture, { empty: true, theme, onboarding, update: offer });
-    await page.addInitScript(({ previous, running, offer, offline }) => {
+    await page.addInitScript(({ previous, running, offer, offline, reloadOnRestart }) => {
       const qa = window.__QA__;
       const saved = sessionStorage.getItem('qa-update-history');
       qa.stores[1].updateHistory = saved ? JSON.parse(saved) : previous ? { lastRunVersion: previous, notice: null } : null;
@@ -46,11 +46,11 @@ try {
           sessionStorage.setItem('qa-update-history', JSON.stringify(qa.stores[1].updateHistory));
         }
         if (command === 'plugin:updater|install') sessionStorage.setItem('qa-running-version', offer.version);
-        if (command === 'plugin:process|restart') window.location.reload();
+        if (command === 'plugin:process|restart' && reloadOnRestart) window.location.reload();
         if (command === 'plugin:shell|open') qa.openedUrl = args.path;
         return result;
       };
-    }, { previous, running, offer, offline });
+    }, { previous, running, offer, offline, reloadOnRestart });
     await page.goto(`http://127.0.0.1:${port}`);
     return page;
   };
@@ -133,9 +133,11 @@ try {
     await page.clock.install();
     await check(page);
     if (required) {
-      await page.getByRole('dialog', { name: 'Linty needs to update' }).getByText(firstHighlight, { exact: true }).waitFor();
+      const updateNotice = page.getByRole('dialog', { name: 'Updating Linty' });
+      await updateNotice.getByText('What’s new', { exact: true }).click();
+      await updateNotice.getByText(firstHighlight, { exact: true }).waitFor();
       await page.waitForFunction(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().updateStatus === 'waiting');
-      await page.clock.fastForward(31_000);
+      await page.clock.fastForward(6_000);
     } else {
       await about(page);
       await page.getByRole('heading', { name: `What’s new in v${version}` }).waitFor();
@@ -167,7 +169,7 @@ try {
   await check(revoked);
   await revoked.waitForFunction(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().updateStatus === 'waiting');
   await revoked.evaluate(offer => window.__QA__.setUpdate({ ...offer, rawJson: { version: offer.version } }), revocableOffer);
-  await revoked.clock.fastForward(31_000);
+  await revoked.clock.fastForward(6_000);
   await notice(revoked).waitFor();
   assert.equal(await notice(revoked).getByText('You’re up to date.', { exact: true }).count(), 0, 'revoking a required update does not make the installed version current');
   assert.equal(await revoked.evaluate(() => window.__QA__.calls.includes('plugin:updater|install')), false);
@@ -175,6 +177,105 @@ try {
   await about(revoked);
   assert.equal(await revoked.getByText('You’re up to date.', { exact: true }).count(), 0, 'About must also avoid false confirmation');
   await revoked.close();
+
+  const requiredOffer = { rid: 9, currentVersion: '0.0.0', version, body: notes, rawJson: { version, minimum_version: version } };
+  for (const theme of ['light', 'dark']) {
+    const page = await launch({ previous: '0.0.0', running: '0.0.0', offer: requiredOffer, theme, reloadOnRestart: false });
+    await page.getByRole('heading', { name: 'Your dictation', exact: true }).waitFor();
+    await page.clock.install();
+    await about(page);
+    await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'About', exact: true }).focus();
+    const focusBefore = await page.evaluate(() => document.activeElement.textContent);
+    await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.setState({ isRecording: true, status: 'recording' }));
+    await check(page);
+    const updateNotice = page.getByRole('dialog', { name: 'Updating Linty' });
+    await updateNotice.getByText('Downloaded. Finish your dictation; Linty will restart afterward.', { exact: true }).waitFor();
+    assert.equal(await page.evaluate(() => document.querySelectorAll(':modal').length), 0);
+    assert.equal(await page.evaluate(() => document.activeElement.textContent), focusBefore, 'the update never steals keyboard focus');
+    await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'History', exact: true }).click();
+    assert.equal(await page.getByRole('main').getAttribute('aria-label'), 'history', 'navigation works while the notice is visible');
+    await updateNotice.getByRole('button', { name: 'Hide update notice' }).click();
+    await updateNotice.waitFor({ state: 'detached' });
+    await about(page);
+    await page.getByRole('button', { name: 'Update status', exact: true }).click();
+    await updateNotice.waitFor();
+    await page.screenshot({ path: `${output}/required-modeless-${theme}.png`, animations: 'disabled' });
+    await page.setViewportSize({ width: 640, height: 480 });
+    const box = await updateNotice.boundingBox();
+    assert.ok(box.y >= 48 && box.x >= 0 && box.x + box.width <= 640 && box.y + box.height <= 440);
+    const audit = await new AxeBuilder({ page }).analyze();
+    assert.deepEqual(audit.violations.map(v => `${v.id}: ${v.help}`), []);
+    await page.screenshot({ path: `${output}/required-modeless-minimum-${theme}.png`, animations: 'disabled' });
+    await updateNotice.getByRole('button', { name: 'Hide update notice' }).focus();
+    await page.keyboard.press('Escape');
+    await updateNotice.waitFor({ state: 'detached' });
+    await page.clock.fastForward(60_000);
+    assert.equal(await page.evaluate(() => window.__QA__.calls.includes('plugin:updater|install')), false, 'hiding never interrupts dictation');
+    await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.setState({ isRecording: false, status: 'pasting' }));
+    await page.clock.fastForward(60_000);
+    assert.equal(await page.evaluate(() => window.__QA__.calls.includes('plugin:updater|install')), false, 'delivery must finish before install');
+    await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.setState({ status: 'done' }));
+    await page.getByRole('button', { name: 'Update status', exact: true }).click();
+    await updateNotice.getByText('Downloaded. Restarting in 5 seconds…', { exact: true }).waitFor();
+    await page.clock.fastForward(4_000);
+    assert.equal(await page.evaluate(() => window.__QA__.calls.includes('plugin:updater|install')), false);
+    await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.setState({ status: 'preparing' }));
+    await page.clock.fastForward(10_000);
+    assert.equal(await page.evaluate(() => window.__QA__.calls.includes('plugin:updater|install')), false, 'a new dictation cancels the countdown');
+    await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.setState({ status: 'idle' }));
+    await updateNotice.getByRole('button', { name: 'Hide update notice' }).click();
+    await page.clock.fastForward(6_000);
+    await page.waitForFunction(() => window.__QA__.calls.includes('plugin:process|restart'));
+    const calls = await page.evaluate(() => window.__QA__.calls);
+    for (const command of ['plugin:updater|download', 'plugin:updater|install', 'plugin:process|restart']) assert.equal(calls.filter(c => c === command).length, 1, command);
+    assert.equal(await updateNotice.count(), 0, 'the notice closes before relaunch, even without a document reload');
+    await page.close();
+  }
+
+  const restartFailure = await launch({ previous: '0.0.0', running: '0.0.0', offer: requiredOffer, reloadOnRestart: false });
+  await restartFailure.getByRole('heading', { name: 'Your dictation', exact: true }).waitFor();
+  await restartFailure.clock.install();
+  await restartFailure.evaluate(() => { window.__QA__.failures['plugin:process|restart'] = 'Synthetic restart failure'; });
+  await check(restartFailure);
+  await restartFailure.waitForFunction(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().updateRestartAt !== null);
+  await restartFailure.clock.fastForward(6_000);
+  const failedNotice = restartFailure.getByRole('dialog', { name: 'Updating Linty' });
+  await failedNotice.getByRole('alert').waitFor();
+  await restartFailure.evaluate(() => { delete window.__QA__.failures['plugin:process|restart']; });
+  await failedNotice.getByRole('button', { name: 'Restart Linty', exact: true }).click();
+  await restartFailure.waitForFunction(() => window.__QA__.calls.filter(c => c === 'plugin:process|restart').length === 2);
+  const recoveredCalls = await restartFailure.evaluate(() => window.__QA__.calls);
+  assert.equal(recoveredCalls.filter(c => c === 'plugin:updater|download').length, 1, 'restart retry does not redownload');
+  assert.equal(recoveredCalls.filter(c => c === 'plugin:updater|install').length, 1, 'restart retry does not reinstall');
+  await failedNotice.waitFor({ state: 'detached' });
+  await restartFailure.close();
+
+  const stalledCheck = await launch({ previous: '0.0.0', running: '0.0.0', offer: requiredOffer, reloadOnRestart: false });
+  await stalledCheck.getByRole('heading', { name: 'Your dictation', exact: true }).waitFor();
+  await stalledCheck.clock.install();
+  await check(stalledCheck);
+  await stalledCheck.waitForFunction(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().updateRestartAt !== null);
+  await stalledCheck.evaluate(offer => {
+    const invoke = window.__TAURI_INTERNALS__.invoke;
+    window.__TAURI_INTERNALS__.invoke = async (command, args) => {
+      if (command === 'check_for_update') {
+        await new Promise(resolve => { window.__QA__.finishStalledRecheck = resolve; });
+        return { ...offer, rid: 10 };
+      }
+      if (command === 'plugin:resources|close') window.__QA__.closedUpdateRid = args.rid;
+      return invoke(command, args);
+    };
+  }, requiredOffer);
+  await stalledCheck.clock.fastForward(6_000);
+  await stalledCheck.waitForFunction(() => window.__QA__.finishStalledRecheck);
+  await stalledCheck.getByRole('dialog', { name: 'Updating Linty' }).getByText('Getting ready to restart…', { exact: true }).waitFor();
+  await about(stalledCheck);
+  await stalledCheck.clock.fastForward(41_000);
+  await stalledCheck.waitForFunction(() => window.__QA__.calls.includes('plugin:process|restart'));
+  await stalledCheck.evaluate(() => window.__QA__.finishStalledRecheck());
+  await stalledCheck.waitForFunction(() => window.__QA__.closedUpdateRid === 10);
+  assert.equal(await stalledCheck.evaluate(() => window.__QA__.calls.filter(c => c === 'plugin:updater|install').length), 1);
+  await stalledCheck.close();
 
   const retrying = await launch({ previous: version, offline: true, clock: true });
   await retrying.getByRole('heading', { name: 'Your dictation', exact: true }).waitFor();

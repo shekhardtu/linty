@@ -17,7 +17,7 @@ export function UpdateAcknowledgmentDialogue({ paused }: { paused: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const done = useRef<HTMLButtonElement>(null);
   const visible = Boolean(notice) && !required && !dictating && !paused
-    && !["downloading", "waiting", "installing"].includes(status);
+    && !["downloading", "waiting", "verifying", "installing", "restarting"].includes(status);
 
   useEffect(() => {
     if (!visible || !dialog.current) return;

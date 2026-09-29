@@ -8,6 +8,7 @@ import { PageLayout } from "@/components/shared/PageLayout.component";
 import { installedReleaseNotes, ReleaseNotes, releaseUrl } from "@/components/shared/ReleaseNotes.component";
 import { useUpdater } from "@/hooks/useUpdater.hook";
 import { useAppStore } from "@/store/app.store";
+import { isDictationBusy } from "@/lib/force-update.util";
 
 export function AboutPage() {
   const [appVersion, setAppVersion] = useState("");
@@ -17,9 +18,11 @@ export function AboutPage() {
   const updateError = useAppStore((s) => s.updateError);
   const updateNotes = useAppStore((s) => s.updateNotes);
   const updateCheckedAt = useAppStore((s) => s.updateCheckedAt);
+  const restartPending = useAppStore((s) => s.updateRestartPending);
+  const dictating = useAppStore(isDictationBusy);
   const { checkForUpdate, downloadAndInstall } = useUpdater();
-  const updateBusy = ["checking", "downloading", "waiting", "installing"].includes(updateStatus);
-  const showAvailableNotes = Boolean(updateVersion && ["available", "downloading", "waiting", "installing"].includes(updateStatus));
+  const updateBusy = ["checking", "downloading", "waiting", "verifying", "installing", "restarting"].includes(updateStatus);
+  const showAvailableNotes = Boolean(updateVersion && ["available", "downloading", "waiting", "verifying", "installing", "restarting"].includes(updateStatus));
   const notesVersion = showAvailableNotes ? updateVersion! : appVersion;
 
   useEffect(() => {
@@ -66,8 +69,10 @@ export function AboutPage() {
                 </>
               )}
               {(updateStatus === "waiting" || updateStatus === "installing") && (
-                <p>{updateStatus === "waiting" ? "Downloaded. Waiting for dictation to finish…" : "Installing and restarting…"}</p>
+                <p>{updateStatus === "waiting" ? dictating ? "Downloaded. Waiting for dictation to finish…" : "Downloaded. Restarting shortly…" : "Installing and restarting…"}</p>
               )}
+              {updateStatus === "verifying" && <p>Getting ready to restart…</p>}
+              {updateStatus === "restarting" && <p>Update installed. Restarting Linty…</p>}
               {updateStatus === "error" && updateError && <p className="about-update-error">{updateError}</p>}
             </div>
             <div className="about-update-actions">
@@ -80,7 +85,7 @@ export function AboutPage() {
                 Check for updates
               </button>
               {updateStatus === "error" && (
-                <button className="text-link" onClick={() => checkForUpdate()}>Retry</button>
+                <button className="text-link" onClick={() => checkForUpdate()}>{restartPending ? "Restart Linty" : "Retry"}</button>
               )}
             </div>
           </div>

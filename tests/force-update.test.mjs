@@ -112,6 +112,25 @@ test('unrelated store changes do not postpone the install', async () => {
   assert.equal(await settled(quiet), true);
 });
 
+test('countdown notifications follow dictation changes and release their subscription', async () => {
+  const w = fakeWorld();
+  const changes = [];
+  const quiet = waitUntilIdle(() => isDictationBusy(w.state), w.subscribe, 5_000, w.timers, ready => {
+    changes.push(ready);
+    w.change({}); // Mirrors the real countdown publishing another store change.
+  });
+  assert.deepEqual(changes, [true]);
+  w.change({ status: 'preparing' });
+  w.advance(10_000);
+  assert.equal(await settled(quiet), false);
+  assert.deepEqual(changes, [true, false]);
+  w.change({ status: 'done' });
+  w.advance(5_000);
+  await quiet;
+  assert.deepEqual(changes, [true, false, true, false]);
+  assert.equal(w.listenerCount(), 0);
+});
+
 test('busy means recording or producing text', () => {
   for (const status of ['recording', 'transcribing', 'correcting', 'pasting']) assert.equal(isDictationBusy({ isRecording: false, status }), true, status);
   for (const status of ['idle', 'done', 'error']) assert.equal(isDictationBusy({ isRecording: false, status }), false, status);

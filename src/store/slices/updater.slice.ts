@@ -11,7 +11,9 @@ export type UpdateStatus =
   | "available"
   | "downloading"
   | "waiting"
+  | "verifying"
   | "installing"
+  | "restarting"
   | "error";
 
 export interface UpdaterSlice {
@@ -23,8 +25,11 @@ export interface UpdaterSlice {
   updateStatus: UpdateStatus;
   updateVersion: string | null;
   updateCurrentVersion: string | null;
-  /** The offered update is required (latest.json minimum_version); the app shows a blocking screen. */
+  /** The offered update is required (latest.json minimum_version). */
   updateRequired: boolean;
+  updateNoticeDismissed: boolean;
+  updateRestartAt: number | null;
+  updateRestartPending: boolean;
   updateError: string | null;
   updateProgress: number;
   setUpdateStatus: (status: UpdateStatus) => void;
@@ -44,6 +49,9 @@ export const createUpdaterSlice: StateCreator<UpdaterSlice> = (set) => ({
   updateVersion: null,
   updateCurrentVersion: null,
   updateRequired: false,
+  updateNoticeDismissed: false,
+  updateRestartAt: null,
+  updateRestartPending: false,
   updateError: null,
   updateProgress: 0,
   setUpdateStatus: (updateStatus) => set({ updateStatus }),
