@@ -18,6 +18,8 @@ interface TriggerKeyPickerProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  allowCustom?: boolean;
+  compact?: boolean;
 }
 
 /**
@@ -26,7 +28,7 @@ interface TriggerKeyPickerProps {
  * key combination the global-shortcut plugin can register. The fn key
  * produces no DOM key events, so it stays a listed preset only.
  */
-export function TriggerKeyPicker({ value, onChange, className }: TriggerKeyPickerProps) {
+export function TriggerKeyPicker({ value, onChange, className, allowCustom = true, compact = false }: TriggerKeyPickerProps) {
   const [capturing, setCapturing] = useState(false);
   const [captureError, setCaptureError] = useState("");
   // A captured combo that collides with a universal shortcut (⌘C, ⌘V, ...) —
@@ -141,9 +143,9 @@ export function TriggerKeyPicker({ value, onChange, className }: TriggerKeyPicke
                 <span className="text-[13px] font-medium text-text-primary">
                   {option.label}
                 </span>
-                <span className="text-[12px] text-text-secondary">
+                {!compact && <span className="text-[12px] text-text-secondary">
                   {option.description}
-                </span>
+                </span>}
               </div>
               <kbd className="shrink-0 rounded-md bg-bg-hover border border-border-subtle px-2.5 py-1 text-[12px] font-medium text-text-secondary tabular-nums">
                 {option.display}
@@ -162,9 +164,9 @@ export function TriggerKeyPicker({ value, onChange, className }: TriggerKeyPicke
               <span className="text-[13px] font-medium text-text-primary">
                 Custom
               </span>
-              <span className="text-[12px] text-text-secondary">
+              {!compact && <span className="text-[12px] text-text-secondary">
                 Your recorded trigger.
-              </span>
+              </span>}
             </div>
             <kbd className="shrink-0 rounded-md bg-bg-hover border border-border-subtle px-2.5 py-1 text-[12px] font-medium text-text-secondary tabular-nums">
               {formatTriggerDisplay(value)}
@@ -176,7 +178,7 @@ export function TriggerKeyPicker({ value, onChange, className }: TriggerKeyPicke
         )}
 
         {/* Free-form capture */}
-        <button
+        {allowCustom && <button
           onClick={() => {
             setCaptureError("");
             setPendingCombo(null);
@@ -198,7 +200,7 @@ export function TriggerKeyPicker({ value, onChange, className }: TriggerKeyPicke
                 : "Any modifier key alone, or any combination."}
             </span>
           </div>
-        </button>
+        </button>}
       </div>
 
       {captureError && (

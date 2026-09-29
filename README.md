@@ -31,8 +31,8 @@
 
 1. [Download Linty for Mac](https://github.com/shekhardtu/linty/releases/latest/download/linty.dmg) — the installer downloads directly.
 2. Open it and drag **Linty** into **Applications**.
-3. Launch Linty. English and **Right Command (⌘)** are already selected, and local speech support prepares automatically. Guided setup is optional.
-4. Grant **Microphone** and **Accessibility** access in System Check and wait for the initial downloads to finish.
+3. Launch Linty. English and **Right Command (⌘)** are already selected, and local speech support prepares automatically. Onboarding guides you through the required permissions; changing the defaults is optional.
+4. Grant **Microphone** and **Accessibility** access during onboarding and wait for the initial downloads to finish.
 5. Open a text field in another app, hold **Right Command**, speak, and release to paste. You can also try a recording in System Check. Change languages in **Settings → Dictation** or choose another trigger in **Shortcuts**.
 
 Official releases are Developer ID signed and notarized by Apple. Dictation needs no account, API key, or subscription.

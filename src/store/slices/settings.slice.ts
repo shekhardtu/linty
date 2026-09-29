@@ -29,19 +29,19 @@ export const TRIGGER_KEY_OPTIONS: TriggerKeyOption[] = [
     value: TRIGGER_KEY_FN,
     label: "fn key",
     display: "fn (hold)",
-    description: "Hold the fn key. Requires the macOS fn binding set to \"Do Nothing\".",
+    description: "May need a change in Keyboard settings.",
   },
   {
     value: `${MODIFIER_TRIGGER_PREFIX}right-command`,
-    label: "Right ⌘",
+    label: "Right Command",
     display: "R⌘ (hold)",
-    description: "Hold the right Command key. No macOS conflicts.",
+    description: "Command key on the right of the space bar.",
   },
   {
     value: `${MODIFIER_TRIGGER_PREFIX}right-option`,
-    label: "Right ⌥",
+    label: "Right Option",
     display: "R⌥ (hold)",
-    description: "Hold the right Option key. No macOS conflicts.",
+    description: "Option key on the right of the space bar.",
   },
 ];
 

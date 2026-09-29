@@ -18,7 +18,7 @@ import { TriggerKeyPicker } from "@/components/shared/TriggerKeyPicker.component
 import { cn } from "@/lib/utils";
 import { FrequentLanguages } from "@/components/shared/FrequentLanguages.component";
 import { LanguagePicker } from "@/components/shared/LanguagePicker.component";
-import { AUTO_LANGUAGE, validAutoDetectLanguages } from "@/lib/languages.util";
+import { AUTO_LANGUAGE, languageLabel, validAutoDetectLanguages } from "@/lib/languages.util";
 import { LanguageReadiness } from "@/components/settings/LanguageReadiness.component";
 import { languagePreparation } from "@/services/language-preparation.service";
 
@@ -26,20 +26,20 @@ type Step = "welcome" | "language" | "microphone" | "accessibility" | "trigger" 
 
 const STEP_LABELS: Record<Step, string> = {
   welcome: "Welcome",
-  language: "Spoken languages",
+  language: "Language",
   microphone: "Microphone",
   accessibility: "Accessibility",
-  trigger: "Trigger key",
+  trigger: "Shortcut",
   done: "Ready",
 };
 
 interface OnboardingPageProps {
   onComplete: () => void | Promise<void>;
-  onDismiss: () => void;
+  startAtMic?: boolean;
 }
 
-export function OnboardingPage({ onComplete, onDismiss }: OnboardingPageProps) {
-  const [step, setStep] = useState<Step>("welcome");
+export function OnboardingPage({ onComplete, startAtMic }: OnboardingPageProps) {
+  const [step, setStep] = useState<Step>(startAtMic ? "microphone" : "welcome");
   const contentRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const heading = contentRef.current?.querySelector("h1");
@@ -47,8 +47,7 @@ export function OnboardingPage({ onComplete, onDismiss }: OnboardingPageProps) {
     heading?.focus({ preventScroll: true });
     contentRef.current?.scrollIntoView({ block: "start" });
   }, [step]);
-  const progressSteps: Step[] = ["welcome", "language", "microphone", "accessibility", "trigger"];
-  progressSteps.push("done");
+  const progressSteps: Step[] = ["welcome", "language", "microphone", "accessibility", "trigger", "done"];
 
   return (
     <div className="onboarding-shell">
@@ -56,13 +55,12 @@ export function OnboardingPage({ onComplete, onDismiss }: OnboardingPageProps) {
       <div data-tauri-drag-region className="absolute inset-x-0 top-0 z-20 h-[52px]" />
 
       <div className="setup-brand"><BrandMark /><span>Linty</span></div>
-      <button className="absolute right-6 top-[60px] z-30 text-link text-[12px]" onClick={onDismiss}>Back to Linty</button>
       <SoundPattern />
       <main ref={contentRef} className="onboarding-content" aria-label="Set up Linty">
         {step === "welcome" && <WelcomeStep onNext={() => setStep("language")} />}
         {step === "language" && <LanguageStep onNext={() => setStep("microphone")} />}
         {step === "microphone" && (
-          <MicrophoneStep onNext={() => setStep("accessibility")} />
+          <MicrophoneStep onNext={startAtMic ? onComplete : () => setStep("accessibility")} />
         )}
         {step === "accessibility" && (
           <AccessibilityStep onNext={() => setStep("trigger")} />
@@ -71,8 +69,8 @@ export function OnboardingPage({ onComplete, onDismiss }: OnboardingPageProps) {
         {step === "done" && <DoneStep onComplete={onComplete} onChangeLanguage={() => setStep("language")} />}
 
         <div className="onboarding-progress" aria-label="Setup progress">
-          <p>{`Step ${progressSteps.indexOf(step) + 1} of ${progressSteps.length} · ${STEP_LABELS[step]}`}</p>
-          <ol>{progressSteps.map((item) => <li key={item} aria-current={item === step ? "step" : undefined}><span className="sr-only">{STEP_LABELS[item]}</span></li>)}</ol>
+          <p>{startAtMic ? "Restore microphone access" : `Step ${progressSteps.indexOf(step) + 1} of ${progressSteps.length} · ${STEP_LABELS[step]}`}</p>
+          {!startAtMic && <ol>{progressSteps.map((item) => <li key={item} aria-current={item === step ? "step" : undefined}><span className="sr-only">{STEP_LABELS[item]}</span></li>)}</ol>}
         </div>
       </main>
     </div>
@@ -84,20 +82,21 @@ export function OnboardingPage({ onComplete, onDismiss }: OnboardingPageProps) {
 function WelcomeStep({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex flex-col items-center text-center animate-page-enter">
-      <img src="/brand/icon.svg" alt="" width={80} height={80} className="mb-5" draggable={false} />
+      <img src="/brand/icon.svg" alt="" width={80} height={80} className="onboarding-step-icon mb-5" draggable={false} />
 
       <h1 className="text-[22px] font-bold text-text-primary mb-2">
         Welcome to Linty
       </h1>
       <p className="text-[14px] text-text-secondary leading-relaxed mb-8">
         Turn your voice into text in the apps you use.
-        <br />
-        Choose your language, allow microphone and shortcut access, then try dictation.
-        <br />
-        Speech stays on this Mac. Setup downloads and app updates need internet access.
       </p>
 
-      <LegalNotice />
+      <p className="text-[13px] text-text-secondary mb-5">
+        Your speech stays on this Mac.
+        <br />Setup needs internet access.
+      </p>
+
+      <LegalNotice compact />
 
       <button
         onClick={onNext}
@@ -145,29 +144,26 @@ function LanguageStep({ onNext }: { onNext: () => void }) {
 
   return (
     <div className="flex flex-col items-center text-center animate-page-enter">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-info/15 mb-5">
+      <div className="onboarding-step-icon flex h-16 w-16 items-center justify-center rounded-2xl bg-info/15 mb-5">
         <Languages size={28} className="text-info" />
       </div>
       <h1 className="text-[22px] font-bold text-text-primary mb-2">
-        Choose your dictation language
+        Your dictation language
       </h1>
       <p className="text-[14px] text-text-secondary leading-relaxed mb-6">
-        Select the language you speak most, or choose Auto-detect.
-        <br />
-        You can change it anytime in Settings → Dictation.
+        Choose the language you’ll speak.
       </p>
       <LanguagePicker label="Dictation language" value={language} disabled={saving}
         onChange={value => { setLanguage(value); setError(""); }} className="w-full max-w-[340px]" />
       {language === AUTO_LANGUAGE && <div className="mt-4 w-full max-w-[440px] text-left">
-        <p className="text-[13px] text-text-secondary mb-3">Which languages do you speak most? Choose up to three. Auto-detect will try to identify the language of each recording using only these languages.</p>
+        <p className="text-[13px] text-text-secondary mb-3">Add up to three languages. Linty detects which one you’re speaking.</p>
         <FrequentLanguages value={languages} onChange={value => { setLanguages(value); setError(""); }} disabled={saving} />
       </div>}
-      {language === "en" && <p className="text-[12px] text-text-secondary mt-4 max-w-[380px]">
-        English includes on-device text cleanup. Linty prepares it automatically with a one-time download of about 496 MB.
-      </p>}
-      <p className="text-[12px] text-text-muted mt-3 mb-6">
-        App menus stay in English.
+      <p className="text-[12px] text-text-secondary mt-4 mb-6">
+        Change this later in Settings.
+        {language !== "en" && <><br />App menus stay in English.</>}
       </p>
+      {saving && <div className="w-full mb-4"><LanguageReadiness /></div>}
       {error && <p role="alert" className="text-[13px] text-error max-w-[380px] mb-4">{error}</p>}
       <button
         onClick={() => { void continueSetup(); }}
@@ -229,7 +225,7 @@ function MicrophoneStep({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex flex-col items-center text-center animate-page-enter">
       <div className={cn(
-        "flex h-16 w-16 items-center justify-center rounded-2xl mb-5 transition-colors duration-300",
+        "onboarding-step-icon flex h-16 w-16 items-center justify-center rounded-2xl mb-5 transition-colors duration-300",
         status === "granted" ? "bg-success/15" : "bg-info/15",
       )}>
         {status === "granted" ? (
@@ -240,16 +236,16 @@ function MicrophoneStep({ onNext }: { onNext: () => void }) {
       </div>
 
       <h1 className="text-[22px] font-bold text-text-primary mb-2">
-        Microphone Access
+        Microphone access
       </h1>
       <p className="text-[14px] text-text-secondary leading-relaxed mb-8">
-        Linty needs your microphone to capture speech for transcription.
+        Let Linty hear you while you dictate.
       </p>
 
       {(status === "checking" || status === "requesting") && (
         <div className="flex items-center gap-2.5 text-[13px] text-text-muted">
           <Loader2 size={16} className="animate-spin" />
-          {status === "checking" ? "Checking permission..." : "Waiting for your response..."}
+          {status === "checking" ? "Checking access…" : "Allow access in the macOS prompt."}
         </div>
       )}
 
@@ -263,7 +259,8 @@ function MicrophoneStep({ onNext }: { onNext: () => void }) {
       {status === "denied" && (
         <div className="flex flex-col items-center gap-3">
           <p className="text-[13px] text-warning">
-            Open System Settings → Privacy & Security → Microphone and turn on Linty. If it is already on, toggle it off and back on.
+            Turn on Linty in Microphone settings.
+            <br />Already on? Turn it off, then on again.
           </p>
           <button
             onClick={() => openSystemSettings("microphone")}
@@ -287,12 +284,12 @@ function MicrophoneStep({ onNext }: { onNext: () => void }) {
 
 function AccessibilityStep({ onNext }: { onNext: () => void }) {
   const [status, setStatus] = useState<"checking" | "prompting" | "granted" | "waiting">("checking");
-  const [showDevHint, setShowDevHint] = useState(false);
+  const [showRecoveryHint, setShowRecoveryHint] = useState(false);
 
-  // Show dev hint after 30s of waiting
+  // Show recovery help after 30s of waiting.
   useEffect(() => {
     if (status !== "waiting") return;
-    const timer = setTimeout(() => setShowDevHint(true), 30_000);
+    const timer = setTimeout(() => setShowRecoveryHint(true), 30_000);
     return () => clearTimeout(timer);
   }, [status]);
 
@@ -343,7 +340,7 @@ function AccessibilityStep({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex flex-col items-center text-center animate-page-enter">
       <div className={cn(
-        "flex h-16 w-16 items-center justify-center rounded-2xl mb-5 transition-colors duration-300",
+        "onboarding-step-icon flex h-16 w-16 items-center justify-center rounded-2xl mb-5 transition-colors duration-300",
         status === "granted" ? "bg-success/15" : "bg-info/15",
       )}>
         {status === "granted" ? (
@@ -354,16 +351,16 @@ function AccessibilityStep({ onNext }: { onNext: () => void }) {
       </div>
 
       <h1 className="text-[22px] font-bold text-text-primary mb-2">
-        Accessibility Permission
+        Accessibility access
       </h1>
       <p className="text-[14px] text-text-secondary leading-relaxed mb-8">
-        Lets your dictation shortcut work across apps and pastes your words at the cursor.
+        Let Linty use your shortcut and paste into other apps.
       </p>
 
       {status === "checking" && (
         <div className="flex items-center gap-2.5 text-[13px] text-text-muted">
           <Loader2 size={16} className="animate-spin" />
-          Checking permission...
+          Checking access…
         </div>
       )}
 
@@ -379,15 +376,14 @@ function AccessibilityStep({ onNext }: { onNext: () => void }) {
           {status === "waiting" && (
             <div className="rounded-xl border border-border-subtle bg-bg-secondary px-4 py-3 text-left max-w-[340px]">
               <p className="text-[12px] text-text-secondary leading-relaxed">
-                <span className="font-medium text-text-primary">System Settings</span> should have opened.
-                Find <span className="font-medium text-text-primary">Linty</span> in the Accessibility list and toggle it on.
+                Turn on <span className="font-medium text-text-primary">Linty</span> in Accessibility settings.
               </p>
             </div>
           )}
 
           <div className="flex items-center gap-2.5 text-[13px] text-text-muted">
             <Loader2 size={16} className="animate-spin" />
-            Waiting for you to enable accessibility...
+            Waiting for access…
           </div>
 
           <button
@@ -396,8 +392,8 @@ function AccessibilityStep({ onNext }: { onNext: () => void }) {
             }
             className={cn(
               "flex items-center gap-1.5 rounded-xl px-5 py-2 text-[13px] font-medium",
-              "bg-bg-elevated border border-border text-text-secondary",
-              "hover:bg-bg-hover hover:text-text-primary active:scale-[0.97]",
+              "bg-accent text-white",
+              "hover:bg-accent-soft active:scale-[0.97]",
               "transition-interaction duration-150",
             )}
           >
@@ -405,24 +401,15 @@ function AccessibilityStep({ onNext }: { onNext: () => void }) {
             <ExternalLink size={13} />
           </button>
 
-          {showDevHint && (
+          {showRecoveryHint && (
             <div className="rounded-xl border border-warning/20 bg-warning/5 px-4 py-3 text-left max-w-[340px]">
               <p className="text-[12px] text-text-secondary leading-relaxed">
                 <span className="font-medium text-warning">Still waiting?</span>{" "}
-                Remove Linty from the Accessibility list, then add it again from Applications and enable access.
+                Remove Linty from the list. Add it again from Applications, then turn access on.
               </p>
             </div>
           )}
 
-          <button
-            onClick={onNext}
-            className="text-[12px] text-text-muted hover:text-text-secondary transition-colors duration-150"
-          >
-            Skip for now
-          </button>
-          <p className="text-[12px] text-text-secondary max-w-[340px]">
-            You can test your microphone without this permission. Enable it in System Check before using shortcuts and automatic paste.
-          </p>
         </div>
       )}
     </div>
@@ -436,24 +423,26 @@ function TriggerStep({ onNext }: { onNext: () => void }) {
 
   return (
     <div className="flex flex-col items-center text-center animate-page-enter">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-info/15 mb-5">
+      <div className="onboarding-step-icon flex h-16 w-16 items-center justify-center rounded-2xl bg-info/15 mb-5">
         <Keyboard size={28} className="text-info" />
       </div>
 
       <h1 className="text-[22px] font-bold text-text-primary mb-2">
-        Choose Your Trigger Key
+        Your dictation shortcut
       </h1>
       <p className="text-[14px] text-text-secondary leading-relaxed mb-6">
-        Hold to talk and release to paste. Or double-press to keep listening, then press once to finish.
-        <br />
-        You can change it anytime from the Shortcuts page.
+        Hold your selected key to talk. Release to paste.
       </p>
 
       <TriggerKeyPicker
         value={triggerKey}
         onChange={saveTriggerKey}
-        className="mb-6 w-full max-w-[420px]"
+        allowCustom={false}
+        compact
+        className="w-full max-w-[420px]"
       />
+
+      <p className="text-[12px] text-text-secondary mt-4 mb-6">Change this later in Shortcuts.</p>
 
       <button
         onClick={onNext}
@@ -474,20 +463,20 @@ function TriggerStep({ onNext }: { onNext: () => void }) {
 /* ── Done Step ── */
 
 function DoneStep({ onComplete, onChangeLanguage }: { onComplete: () => void | Promise<void>; onChangeLanguage: () => void }) {
-  const { triggerKey } = useAppStore();
+  const { triggerKey, transcriptionLanguage } = useAppStore();
   const preparation = useSyncExternalStore(languagePreparation.subscribe, languagePreparation.getSnapshot);
   const triggerLabel = formatTriggerLabel(triggerKey);
   const ready = preparation.status === "ready";
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const savingRef = useRef(false);
-  const finish = async (view: "system-check" | "dashboard") => {
+  const finish = async () => {
     if (!ready || savingRef.current) return;
     savingRef.current = true;
     setSaving(true); setError("");
     try {
       await onComplete();
-      useAppStore.getState().setCurrentView(view);
+      useAppStore.getState().setCurrentView("system-check");
     } catch {
       setError("Could not finish setup. Please try again.");
     } finally {
@@ -497,23 +486,24 @@ function DoneStep({ onComplete, onChangeLanguage }: { onComplete: () => void | P
   };
 
   return <div className="flex flex-col items-center text-center animate-page-enter">
-    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/15 mb-5">
+    <div className="onboarding-step-icon flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/15 mb-5">
       {ready ? <CheckCircle2 size={28} className="text-success" /> : <Languages size={28} className="text-accent" />}
     </div>
-    <h1 className="text-[22px] font-bold text-text-primary mb-2">{ready ? "Ready for your first words" : "Getting your language ready"}</h1>
+    <h1 className="text-[22px] font-bold text-text-primary mb-2">{ready ? "Ready for your first words" : preparation.status === "error" || preparation.status === "unavailable" ? "Setup needs attention" : "Preparing Linty"}</h1>
     <p className="text-[14px] text-text-secondary leading-relaxed mb-6">
-      Try a short recording in System Check.<br />
-      Then place your cursor in a text field, hold <span className="font-medium text-text-primary">{triggerLabel}</span>, speak, and release to paste.
+      {ready ? "Try a short recording to check your setup."
+        : preparation.status === "error" ? "Retry preparation to continue."
+        : preparation.status === "unavailable" ? "Install a supported Linty build to continue."
+        : "Keep Linty open while setup finishes."}
     </p>
-    <div className="w-full mb-5"><LanguageReadiness /></div>
+    {ready ? <p className="text-[13px] text-text-secondary mb-6">
+      {languageLabel(transcriptionLanguage)} · {triggerLabel}
+    </p> : <div className="w-full mb-5"><LanguageReadiness /></div>}
     <FnKeyConflictWarning className="mb-6 max-w-[400px]" />
     {error && <p role="alert" className="text-error text-[13px] mb-3">{error}</p>}
-    <button disabled={!ready || saving} onClick={() => { void finish("system-check"); }} className="standard-button primary-button">
+    <button disabled={!ready || saving} onClick={() => { void finish(); }} className="standard-button primary-button">
       {saving ? "Saving…" : "Try dictation"}{saving ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}
     </button>
-    <div className="flex flex-wrap justify-center gap-5 mt-5">
-      <button className="text-link text-[12px]" disabled={!ready || saving} onClick={() => { void finish("dashboard"); }}>Go to overview</button>
-      <button className="text-link text-[12px]" disabled={saving} onClick={onChangeLanguage}>Change language</button>
-    </div>
+    {preparation.status === "error" && <button className="text-link text-[12px] mt-5" disabled={saving} onClick={onChangeLanguage}>Change language</button>}
   </div>;
 }

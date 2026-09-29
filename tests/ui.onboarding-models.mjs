@@ -35,6 +35,7 @@ function setupBridge({ existing = [], parakeet = true, local = true, language = 
     if (command === 'check_microphone') return qa.microphone;
     if (command === 'check_accessibility') return qa.accessibility;
     if (command === 'request_microphone') qa.microphone = 'authorized';
+    if (command === 'request_accessibility') { await original(command, args); return qa.accessibility; }
     if (command === 'set_trigger_modifier') qa.triggers.push(args.modifier);
     if (command === 'download_s1_model') {
       qa.cleanupDownloads++;
@@ -104,12 +105,11 @@ try {
     await page.getByRole('option', { name: language, exact: true }).click();
   };
   const reachLanguage = async page => {
-    await page.getByRole('button', { name: 'Guided setup (optional)', exact: true }).click();
     await page.getByRole('button', { name: 'Get Started', exact: true }).click();
     await page.getByRole('combobox', { name: 'Dictation language', exact: true }).waitFor();
   };
   const reachDone = async page => {
-    await page.getByRole('heading', { name: 'Choose Your Trigger Key', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Your dictation shortcut', exact: true }).waitFor();
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await page.getByText('Step 6 of 6 · Ready', { exact: true }).waitFor();
     assert.equal(await page.getByRole('combobox', { name: 'Speech model', exact: true }).count(), 0);
@@ -130,66 +130,55 @@ try {
     assert.deepEqual(result.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => n.failureSummary) })), []);
   };
 
-  // Onboarding asks for 1–3 real languages, never permits a fourth, and saves
-  // the list before preparing Auto-detect. Empty selections cannot continue.
-  // An empty installation prepares itself without a single onboarding click.
-  // Permissions remain customer-controlled, and the app stays usable while downloading.
-  let page = await open({ fresh: true, microphone: 'not_determined', accessibility: false });
+  // First launch keeps onboarding, starts default preparation immediately,
+  // and lets customers keep the preselected language and shortcut on one path.
+  let page = await open({ fresh: true, microphone: 'denied', accessibility: false });
   await waitDownload(page, PARAKEET);
-  await page.getByRole('heading', { name: 'Allow access. Then start talking.', exact: true }).waitFor();
-  assert.equal(await page.getByRole('button', { name: 'Get Started', exact: true }).count(), 0);
-  assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).isVisible(), true);
+  await page.getByRole('heading', { name: 'Welcome to Linty', exact: true }).waitFor();
+  assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
   assert.deepEqual(await page.evaluate(() => window.__QA__.triggers), ['right-command']);
   assert.equal(await page.evaluate(() => window.__QA__.calls.includes('request_microphone') || window.__QA__.calls.includes('request_accessibility')), false);
   await audit(page);
   await page.setViewportSize({ width: 640, height: 480 });
-  assert.equal(await page.locator('.preferences-scroll').evaluate(el => el.scrollWidth > el.clientWidth + 1), false);
   await audit(page);
-  await page.screenshot({ path: `artifacts/language/${engine.name()}-default-setup-small.png` });
-  await page.getByRole('button', { name: 'Grant', exact: true }).click();
-  await page.locator('.permission-row').filter({ hasText: 'Accessibility' }).getByRole('button', { name: 'Open Settings', exact: true }).click();
-  assert.equal(await page.evaluate(() => window.__QA__.calls.includes('request_accessibility')), true);
-  await page.evaluate(() => { window.__QA__.accessibility = true; window.dispatchEvent(new Event('focus')); });
-  await page.getByRole('heading', { name: 'Getting your language ready.', exact: true }).waitFor();
-  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Overview', exact: true }).click();
+  await page.screenshot({ path: `artifacts/language/${engine.name()}-default-welcome-small.png` });
+  await page.evaluate(() => { window.__QA__.failures.request_microphone = 'Denied'; });
+  assert.equal(await page.getByRole('button', { name: 'Customize language and shortcut', exact: true }).count(), 0);
+  await reachLanguage(page);
+  assert.equal(await page.getByRole('combobox', { name: 'Dictation language', exact: true }).innerText(), 'English');
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await page.getByRole('button', { name: 'Open System Settings', exact: true }).waitFor();
+  assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
+  await page.evaluate(() => { window.__QA__.microphone = 'authorized'; });
+  await page.getByRole('heading', { name: 'Accessibility access', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Open System Settings', exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Skip for now', exact: true }).count(), 0);
+  assert.equal(await page.evaluate(() => Boolean(window.__QA__.stores[1].onboardingComplete)), false);
+  await page.evaluate(() => { window.__QA__.accessibility = true; });
+  await page.getByRole('heading', { name: 'Your dictation shortcut', exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: /Right Command/ }).getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.getByRole('button', { name: /Record a custom trigger/ }).count(), 0);
+  assert.equal(await page.getByRole('button', { pressed: true }).count(), 1);
+  await reachDone(page);
+  assert.equal(await page.getByRole('button', { name: 'Try dictation', exact: true }).isDisabled(), true);
   await page.evaluate(name => window.__QA__.pendingDownloads[name].reject(), PARAKEET);
-  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'System Check', exact: true }).click();
   await page.getByRole('button', { name: 'Retry preparation', exact: true }).click();
   await page.waitForFunction(() => window.__QA__.downloads.length === 2);
   await finishDownload(page, PARAKEET);
   await waitLanguage(page, 'en');
-  await page.getByRole('heading', { name: 'All set to listen.', exact: true }).waitFor();
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), true);
-  assert.equal(await page.evaluate(() => Boolean(window.__QA__.stores[1].onboardingComplete)), false);
+  await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
+  await page.getByRole('heading', { name: 'Microphone Test', exact: true }).waitFor();
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].onboardingComplete), true);
   await page.waitForFunction(() => window.__QA__.emittedEvents.some(e => e.event === 'tray-state-changed' && e.payload.setupComplete && e.payload.localReady));
-  await page.evaluate(() => {
-    const original = window.__TAURI_INTERNALS__.invoke;
-    window.__TAURI_INTERNALS__.invoke = async (command, args) => {
-      if (command === 'stop_dictation') {
-        window.__QA__.calls.push(command);
-        return { sample_count: 32000, duration_secs: 2, recording_generation: 1 };
-      }
-      return original(command, args);
-    };
-    window.__QA__.dictationOutcome = {
-      record: { transcriptId: 'first-default', rawText: 'My first words.', finalText: 'My first words.', timestamp: Date.now(), wordCount: 3, durationSeconds: 2, processingTimeMs: 100, engine: 'local', modelName: 'Fixture', deliveryStatus: 'verified' },
-      warnings: [], recognized: [], corrected: [],
-    };
-  });
   await page.evaluate(() => window.__QA__.emit('fnkey-pressed'));
   await page.waitForFunction(() => window.__QA__.calls.includes('start_dictation'));
   assert.deepEqual(await page.evaluate(() => [window.__QA__.dictationOptions.language, window.__QA__.dictationOptions.cleanup]), ['en', true]);
   await page.evaluate(() => window.__QA__.emit('fnkey-released'));
   await page.waitForFunction(() => window.__QA__.calls.includes('stop_dictation'));
-  await page.waitForFunction(() => window.__QA__.stores[1].onboardingComplete === true);
-  assert.equal(await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().finalText), 'My first words.');
-  await page.getByRole('button', { name: 'Back to System Check', exact: true }).click();
-  await page.getByRole('button', { name: 'Guided setup (optional)', exact: true }).click();
-  await page.getByRole('button', { name: 'Back to Linty', exact: true }).click();
-  await page.getByRole('heading', { name: 'All set to listen.', exact: true }).waitFor();
   await page.close();
 
-  // Restarting before using the guide preserves an explicit cleanup opt-out.
+  // Restarting unfinished onboarding preserves an explicit cleanup opt-out.
   page = await open({ fresh: true, existing: [PARAKEET], saved: { transcriptionLanguage: 'en', selectedModelFilename: PARAKEET, triggerKey: 'fn', reformatEnabled: false } });
   await waitLanguage(page, 'en');
   assert.deepEqual(await page.evaluate(() => window.__QA__.triggers), ['fn']);
@@ -197,16 +186,7 @@ try {
   assert.equal(await page.evaluate(() => window.__QA__.cleanupDownloads), 0);
   await page.close();
 
-  page = await open({ fresh: true, theme: 'dark', microphone: 'denied', accessibility: false });
-  await waitDownload(page, PARAKEET);
-  assert.equal(await page.getByRole('button', { name: 'Open Settings', exact: true }).count(), 2);
-  await audit(page);
-  await page.screenshot({ path: `artifacts/language/${engine.name()}-default-setup-dark.png` });
-  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'History', exact: true }).click();
-  await page.getByRole('heading', { name: 'Your words', exact: true }).waitFor();
-  await page.close();
-
-  // Cached defaults start without the guide on either supported speech backend.
+  // Defaults prepare during onboarding on either supported speech backend.
   for (const parakeet of [true, false]) {
     page = await open({ fresh: true, parakeet, existing: [parakeet ? PARAKEET : WHISPER] });
     await waitLanguage(page, 'en');
@@ -268,7 +248,7 @@ try {
   await waitDownload(page, WHISPER);
   await reachDone(page);
   assert.equal(await page.getByRole('button', { name: 'Try dictation', exact: true }).isDisabled(), true);
-  assert.equal(await page.getByRole('button', { name: 'Go to overview', exact: true }).isDisabled(), true);
+  assert.equal(await page.getByRole('button', { name: 'Go to overview', exact: true }).count(), 0);
   await page.evaluate(name => window.__QA__.pendingDownloads[name].reject(), WHISPER);
   await page.getByText('Connection interrupted', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Retry preparation', exact: true }).click();
@@ -300,8 +280,9 @@ try {
     assert.deepEqual(await page.evaluate(() => window.__QA__.downloads), []);
     assert.deepEqual(await page.evaluate(() => window.__QA__.loads), [options.expected]);
     await reachDone(page);
-    await page.getByRole('button', { name: 'Go to overview', exact: true }).click();
-    await page.getByRole('heading', { name: 'Your dictation', exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Change language', exact: true }).count(), 0);
+    await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
+    await page.getByRole('heading', { name: 'Microphone Test', exact: true }).waitFor();
     assert.deepEqual(await page.evaluate(() => window.__QA__.loads), [options.expected]);
     await page.close();
   }
@@ -441,6 +422,9 @@ try {
   // silently fall back to all languages or guessed regional defaults.
   page = await open({ returning: true, language: 'auto', languages: [], existing: [WHISPER] });
   await waitLanguage(page, 'auto');
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'System Check', exact: true }).click();
+  await page.getByRole('heading', { name: 'Choose your spoken languages.', exact: true }).waitFor();
+  assert.equal(await page.getByRole('heading', { name: 'Microphone Test', exact: true }).count(), 0);
   await openLanguageSettings(page);
   assert.equal(await page.getByRole('button', { name: 'Try dictation', exact: true }).isDisabled(), true);
   const missingChoice = await page.evaluate(async () => {
@@ -574,7 +558,7 @@ try {
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await reachDone(page);
   assert.equal(await page.getByRole('button', { name: 'Try dictation', exact: true }).isDisabled(), true);
-  assert.equal(await page.getByRole('button', { name: 'Go to overview', exact: true }).isDisabled(), true);
+  assert.equal(await page.getByRole('button', { name: 'Go to overview', exact: true }).count(), 0);
   await page.getByRole('main').getByRole('alert').filter({ hasText: 'Install a version of Linty that includes on-device speech support' }).waitFor();
   assert.deepEqual(await page.evaluate(() => window.__QA__.downloads), []);
   await page.close();

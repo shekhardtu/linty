@@ -1,0 +1,91 @@
+{
+  "images": [
+    "welcome",
+    "language",
+    "microphone",
+    "microphone-denied",
+    "accessibility",
+    "shortcut",
+    "downloading",
+    "download-error",
+    "cleanup-download",
+    "ready",
+    "system-check",
+    "auto-detect",
+    "fn-conflict"
+  ],
+  "screenAudit": [
+    {
+      "screen": "welcome",
+      "actionsInView": true,
+      "copy": "Welcome to Linty\n\nTurn your voice into text in the apps you use.\n\nYour speech stays on this Mac.\nSetup needs internet access.\n\nPrivacy\nLicense & terms\nGet Started\n\nStep 1 of 6 · Welcome",
+      "words": 35,
+      "minimumWindow": {
+        "width": 640,
+        "height": 480
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "screen": "language",
+      "actionsInView": true,
+      "copy": "Your dictation language\n\nChoose the language you’ll speak.\n\nEnglish\n\nChange this later in Settings.\n\nContinue\n\nStep 2 of 6 · Language",
+      "words": 21,
+      "minimumWindow": {
+        "width": 640,
+        "height": 480
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "screen": "microphone",
+      "actionsInView": true,
+      "copy": "Microphone access\n\nLet Linty hear you while you dictate.\n\nAllow access in the macOS prompt.\n\nStep 3 of 6 · Microphone",
+      "words": 21,
+      "minimumWindow": {
+        "width": 640,
+        "height": 480
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "screen": "accessibility",
+      "actionsInView": true,
+      "copy": "Accessibility access\n\nLet Linty use your shortcut and paste into other apps.\n\nTurn on Linty in Accessibility settings.\n\nWaiting for access…\nOpen System Settings\n\nStep 4 of 6 · Accessibility",
+      "words": 30,
+      "minimumWindow": {
+        "width": 640,
+        "height": 480
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "screen": "shortcut",
+      "actionsInView": true,
+      "copy": "Your dictation shortcut\n\nHold your selected key to talk. Release to paste.\n\nfn key\nfn (hold)\nRight Command\nR⌘ (hold)\nRight Option\nR⌥ (hold)\n\nChange this later in Shortcuts.\n\nContinue\n\nStep 5 of 6 · Shortcut",
+      "words": 36,
+      "minimumWindow": {
+        "width": 640,
+        "height": 480
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "screen": "ready",
+      "actionsInView": true,
+      "copy": "Ready for your first words\n\nTry a short recording to check your setup.\n\nEnglish · Right Command\n\nTry dictation\n\nStep 6 of 6 · Ready",
+      "words": 25,
+      "minimumWindow": {
+        "width": 640,
+        "height": 480
+      },
+      "horizontalOverflow": false
+    }
+  ],
+  "errors": [],
+  "source": "Local app UI with simulated macOS permissions and downloads",
+  "viewport": {
+    "width": 800,
+    "height": 760
+  }
+}

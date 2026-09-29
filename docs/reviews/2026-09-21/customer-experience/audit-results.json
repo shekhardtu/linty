@@ -1,0 +1,219 @@
+{
+  "screens": [
+    {
+      "screen": "overview-light",
+      "overflow": false
+    },
+    {
+      "screen": "history-light",
+      "overflow": false
+    },
+    {
+      "screen": "apps-light",
+      "overflow": false
+    },
+    {
+      "screen": "dictionary-light",
+      "overflow": false
+    },
+    {
+      "screen": "shortcuts-light",
+      "overflow": false
+    },
+    {
+      "screen": "system-check-light",
+      "overflow": false
+    },
+    {
+      "screen": "settings-light",
+      "overflow": false
+    },
+    {
+      "screen": "dictation-light",
+      "overflow": false
+    },
+    {
+      "screen": "audio-light",
+      "overflow": false
+    },
+    {
+      "screen": "appearance-light",
+      "overflow": false
+    },
+    {
+      "screen": "privacy-storage-light",
+      "overflow": false
+    },
+    {
+      "screen": "about-light",
+      "overflow": false
+    },
+    {
+      "screen": "onboarding-welcome-light",
+      "violations": []
+    },
+    {
+      "screen": "onboarding-language-light",
+      "violations": []
+    },
+    {
+      "screen": "onboarding-microphone-light",
+      "violations": []
+    },
+    {
+      "screen": "onboarding-accessibility-light",
+      "violations": []
+    },
+    {
+      "screen": "onboarding-trigger-light",
+      "violations": []
+    },
+    {
+      "screen": "onboarding-ready-light",
+      "violations": []
+    },
+    {
+      "screen": "overview-dark",
+      "overflow": false
+    },
+    {
+      "screen": "history-dark",
+      "overflow": false
+    },
+    {
+      "screen": "apps-dark",
+      "overflow": false
+    },
+    {
+      "screen": "dictionary-dark",
+      "overflow": false
+    },
+    {
+      "screen": "shortcuts-dark",
+      "overflow": false
+    },
+    {
+      "screen": "system-check-dark",
+      "overflow": false
+    },
+    {
+      "screen": "settings-dark",
+      "overflow": false
+    },
+    {
+      "screen": "dictation-dark",
+      "overflow": false
+    },
+    {
+      "screen": "audio-dark",
+      "overflow": false
+    },
+    {
+      "screen": "appearance-dark",
+      "overflow": false
+    },
+    {
+      "screen": "privacy-storage-dark",
+      "overflow": false
+    },
+    {
+      "screen": "about-dark",
+      "overflow": false
+    },
+    {
+      "screen": "onboarding-welcome-dark",
+      "violations": []
+    },
+    {
+      "screen": "onboarding-language-dark",
+      "violations": []
+    },
+    {
+      "screen": "onboarding-microphone-dark",
+      "violations": []
+    },
+    {
+      "screen": "onboarding-accessibility-dark",
+      "violations": []
+    },
+    {
+      "screen": "onboarding-trigger-dark",
+      "violations": []
+    },
+    {
+      "screen": "onboarding-ready-dark",
+      "violations": []
+    },
+    {
+      "screen": "website-390-light",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "privacy-390-light",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "terms-390-light",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "website-768-light",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "website-1440-light",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "privacy-1440-light",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "terms-1440-light",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "website-390-dark",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "privacy-390-dark",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "terms-390-dark",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "website-768-dark",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "website-1440-dark",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "privacy-1440-dark",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "screen": "terms-1440-dark",
+      "overflow": false,
+      "violations": []
+    }
+  ],
+  "errors": []
+}

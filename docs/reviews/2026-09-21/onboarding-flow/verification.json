@@ -1,0 +1,14 @@
+{
+  "screenshots": 13,
+  "mainScreens": 6,
+  "completionActions": 1,
+  "thumbnailControls": 13,
+  "testedWidths": [
+    1440,
+    900,
+    390
+  ],
+  "errors": [],
+  "inlineImages": true,
+  "externalRequestsNeeded": false
+}

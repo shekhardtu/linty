@@ -15,8 +15,7 @@ export function useTraySync(
   const settingsLoaded = useAppStore((s) => s.settingsLoaded);
   const triggerKey = useAppStore((s) => s.triggerKey);
   const transcriptionLanguage = useAppStore((s) => s.transcriptionLanguage);
-  // The optional guide does not control whether dictation can be used.
-  const setupComplete = settingsLoaded;
+  const setupComplete = useAppStore((s) => s.onboardingComplete);
   const localReady = preparation === "ready" && modelSupportsLanguage(loadedModelFilename, transcriptionLanguage) && (!selectedModelFilename || selectedModelFilename === loadedModelFilename);
   useEffect(() => {
     const unlisten = listen<string>("audio-input-error", ({ payload }) => {
