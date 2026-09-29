@@ -9,7 +9,7 @@ the landing page instead of serving that directory's `index.html`.
 
 Static landing page for [linty.ai](https://linty.ai), hosted by Yofix. No runtime dependencies. Legal pages are generated from the same content bundled in the app: run `yarn legal:generate` after editing `src/content/legal.json`, then `yarn legal:check`.
 
-Run `yarn legal:check` before publishing to verify that the website and app notices match. This is a consistency check, not legal approval. See the [privacy implementation review](../docs/PRIVACY-RELEASE-REVIEW.md). Verify the live host as well as repository source: Yofix was observed injecting `/__yofix/analytics.js?v=2` on 20 September 2026. `privacy-guard.js` opts out of that observed implementation and the page CSP blocks fetch and beacon requests. These measures do not disable server logs or prove anything about historical collection. Disable injection at the host and verify retention and processing locations. Browser automation is insufficient by itself: the observed script skips `navigator.webdriver` sessions.
+Run `yarn legal:check` before publishing to verify that the website and app notices match. This is a consistency check, not legal approval. See the [privacy implementation review](../docs/PRIVACY-RELEASE-REVIEW.md). Verify the live host as well as repository source: Yofix was observed injecting `/__yofix/analytics.js?v=2` on 20 September 2026. `privacy-guard.js` opts out of that observed implementation and the page CSP blocks analytics connections while allowing public GitHub release requests on the landing page. These measures do not disable server logs or prove anything about historical collection. Disable injection at the host and verify retention and processing locations. Browser automation is insufficient by itself: the observed script skips `navigator.webdriver` sessions.
 
 The landing page and both legal pages load local assets, set a no-referrer policy, and expose privacy and responsible-use links. Keep the early privacy guard and CSP before all other scripts. There is no embedded third-party download badge on the prepared website.
 
@@ -20,34 +20,51 @@ python3 -m http.server 4173 --bind 127.0.0.1 --directory website
 
 Deploy this directory with an existing static host.
 
-All Mac download links use the stable `linty.dmg` release asset for
-Intel and Apple silicon, requiring macOS 14+. Browser platform detection only
-selects the operating system; it must not infer the processor from `MacIntel`,
-which Apple silicon browsers also report. Publish the first universal app release
-before deploying these links so `/releases/latest/download/linty.dmg`
-exists. This remains a macOS desktop app; other OS visitors see feature requests.
-Releases also include `linty-VERSION.dmg` for customers who want a filename that
-identifies the version. Both DMGs contain exactly the same universal app.
+Mac download links resolve GitHub’s latest stable release to `linty-VERSION.dmg`, the versioned universal installer
+for Intel and Apple silicon, requiring macOS 14+. Version follows the app name,
+for example `linty-0.0.1.dmg`. The legacy `linty.dmg` alias stays available for
+existing external links. Both DMGs contain exactly the same universal app.
+Browser platform detection only selects the operating system; it must not infer
+the processor from `MacIntel`, which Apple silicon browsers also report.
+
+On every page load, `downloads.js` requests public GitHub release metadata. It
+paginates all published releases and sums Linty DMG asset download counts, including
+both aliases, old versioned filenames, and prereleases. A shared regex parser
+recognizes case-insensitive `linty.dmg`, `linty-VERSION.dmg`, and historical Tauri
+`Linty_VERSION_ARCH.dmg` / `Linty_ARCH.dmg` names, with hyphens or underscores,
+optional `v` before versions, prerelease versions, and ARM/Intel/universal suffixes. Updater archives,
+signatures, metadata, and draft releases are excluded. Repeated downloads count;
+this is not a count of unique people, website clicks, or completed installations.
+Deleted releases/assets no longer contribute. GitHub may delay count updates;
+the page does not increment the number when someone clicks a button.
+
+A separate request to GitHub's designated latest stable release refreshes the
+links to its actual versioned DMG asset. Normal clicks recheck the latest release
+before starting the download, so long-lived tabs also get new releases. Request buttons for unsupported platforms
+keep their GitHub issue links. Both requests omit credentials and referrers and
+are limited to GitHub by the landing page CSP. No token is sent by visitors.
+GitHub receives connection metadata, as disclosed in the privacy notice.
 
 Before publishing, run `node scripts/update-download-count.mjs` from the repository
-root. It fetches every page of published GitHub releases and sums only asset names
-ending in `.dmg` (case-insensitive), including old versioned filenames and
-prereleases. Updater archives, signatures, metadata, and draft releases are
-excluded. `GITHUB_TOKEN` is optional for higher API rate limits.
+root. It refreshes `downloads.json`, the local `downloads.svg` README badge, the
+landing page's dated lifetime download total.
+`GITHUB_TOKEN` is optional for this command's higher API rate limits. Commit and
+publish the generated website files together. The README remains a dated snapshot;
+the website refreshes on load without a redeployment. API failures, timeouts, or
+rate limits preserve the dated count and latest-release fallback independently.
+Without a successful lookup or JavaScript, download links open GitHub’s latest
+release page; they never pin an older installer. Regenerate before each website
+deployment so the fallback count stays current. The script’s `--check` verifies
+generated values without a network request.
 
-The command refreshes `downloads.json`, the local `downloads.svg` badge used by
-the GitHub README, and the landing page's dated download total together. Commit
-these generated changes and publish the website together. Both displays are
-snapshots as of the shown date, not live counters or unique-user counts. Visitors
-make no extra GitHub or third-party analytics requests. Failed API requests leave
-the previous snapshot in place. `node scripts/update-download-count.mjs --check`
-checks that both displays match the snapshot without a network request.
-
-Website-only pull requests run focused checks without installing or building the
-desktop application. Run the same tests locally with
+Website and documentation pull requests run lightweight checks without installing
+or building the desktop app. Run the same checks locally with
 `node --test tests/website-*.test.mjs tests/privacy.test.mjs tests/check-scope.test.mjs`.
-Application, dependency, shared-tooling, and workflow changes still run the full
-suite; see [check scope](../docs/runbooks/releases.md#pull-request-check-scope).
+Expensive checks use positive watch paths: `src/` and UI inputs select Node/browser
+checks; `src-tauri/` and native inputs select Node/macOS checks. Shared legal JSON
+is under `src/` and therefore runs app checks, but not macOS builds. Dependency,
+build, and CI changes still select the full suite. See
+[check scope](../docs/runbooks/releases.md#pull-request-check-scope).
 
 Local asset URLs in `index.html` include a `?v=` content version so returning
 visitors fetch updated files. When an asset changes, update its version to the
@@ -61,6 +78,7 @@ also return 200.
 - `styles.css` — responsive layout using the application's color and type tokens
 - `theme.js` — saved/system theme, applied before paint
 - `main.js` — explicit light/dark choices and download feedback
+- `downloads.js` — live GitHub download counts, latest versioned installer, and shared snapshot logic
 - `product.js` — slowly looping product screenshots, screen selection, and hover pause
 - `platform.js` — best-effort OS detection, shared voting issues, and prefilled GitHub request links
 - `demo.js` / `demo.css` — rotating Notes, Email, and Code illustrations with dictation playback
@@ -69,10 +87,10 @@ also return 200.
 
 ## Download feedback
 
-Each download link keeps its direct installer URL. A normal click or keyboard
-activation shows a spinner on that link; text buttons also show “Starting…”.
-The button keeps its width, ignores repeat clicks for five seconds, then resets
-so a visitor can retry. Modified clicks retain the browser's normal behavior.
+A normal click or keyboard activation shows a spinner while resolving the latest
+versioned installer; text buttons show “Starting…”. The button keeps its width,
+ignores repeat clicks during resolution and for five seconds after handoff, then
+resets so a visitor can retry. Modified clicks retain the browser's normal behavior.
 The animation respects reduced motion and the site's motion control, and a live
 region announces the download handoff. This indicates the start request only:
 the browser owns transfer progress, cancellation, and completion.

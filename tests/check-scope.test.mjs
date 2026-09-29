@@ -6,23 +6,53 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { changedFiles, checkScope, classifyChanges, fullSuiteJobs, requiredChecksPassed } from '../scripts/check-scope.mjs';
 
-test('website assets, capture tooling, and tests select focused checks, including accompanying release notes', () => {
+test('website and documentation changes use lightweight checks without an exclusion list', () => {
   for (const files of [
     ['website/index.html'],
     ['website/images/language-dark.png', 'website/styles.css', 'RELEASE_NOTES.md'],
-    ['scripts/capture-website.mjs', 'scripts/website-preview.html', 'scripts/website-preview-data.mjs'],
-    ['tests/website-demo.test.mjs', 'tests/website-platform.test.mjs', 'tests/website-product.test.mjs'],
+    ['README.md', 'PRIVACY.md', 'TERMS.md', 'RELEASE_NOTES.md'],
+    ['docs/runbooks/local-releases.md', 'docs/reviews/screenshot.png'],
+    ['docs/new-guide.md', 'AGENTS.md', '.github/ISSUE_TEMPLATE/bug_report.yml'],
+    ['a-new-document.md'],
   ]) assert.equal(classifyChanges(files).scope, 'website');
 });
 
-test('application, shared configuration, workflows, and unknown files always select the full suite', () => {
-  for (const file of [
-    'src/App.tsx', 'src-tauri/src/lib.rs', 'src-tauri/swift/Package.swift',
-    'public/icon.png', 'package.json', 'yarn.lock', 'vite.config.ts',
-    '.github/workflows/checks.yml', 'scripts/check-scope.mjs',
-    'tests/check-scope.test.mjs', 'tests/privacy.test.mjs', 'scripts/new-tool.mjs',
-  ]) assert.equal(classifyChanges(['website/index.html', file]).scope, 'full', file);
-  assert.equal(classifyChanges(['RELEASE_NOTES.md']).scope, 'full');
+test('src, public assets, app entry points, and browser tests watch app checks without macOS jobs', () => {
+  for (const file of ['src/App.tsx', 'src/content/legal.json', 'src/new-feature/file.ts',
+    'public/icon.png', 'index.html', 'capsule.html', 'vite.config.ts', 'tsconfig.json',
+    'tests/ui.smoke.mjs', 'tests/previews/pill-motion-preview.html']) {
+    assert.equal(classifyChanges(['website/index.html', 'README.md', file]).scope, 'app', file);
+  }
+});
+
+test('src-tauri and native validation inputs watch native checks without browser-app jobs', () => {
+  for (const file of ['src-tauri/src/lib.rs', 'src-tauri/swift/Package.swift',
+    'src-tauri/tauri.conf.json', 'src-tauri/Cargo.lock', 'src-tauri/new-feature.rs',
+    'scripts/check-rust-logging.sh', 'scripts/check-rust-advisories.py',
+    'scripts/third-party-notices.py', 'scripts/benchmarks/public_corpus.py',
+    'tests/supervisor.test.py', 'tests/public_corpus_test.py']) {
+    assert.equal(classifyChanges(['website/index.html', file]).scope, 'native', file);
+    assert.equal(classifyChanges(['src/App.tsx', file]).scope, 'full', file);
+    assert.equal(classifyChanges([file, 'src/App.tsx']).scope, 'full', file);
+  }
+});
+
+test('tooling and unit tests run Node checks without native or browser-app builds', () => {
+  for (const file of ['scripts/update-download-count.mjs', 'scripts/legal-docs.mjs',
+    'scripts/capture-website.mjs', 'scripts/website-preview-data.mjs',
+    'tests/privacy.test.mjs', 'tests/website-download-count.test.mjs', 'tests/usage.test.mjs']) {
+    assert.equal(classifyChanges([file, 'website/index.html']).scope, 'node', file);
+  }
+});
+
+test('dependencies, release/build tooling, and CI inputs always watch the full suite', () => {
+  for (const file of ['package.json', 'yarn.lock', 'package-lock.json',
+    '.github/workflows/checks.yml', '.github/actions/swift-bridge/action.yml',
+    'scripts/check-scope.mjs', 'tests/check-scope.test.mjs', 'scripts/build-mac.sh',
+    'scripts/prepare-release.mjs', 'scripts/publish-release.sh', 'scripts/release-local.mjs',
+    'scripts/generate-icons.mjs']) {
+    assert.equal(classifyChanges(['website/index.html', file]).scope, 'full', file);
+  }
 });
 
 test('unknown or malformed file lists fail closed', () => {
@@ -36,6 +66,8 @@ test('classification examines every file even after hundreds of website assets',
   const files = Array.from({ length: 500 }, (_, i) => `website/images/${i}.png`);
   assert.equal(classifyChanges(files).scope, 'website');
   files.push('src/App.tsx');
+  assert.equal(classifyChanges(files).scope, 'app');
+  files.push('src-tauri/src/lib.rs');
   assert.equal(classifyChanges(files).scope, 'full');
 });
 
@@ -77,23 +109,30 @@ test('git diff includes deleted app paths in renames and preserves unusual websi
   const files = changedFiles({ base, head: git('rev-parse', 'HEAD'), cwd });
   assert.ok(files.includes('src/app.js'));
   assert.ok(files.includes('website/app.js'));
-  assert.equal(classifyChanges(files).scope, 'full');
+  assert.equal(classifyChanges(files).scope, 'app');
 });
 
 function results(scope) {
+  const expectedJobs = {
+    website: ['website-tests'],
+    node: ['node-tests'],
+    app: ['node-tests', 'ui-tests'],
+    native: ['node-tests', 'native-tests', 'rust-logging', 'public-corpus-tests'],
+    full: fullSuiteJobs,
+  };
   return {
     changes: { result: 'success', outputs: { scope } },
-    'website-tests': { result: scope === 'website' ? 'success' : 'skipped' },
-    ...Object.fromEntries(fullSuiteJobs.map(job => [job, { result: scope === 'full' ? 'success' : 'skipped' }])),
+    ...Object.fromEntries(['website-tests', ...fullSuiteJobs].map(job =>
+      [job, { result: expectedJobs[scope]?.includes(job) ? 'success' : 'skipped' }])),
   };
 }
 
 test('required gate accepts a successful selected suite with only intentional skips', () => {
-  for (const scope of ['full', 'website']) assert.equal(requiredChecksPassed(results(scope)), true);
+  for (const scope of ['full', 'website', 'node', 'app', 'native']) assert.equal(requiredChecksPassed(results(scope)), true);
 });
 
 test('required gate rejects failures, cancellation, unexpected skips, and missing jobs', () => {
-  for (const scope of ['full', 'website']) {
+  for (const scope of ['full', 'website', 'node', 'app', 'native']) {
     for (const job of Object.keys(results(scope))) {
       for (const result of ['success', 'skipped', 'failure', 'cancelled', undefined]) {
         const needs = results(scope);
@@ -122,9 +161,21 @@ test('only full PR validation records and uploads reusable release evidence', ()
     const expression = step.match(/if: (.+)/)[1];
     const evaluate = new Function('github', 'needs', `return (${expression});`);
     for (const event of ['pull_request', 'push', 'workflow_dispatch']) {
-      for (const scope of ['full', 'website', undefined]) {
+      for (const scope of ['full', 'website', 'node', 'app', 'native', undefined]) {
         assert.equal(evaluate({ event_name: event }, results(scope)), event === 'pull_request' && scope === 'full');
       }
+    }
+  }
+});
+
+test('workflow job selection matches the required gate for all watched scopes', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/checks.yml', import.meta.url), 'utf8');
+  for (const scope of ['website', 'node', 'app', 'native', 'full']) {
+    for (const job of ['website-tests', ...fullSuiteJobs]) {
+      const block = workflow.split(`\n  ${job}:\n`)[1].split(/\n  [a-z-]+:\n/)[0];
+      const expression = block.match(/\n    if: (.+)/)[1];
+      const selected = new Function('needs', `return (${expression});`)(results(scope));
+      assert.equal(selected, results(scope)[job].result === 'success', `${scope}: ${job}`);
     }
   }
 });

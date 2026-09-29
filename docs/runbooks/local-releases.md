@@ -33,7 +33,8 @@ resources and download model weights separately. Windows, Linux, and iOS builds
 are not supported.
 
 Each release includes `linty-VERSION.dmg` and an identical `linty.dmg` alias
-for stable website links. Both `darwin-aarch64` and
+for existing external links. The website resolves the latest release to the
+versioned asset so downloaded files identify their version. Both `darwin-aarch64` and
 `darwin-x86_64` updater entries reference the same signed universal archive,
 including updates from existing Apple-silicon-only installations. Publish the
 first universal release before deploying website links to this new asset name.

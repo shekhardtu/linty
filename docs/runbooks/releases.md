@@ -18,18 +18,31 @@ For a failed publication, retry uploading the saved artifacts with `scripts/publ
 
 ## Pull request check scope
 
-Website-only PRs run the website behavior, privacy/legal consistency, check-scope,
-and JavaScript syntax checks without installing or building the desktop app.
-This includes `website/`, the screenshot capture/preview files, the three website
-test files, and accompanying release notes. Any other changed file (including
-app code, shared assets, dependencies, or CI configuration) runs the full suite.
-Release notes alone also run the full suite. Missing or unreadable diffs default
-to full validation.
+Expensive jobs opt in through positive watch paths; website and documentation
+changes use lightweight checks by default. The classifier reads the complete Git
+diff, including deleted paths, rather than maintaining a growing exclusion list.
 
-The `Required checks` gate runs for both scopes and requires all selected jobs
-to succeed; only the unselected suite may be skipped. Website checks never save
-the source artifact used to reuse application validation. Local and hosted
-release validation therefore require a full successful suite before reusing it.
+| Watched inputs | Checks |
+| --- | --- |
+| `src/**`, `public/**`, app HTML entry points, Vite/TypeScript configuration, `tests/ui.*`, browser preview fixtures | Node tests/build plus browser-app suites; no macOS jobs |
+| `src-tauri/**`, native validation scripts, benchmark tooling and Python tests | Node tests/build plus macOS native, corpus and logging checks; no browser-app jobs |
+| Both app and native inputs | Full suite |
+| Package manifests/lockfiles, release/build tooling, workflow/actions files, or the scope rule/tests | Full suite |
+| Other `scripts/**` or `tests/**` changes | Node tests, website JavaScript syntax, production app build/typecheck, audit and notices |
+| No watched app/native/tooling inputs (including website and docs changes) | Website behavior, privacy/legal consistency, scope tests and JavaScript syntax; no app install/build |
+
+The exact patterns live in `scripts/check-scope.mjs`. Keep the watch paths aligned
+when adding a new application build input outside these locations. Shared legal
+JSON is under `src/`, so it gets app checks without native builds. Any dependency,
+build or CI watch wins over cheaper scopes. Missing, malformed or unreadable diffs
+and release/non-PR runs require full validation. CI rule changes validate themselves
+with one full run.
+
+The `Required checks` gate requires every selected job to succeed and rejects
+failures, cancellations, missing jobs, and unexpected skips. Only full successful
+PR checks save the source artifact used to reuse application release validation;
+partial checks cannot stand in for release validation. Superseded runs are
+automatically cancelled by the workflow concurrency rule.
 
 ## Optional hosted build timing and validation
 
