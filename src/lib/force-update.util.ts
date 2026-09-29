@@ -106,20 +106,26 @@ export function waitUntilIdle(
   subscribe: (listener: () => void) => () => void,
   quietMs: number,
   timers: IdleTimers = browserTimers,
+  onQuietChange: (quiet: boolean) => void = () => {},
 ): Promise<void> {
   return new Promise((resolve) => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let unsubscribe: () => void = () => {};
     const finish = () => {
       unsubscribe();
+      onQuietChange(false);
       resolve();
     };
     const update = () => {
       if (isBusy()) {
-        if (timer !== undefined) timers.clear(timer);
-        timer = undefined;
+        if (timer !== undefined) {
+          timers.clear(timer);
+          timer = undefined;
+          onQuietChange(false);
+        }
       } else if (timer === undefined) {
         timer = timers.set(finish, quietMs);
+        onQuietChange(true);
       }
     };
     unsubscribe = subscribe(update);

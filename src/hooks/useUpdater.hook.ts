@@ -23,8 +23,8 @@ const RETRY_DELAY_MS = 60_000;
 const MAX_RETRY_DELAY_MS = 5 * 60_000;
 /// A required update installs only after dictation has been quiet this long,
 /// so a restart never interrupts someone mid-sentence.
-const QUIET_BEFORE_INSTALL_MS = 30_000;
-const BUSY_UPDATE_STATUSES = new Set(["downloading", "waiting", "installing"]);
+const QUIET_BEFORE_INSTALL_MS = 5_000;
+const BUSY_UPDATE_STATUSES = new Set(["downloading", "waiting", "verifying", "installing", "restarting"]);
 
 // Module-level singletons — shared across all hook instances so
 // downloadAndInstall always has the update object regardless of
@@ -48,10 +48,17 @@ function replacePendingUpdate(next: Update | null) {
 
 function checkWithTimeout() {
   let guardTimer: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
   const guard = new Promise<never>((_, reject) => {
-    guardTimer = setTimeout(() => reject(new UpdateCheckTimeout()), CHECK_GUARD_MS);
+    guardTimer = setTimeout(() => { timedOut = true; reject(new UpdateCheckTimeout()); }, CHECK_GUARD_MS);
   });
-  return Promise.race([checkForAppUpdate(), guard]).finally(() => {
+  const check = checkForAppUpdate().then(update => {
+    if (!timedOut) return update;
+    // A late IPC reply must not leak its native updater resource.
+    update?.close().catch(() => {});
+    return null;
+  });
+  return Promise.race([check, guard]).finally(() => {
     clearTimeout(guardTimer);
     inFlightCheck = null;
   });
@@ -74,7 +81,7 @@ function required(update: Update) {
 async function stillRequired(update: Update) {
   let latest: Update | null;
   try {
-    latest = await checkForAppUpdate();
+    latest = await checkWithTimeout();
   } catch {
     return true;
   }
@@ -106,9 +113,26 @@ function progressHandler() {
   };
 }
 
-/// Download now, install once dictation is quiet, then restart. The blocking
-/// screen (UpdateRequired) shows each step; failures leave a retry there and
-/// the next check tries again.
+async function restartInstalledUpdate() {
+  const store = useAppStore.getState();
+  store.setUpdateError(null);
+  store.setUpdateStatus("restarting");
+  try {
+    await relaunch();
+  } catch {
+    store.setUpdateError("The update is installed, but Linty could not restart. Try restarting again.");
+    useAppStore.setState({ updateStatus: "error", updateNoticeDismissed: false });
+  }
+}
+
+async function installAndRestart(update: Update) {
+  await update.install();
+  useAppStore.setState({ updateRestartPending: true });
+  await restartInstalledUpdate();
+}
+
+/// Download in the background, finish active dictation, then install and restart.
+/// Hiding the notice never changes this lifecycle.
 async function installRequiredUpdate(update: Update) {
   if (activeRequiredUpdate) return;
   activeRequiredUpdate = update;
@@ -116,6 +140,7 @@ async function installRequiredUpdate(update: Update) {
   try {
     store.setUpdateError(null);
     store.setUpdateProgress(0);
+    useAppStore.setState({ updateNoticeDismissed: false });
     store.setUpdateStatus("downloading");
     await update.download(progressHandler());
 
@@ -124,28 +149,33 @@ async function installRequiredUpdate(update: Update) {
       () => isDictationBusy(useAppStore.getState()),
       useAppStore.subscribe,
       QUIET_BEFORE_INSTALL_MS,
+      undefined,
+      quiet => useAppStore.setState({ updateRestartAt: quiet ? Date.now() + QUIET_BEFORE_INSTALL_MS : null }),
     );
 
     // The minimum may have been cleared while this waited.
+    store.setUpdateStatus("verifying");
     if (!(await stillRequired(update))) {
       store.setUpdateRequired(false);
       store.setUpdateStatus("idle");
       return;
     }
 
+    store.setUpdateStatus("waiting");
     await claimIdleForUpdate(
       () => isDictationBusy(useAppStore.getState()),
       useAppStore.subscribe,
       () => store.setUpdateStatus("installing"),
     );
-    await update.install();
-    await relaunch();
+    await installAndRestart(update);
   } catch (err) {
     console.error("[updater] Required update failed:", err);
     store.setUpdateError("The update could not be installed. Check your connection and try again.");
     store.setUpdateStatus("error");
+    useAppStore.setState({ updateNoticeDismissed: false });
   } finally {
     activeRequiredUpdate = null;
+    useAppStore.setState({ updateRestartAt: null });
     if (pendingUpdate !== update) update.close().catch(() => {});
   }
 }
@@ -161,6 +191,7 @@ export function useUpdater() {
 
   const checkForUpdate = useCallback(async (silent = false) => {
     if (BUSY_UPDATE_STATUSES.has(useAppStore.getState().updateStatus)) return;
+    if (useAppStore.getState().updateRestartPending) return restartInstalledUpdate();
     // Reuse a check already in flight (the silent auto-check, typically) so a
     // click during it still reports the outcome instead of doing nothing.
     inFlightCheck ??= checkWithTimeout();
@@ -225,12 +256,7 @@ export function useUpdater() {
         useAppStore.subscribe,
         () => setUpdateStatus("installing"),
       );
-      await update.install();
-
-      addToast({ type: "success", message: "Update installed — restarting..." });
-      // Brief delay so the user sees the toast
-      await new Promise((r) => setTimeout(r, 1500));
-      await relaunch();
+      await installAndRestart(update);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error("[updater] Download failed:", message);

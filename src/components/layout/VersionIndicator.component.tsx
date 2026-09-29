@@ -6,7 +6,7 @@ import { useUpdater } from "@/hooks/useUpdater.hook";
 
 export function VersionIndicator({ children }: { children?: React.ReactNode }) {
   const [version, setVersion] = useState("");
-  const { updateStatus, updateVersion, updateProgress, setCurrentView } =
+  const { updateStatus, updateVersion, updateProgress, updateRequired, updateRestartPending, setCurrentView } =
     useAppStore();
   const { checkForUpdate, downloadAndInstall } = useUpdater();
   useEffect(() => {
@@ -29,6 +29,10 @@ export function VersionIndicator({ children }: { children?: React.ReactNode }) {
       {updateStatus === "downloading" && (
         <span role="status">{updateProgress}%</span>
       )}
+      {updateRequired && ["downloading", "waiting", "verifying", "installing"].includes(updateStatus) && (
+        <button onClick={() => useAppStore.setState({ updateNoticeDismissed: false })}>Update status</button>
+      )}
+      {updateStatus === "restarting" && <span role="status">Restarting…</span>}
       {updateStatus === "available" && (
         <button
           className="text-accent"
@@ -40,10 +44,9 @@ export function VersionIndicator({ children }: { children?: React.ReactNode }) {
       )}
       {updateStatus === "error" && (
         <button className="text-error" onClick={() => checkForUpdate()}>
-          Retry update
+          {updateRestartPending ? "Restart Linty" : "Retry update"}
         </button>
       )}
     </div>
   );
 }
-

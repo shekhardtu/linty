@@ -481,9 +481,13 @@ kbd { border: 1px solid var(--color-border); border-bottom-width: 2px; border-ra
 .confirmation-dialog h2 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
 .confirmation-dialog p { font-size: 13px; line-height: 1.6; color: var(--color-text-secondary); margin-top: 8px; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
-/* Required update: blocking, but calm. The accent, not the error colour, marks it. */
-.update-required-dialog { outline: none; max-height: calc(100dvh - 48px); overflow-y: auto; }
-.update-required-dialog .dialog-icon { color: var(--color-accent); }
+/* Modeless update notice leaves navigation, focus, and window controls available. */
+.confirmation-dialog.update-required-dialog { inset: auto 20px 56px auto; margin: 0; padding: 20px; z-index: 60; max-height: calc(100dvh - 128px); overflow-y: auto; }
+.update-notice-heading { display: flex; align-items: center; gap: 10px; }
+.update-notice-heading > svg { color: var(--color-accent); flex-shrink: 0; }
+.update-notice-heading h2 { flex: 1; margin: 0; }
+.update-notice-notes { margin-top: 12px; font-size: 13px; }
+.update-notice-notes summary { cursor: pointer; color: var(--color-text-secondary); }
 .update-required-dialog .update-versions { font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
 .update-step { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; font-size: 13px; color: var(--color-text-primary); }
 .update-step:empty { display: none; }

@@ -25,14 +25,16 @@ export function useRecording() {
   const startRecording = useCallback(() => {
     if (starting && ownsDictation(starting.session) && !starting.session.cancelled) return starting.promise;
     const state = useAppStore.getState();
-    if (state.updateStatus === "installing" || isRecoveringDictation() || state.isRecording || ["preparing", "transcribing", "correcting", "pasting"].includes(state.status)) return Promise.resolve(false);
+    if (["installing", "restarting"].includes(state.updateStatus) || state.updateRestartPending || isRecoveringDictation() || state.isRecording || ["preparing", "transcribing", "correcting", "pasting"].includes(state.status)) return Promise.resolve(false);
     const session = beginDictation();
+    // Claim the session before any await so update installation cannot race
+    // dictionary initialization and interrupt a recording that just started.
+    useAppStore.getState().setStatus("preparing");
     const promise = (async () => {
       try {
         await initializeDictionary();
         const settings = useAppStore.getState();
         if (!settings.settingsLoaded) throw new Error("Settings are still loading. Please try again.");
-        useAppStore.getState().setStatus("preparing");
         if (!document.hasFocus()) void invoke("show_capsule").then(() => {
           if (ownsDictation(session) && !session.cancelled && useAppStore.getState().status === "preparing") {
             return invoke("emit_capsule_state", { state: "preparing" });
