@@ -16,6 +16,31 @@ const signingNames = ['APPLE_SIGNING_IDENTITY', 'APPLE_ID', 'APPLE_PASSWORD', 'A
   'TAURI_SIGNING_PRIVATE_KEY', 'TAURI_SIGNING_PRIVATE_KEY_PASSWORD'];
 export const localUiSuites = ['security', 'ui', 'onboarding', 'audio-history', 'correction-feedback', 'updates', 'privacy', 'microphone'];
 
+export function releaseCheckReporter({ gh, sourceSha, warn = console.warn }) {
+  if (!/^[a-f0-9]{40}$/.test(sourceSha)) throw new Error('Release checks require an exact source commit.');
+  let passed = false;
+  const report = (state, description) => gh(['api', '--method', 'POST',
+    `repos/${repository}/statuses/${sourceSha}`, '--raw-field', 'context=release/local',
+    '--raw-field', `state=${state}`, '--raw-field', `description=${description}`,
+    '--raw-field', `target_url=https://github.com/${repository}/blob/${sourceSha}/docs/runbooks/local-releases.md#release-checks-badge`]);
+  return {
+    start() {
+      report('pending', 'Local release validation is running.');
+    },
+    pass() {
+      // Failure to record success must stop publication too.
+      report('success', 'Tests, universal build, signing, notarization and updater verification passed.');
+      passed = true;
+    },
+    fail() {
+      // Upload failures do not invalidate an already verified build.
+      if (passed) return;
+      try { report('failure', 'Local release validation did not complete. Inspect the retained build on the release Mac.'); }
+      catch { warn('Could not update the release checks status on GitHub; inspect the retained build before retrying.'); }
+    },
+  };
+}
+
 export function runBrowserChecks(build, env, checkedSource) {
   if (checkedSource?.reused === true) return;
   build('yarn', ['playwright', 'install', 'chromium', 'webkit']);
@@ -155,7 +180,8 @@ async function main(options) {
       'Builds one universal installer for Apple silicon and Intel (macOS 14+). Requires both Rust targets and Rosetta for Intel tests.\n' +
       'Publishing asks required or optional unless that choice is supplied explicitly. Version bumps default to patch.\n' +
       '--initial-release publishes unchanged 0.0.1 source from a single initial commit with no version tags.\n' +
-      'Build/publish synchronize and push main first; all builds and tests run locally.');
+      'Build/publish synchronize and push main first; all builds and tests run locally.\n' +
+      'Build/publish report release/local commit status on GitHub; --check never writes a status.');
     return;
   }
   if (process.env.GITHUB_ACTIONS === 'true') throw new Error('Local releases cannot run in GitHub Actions.');
@@ -221,6 +247,7 @@ async function main(options) {
   const lock = path.join(storage, '.lock');
   try { mkdirSync(lock); } catch { throw new Error(`Another local release may be running. Check ${lock} before retrying.`); }
   let buildDir;
+  let releaseChecks;
   try {
     console.log('Synchronizing main and pushing its commits...');
     const sourceSha = synchronizeMain(git);
@@ -260,6 +287,8 @@ async function main(options) {
     const env = { ...baseEnv, CARGO_TARGET_DIR: targetDir };
     const build = (command, args, extra = {}) => run(command, args, { cwd: buildDir, env, ...extra });
     console.log(`Preparing ${releaseType} v${version} (${options.initialRelease ? 'initial release' : `${options.bump} bump`}) from main ${sourceSha}. Saved worktree: ${buildDir}`);
+    releaseChecks = releaseCheckReporter({ gh, sourceSha });
+    releaseChecks.start();
     build('yarn', ['install', '--frozen-lockfile', '--ignore-scripts']);
     build('swift', ['build', '-c', 'release', '--product', 'LintyParakeet', '--package-path', 'src-tauri/swift',
       '--scratch-path', swiftDir, '--disable-automatic-resolution']);
@@ -333,6 +362,7 @@ async function main(options) {
     const checksums = Object.fromEntries([...files.map(([name]) => name), 'latest.json', 'RELEASE_NOTES.md'].map(name =>
       [name, createHash('sha256').update(readFileSync(path.join(buildDir, name))).digest('hex')]));
     writeFileSync(path.join(buildDir, 'release/build.json'), `${JSON.stringify({ version, releaseType, bump: options.bump, initialRelease: Boolean(options.initialRelease), sourceSha, builtSha, browserChecks, checksums }, null, 2)}\n`);
+    releaseChecks.pass();
     if (options.mode === '--build-only') {
       console.log(`Local build verified; no release published. Artifacts and build record: ${buildDir}`);
       return;
@@ -341,6 +371,7 @@ async function main(options) {
       upload: tag => run('bash', ['scripts/publish-release.sh', tag], { cwd: buildDir, env: ghEnv }) });
     console.log(`Published https://github.com/${repository}/releases/tag/v${version}\nBuild record: ${buildDir}/release/build.json`);
   } catch (error) {
+    releaseChecks?.fail();
     if (buildDir) console.error(`Build worktree retained for diagnosis or upload retry: ${buildDir}`);
     throw error;
   } finally {
