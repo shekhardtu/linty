@@ -71,7 +71,7 @@ Read the [privacy notice](PRIVACY.md) and [license and responsible use](TERMS.md
 - **Downloads and updates use the network.** Model hosts and GitHub receive connection metadata. Website hosting is separate from app processing; see the [website disclosure](PRIVACY.md#website-and-github).
 - **No app usage telemetry.** Linty does not send app usage analytics. Downloads and update checks still connect to GitHub.
 
-The download badge counts `.dmg` installer downloads across all published GitHub releases, including older filenames and prereleases. It excludes updater archives, signatures, and metadata such as update checks. It refreshes hourly and after releases; GitHub scheduling and image caching can delay updates. Downloads are not unique users. The website refreshes its count from GitHub on page load; [view the badge's latest snapshot](https://github.com/shekhardtu/linty/blob/download-stats/downloads.json).
+The download badge counts `.dmg` installer downloads across all published GitHub releases, including older filenames and prereleases. It excludes updater archives, signatures, and metadata such as update checks. It refreshes every 12 hours and after releases; GitHub scheduling and image caching can delay updates. Downloads are not unique users. The website refreshes its count from GitHub on page load; [view the badge's latest snapshot](https://github.com/shekhardtu/linty/blob/download-stats/downloads.json).
 
 <details>
 <summary>Technical comparisons and measured performance</summary>

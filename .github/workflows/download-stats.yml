@@ -2,7 +2,7 @@ name: Refresh download badge
 
 on:
   schedule:
-    - cron: '17 * * * *'
+    - cron: '17 */12 * * *'
   release:
     types: [published]
   workflow_dispatch:

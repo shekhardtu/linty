@@ -60,7 +60,7 @@ deployment so the fallback count stays current. The script’s `--check` verifie
 generated values without a network request.
 
 The README loads `downloads.svg` directly from the separate `download-stats`
-branch. `.github/workflows/download-stats.yml` refreshes that branch hourly, after
+branch. `.github/workflows/download-stats.yml` refreshes that branch every 12 hours, after
 release publication, and when the generator changes on main. It uses the same
 paginated DMG counter, commits only `downloads.svg` and `downloads.json`, and never
 updates main or builds the app. API failures preserve the last successful badge.
