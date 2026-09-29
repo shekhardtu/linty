@@ -4,7 +4,7 @@ import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, sy
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { appDigest, cleanupPublishedArtifacts, fileDigest, releaseTargetDirectory } from '../scripts/release-artifacts.mjs';
+import { appDigest, cleanupPublishedArtifacts, fileDigest, preservePreviousBundle, releaseTargetDirectory } from '../scripts/release-artifacts.mjs';
 import { prepareMacosDmg } from '../scripts/prepare-macos-dmg.mjs';
 
 function fixture(t) {
@@ -63,6 +63,38 @@ function publication(t) {
   write('build-test/release/build.json', JSON.stringify({ version: '1.2.3', checksums, appDigest: appDigest(path.dirname(path.dirname(appFile))) }));
   const installed = write('Applications/Linty.app/Contents/Info.plist', 'installed app');
   return { storage, write, buildDir, release, files, appFile, dmg, installed };
+}
+
+test('rebuilding preserves unknown prior bundle contents by renaming without copying', t => {
+  const f = publication(t);
+  const unknown = f.write('cache/target.noindex/universal-apple-darwin/release/bundle/customer-note.txt', 'keep');
+  const inode = lstatSync(unknown).ino;
+  const destination = preservePreviousBundle(f.buildDir);
+  const retained = path.join(destination, 'customer-note.txt');
+  assert.equal(readFileSync(retained, 'utf8'), 'keep');
+  assert.equal(lstatSync(retained).ino, inode);
+  assert.equal(existsSync(f.dmg), false);
+  assert.ok(existsSync(path.join(destination, 'dmg/Linty_1.2.3_universal.dmg')));
+  assert.equal(preservePreviousBundle(f.buildDir), undefined);
+  assert.ok(existsSync(f.installed));
+});
+
+for (const failure of ['redirected-source', 'redirected-destination', 'existing-destination']) {
+  test(`prior bundle preservation stops without deleting files on ${failure}`, t => {
+    const f = publication(t);
+    const bundle = path.dirname(path.dirname(f.dmg));
+    if (failure === 'redirected-source') {
+      rmSync(bundle, { recursive: true });
+      symlinkSync(path.join(f.storage, 'Applications'), bundle);
+    } else if (failure === 'redirected-destination') {
+      rmSync(path.join(f.buildDir, 'release'), { recursive: true });
+      symlinkSync(path.join(f.storage, 'Applications'), path.join(f.buildDir, 'release'));
+    } else f.write('build-test/release/previous-bundle.noindex/keep', 'retained');
+    assert.throws(() => preservePreviousBundle(f.buildDir), /redirected|already exists/);
+    assert.ok(existsSync(f.installed));
+    if (failure !== 'redirected-source') assert.ok(existsSync(f.dmg));
+    if (failure === 'existing-destination') assert.equal(readFileSync(path.join(f.buildDir, 'release/previous-bundle.noindex/keep'), 'utf8'), 'retained');
+  });
 }
 
 test('verified publication automatically removes only generated installers and expanded app', t => {

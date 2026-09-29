@@ -53,6 +53,10 @@ app on a second launch.
    fingerprint. It unregisters and deletes only the known generated app and the
    three generated DMG paths. Failed, draft, rehearsal, or unverified outputs
    remain available for diagnosis and upload retry.
+4. Before the next build, any prior bundle is renamed into that build's
+   `release/previous-bundle.noindex`. This replaces the former recursive pre-build
+   deletion and preserves unknown contents without copying files or scanning them.
+   Redirected paths and destination conflicts stop the build.
 
 ## Resource and deletion boundaries
 

@@ -231,6 +231,10 @@ run migrates the previous `cache/target` directory without discarding compiled
 dependencies and leaves a compatibility symlink for Cargo's recorded absolute
 paths. Standalone `yarn build:mac` similarly uses a `linty.noindex` subdirectory
 of its target directory. Failed and rehearsal builds remain excluded too.
+Before rebuilding, any prior bundle directory is moved into the new build's
+`release/previous-bundle.noindex` without copying or deleting its contents. This
+preserves unknown files and earlier failed outputs; a redirected path or existing
+destination stops the release. Compilation caches remain in place.
 
 Cleanup uses only fixed paths inside this build and its dedicated output cache.
 It rejects redirected paths, verifies all five uploaded artifacts, and compares

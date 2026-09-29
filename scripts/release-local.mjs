@@ -9,7 +9,7 @@ import { findReusableChecks } from './reuse-pr-checks.mjs';
 import { runCommand, runTasks } from './run-tasks.mjs';
 import { runUiChecks } from './run-ui-checks.mjs';
 import { prepareMacosDmg } from './prepare-macos-dmg.mjs';
-import { appDigest, cleanupPublishedArtifacts, fileDigest, releaseTargetDirectory } from './release-artifacts.mjs';
+import { appDigest, cleanupPublishedArtifacts, fileDigest, preservePreviousBundle, releaseTargetDirectory } from './release-artifacts.mjs';
 
 const repository = 'shekhardtu/linty';
 const target = 'universal-apple-darwin';
@@ -321,7 +321,8 @@ async function main(options) {
     build(py, ['tests/supervisor.test.py']);
     build(py, ['scripts/check-rust-advisories.py']);
     const bundle = path.join(targetDir, target, 'release', 'bundle');
-    rmSync(bundle, { recursive: true, force: true }); // Only this command's dedicated output cache.
+    const preserved = preservePreviousBundle(buildDir);
+    if (preserved) console.log(`Previous bundle preserved without copying: ${preserved}`);
     const signedEnv = { ...env, ...Object.fromEntries(signingNames.map(name => [name, process.env[name]])) };
     console.log('Running browser checks alongside local building, signing, and notarization...');
     // yarn build already validated dist. Reuse it so packaging cannot rewrite

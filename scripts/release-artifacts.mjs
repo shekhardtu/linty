@@ -80,6 +80,21 @@ export function releaseTargetDirectory(storage) {
   return target;
 }
 
+export function preservePreviousBundle(buildDir) {
+  buildDir = realpathSync(buildDir);
+  const bundle = path.join(path.dirname(buildDir), 'cache/target.noindex/universal-apple-darwin/release/bundle');
+  const stat = lstatSync(bundle, { throwIfNoEntry: false });
+  if (!stat) return;
+  if (!stat.isDirectory() || realpathSync(bundle) !== path.resolve(bundle)) throw new Error('Refusing a redirected previous bundle.');
+  const destination = path.join(buildDir, 'release/previous-bundle.noindex');
+  if (realpathSync(path.dirname(destination)) !== path.dirname(destination)) throw new Error('Refusing a redirected preservation directory.');
+  if (lstatSync(destination, { throwIfNoEntry: false })) throw new Error('Previous bundle preservation destination already exists.');
+  // Rename on the same filesystem: no copying, traversal, or deletion of
+  // unknown contents from a failed/retained build. Failure stops the release.
+  renameSync(bundle, destination);
+  return destination;
+}
+
 export function cleanupPublishedArtifacts({ buildDir, release, unregister = () => {} }) {
   buildDir = realpathSync(buildDir);
   const record = JSON.parse(readFileSync(path.join(buildDir, 'release/build.json'), 'utf8'));
