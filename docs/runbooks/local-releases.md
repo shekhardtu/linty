@@ -42,6 +42,14 @@ versioned asset so downloaded files identify their version. Both `darwin-aarch64
 including updates from existing Apple-silicon-only installations. Publish the
 first universal release before deploying website links to this new asset name.
 
+The installer volume contains `.metadata_never_index` at its root so Spotlight
+does not index the mounted installer as a second application. The marker is
+outside `Linty.app`: dragging the app to Applications leaves the installed copy
+searchable. `scripts/prepare-macos-dmg.mjs` adds and verifies the marker, preserves
+the signed app and Finder layout, and signs the resulting DMG before notarization.
+Both local release and `yarn build:mac` use this step. The retained, disabled
+hosted workflow uses it too; do not enable that workflow to run a local release.
+
 The Developer ID Application certificate **and its private key** must be in
 Keychain, with signing access available. Supply the existing credentials through
 your secure environment:
@@ -138,6 +146,14 @@ main is synchronized. It does not change Git, build, or publish. The second:
    updater archive, signature and manifest, then publishes after all uploads
    succeed. No main or tag push from this process starts a release runner while
    the remote release workflow is disabled.
+8. Verifies the published release's asset digests against the saved build record
+   and local files, then automatically removes its staged DMGs, cached DMG, and
+   expanded build copy of `Linty.app`. It unregisters only that build app from
+   Launch Services before removal. The installed application, signed updater
+   archives, signatures, manifest, source bundle, build record, and compilation
+   caches remain. Failed/draft releases and build-only runs retain their artifacts.
+   If verification or cleanup fails after publication, the command reports the
+   cleanup failure separately; do not publish another version to retry cleanup.
 
 The app's version-only commit lives on the release tag, with synchronized main
 as its parent, just as in the hosted workflow. Product code comes from main;
@@ -209,6 +225,24 @@ the source commit, version commit, release type, version bump, browser validatio
 evidence, and artifact SHA-256 hashes;
 `release/release-source.bundle` preserves the built commit. Failed commands retain
 the worktree. Package-manager, Rust and Swift caches are under `release/local/cache`.
+
+Cargo output lives in `cache/target.noindex`, which Spotlight excludes. The first
+run migrates the previous `cache/target` directory without discarding compiled
+dependencies and leaves a compatibility symlink for Cargo's recorded absolute
+paths. Standalone `yarn build:mac` similarly uses a `linty.noindex` subdirectory
+of its target directory. Failed and rehearsal builds remain excluded too.
+Before rebuilding, any prior bundle directory is moved into the new build's
+`release/previous-bundle.noindex` without copying or deleting its contents. This
+preserves unknown files and earlier failed outputs; a redirected path or existing
+destination stops the release. Compilation caches remain in place.
+
+Cleanup uses only fixed paths inside this build and its dedicated output cache.
+It rejects redirected paths, verifies all five uploaded artifacts, and compares
+the expanded app's complete content fingerprint with the build record. Extra or
+changed files cause cleanup to stop without deleting anything. It never searches
+Applications, Downloads, documents, or customer data. Hashing uses a 64 KiB buffer;
+there is no cleanup service, timer, Spotlight reset, or disk scan in the shipped app.
+See [the investigation and validation](../reviews/spotlight-installation.md).
 
 Uploads retry independently three times. If a later retry is needed, inspect
 the saved build record, verify the hashes and source relationship, and ensure
