@@ -376,7 +376,7 @@ try {
     }, theme);
     await page.locator('.permission-row').filter({ hasText: 'Accessibility' }).getByRole('button', { name: 'Open Settings', exact: true }).click();
     await page.getByRole('alert').getByText('Could not open System Settings. Go to System Settings → Privacy & Security → Accessibility.', { exact: true }).waitFor();
-    await page.screenshot({ path: `artifacts/language/${engine.name()}-settings-error-${theme}.png` });
+    await page.screenshot({ path: `artifacts/language/${engine.name()}-settings-error-${theme}.png`, animations: 'disabled' });
     await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.setState({ toasts: [] }));
     await page.getByRole('alert').waitFor({ state: 'detached' });
   }
