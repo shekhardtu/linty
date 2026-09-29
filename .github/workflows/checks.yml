@@ -112,14 +112,13 @@ jobs:
       - run: python3 scripts/third-party-notices.py --check
 
   ui-tests:
-    name: UI tests (${{ matrix.browser }})
+    name: UI tests (webkit)
     needs: changes
     if: needs.changes.outputs.scope == 'full' || needs.changes.outputs.scope == 'app'
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [chromium, webkit]
+    # Linty's macOS webview uses WebKit; avoid duplicate Chromium runner time.
+    env:
+      UI_BROWSER: webkit
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -127,36 +126,20 @@ jobs:
           node-version: 24
           cache: yarn
       - run: yarn install --frozen-lockfile --ignore-scripts
-      - run: yarn playwright install --with-deps ${{ matrix.browser }}
+      - run: yarn playwright install --with-deps webkit
       - run: yarn build
       - run: yarn test:security
-        env:
-          UI_BROWSER: ${{ matrix.browser }}
       - run: yarn test:ui
-        env:
-          UI_BROWSER: ${{ matrix.browser }}
       - run: yarn test:onboarding
-        env:
-          UI_BROWSER: ${{ matrix.browser }}
       - run: yarn test:audio-history
-        env:
-          UI_BROWSER: ${{ matrix.browser }}
       - run: yarn test:correction-feedback
-        env:
-          UI_BROWSER: ${{ matrix.browser }}
       - run: yarn test:updates
-        env:
-          UI_BROWSER: ${{ matrix.browser }}
       - run: yarn test:privacy
-        env:
-          UI_BROWSER: ${{ matrix.browser }}
       - run: yarn test:microphone
-        env:
-          UI_BROWSER: ${{ matrix.browser }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: failure()
         with:
-          name: ui-failure-${{ matrix.browser }}
+          name: ui-failure-webkit
           path: artifacts/
 
   required-checks:

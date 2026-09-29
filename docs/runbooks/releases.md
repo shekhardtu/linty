@@ -46,6 +46,11 @@ Hosted native checks inspect source and dependency metadata without compiling.
 A full PR suite does not replace local native validation; architecture-specific
 build and test failures are caught locally before release.
 
+Browser checks run once in WebKit, the engine used by the macOS app. They retain
+all UI, onboarding, audio-history, correction, update, privacy, microphone and
+security suites. Chromium is excluded from automated PR and local release
+validation to avoid duplicate coverage and runner minutes.
+
 The `Required checks` gate requires every selected job to succeed and rejects
 failures, cancellations, missing jobs, and unexpected skips. Only full successful
 PR checks save the source artifact used to reuse application release validation;
