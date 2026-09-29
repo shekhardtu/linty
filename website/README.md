@@ -48,16 +48,26 @@ are limited to GitHub by the landing page CSP. No token is sent by visitors.
 GitHub receives connection metadata, as disclosed in the privacy notice.
 
 Before publishing, run `node scripts/update-download-count.mjs` from the repository
-root. It refreshes `downloads.json`, the local `downloads.svg` README badge, the
-landing page's dated lifetime download total.
+root. It refreshes `downloads.json`, the local `downloads.svg` snapshot, and the
+landing page's dated lifetime download total, and preserves the live README badge URL.
 `GITHUB_TOKEN` is optional for this command's higher API rate limits. Commit and
-publish the generated website files together. The README remains a dated snapshot;
-the website refreshes on load without a redeployment. API failures, timeouts, or
+publish the generated website files together. The website refreshes on load without
+a redeployment. API failures, timeouts, or
 rate limits preserve the dated count and latest-release fallback independently.
 Without a successful lookup or JavaScript, download links open GitHub’s latest
 release page; they never pin an older installer. Regenerate before each website
 deployment so the fallback count stays current. The script’s `--check` verifies
 generated values without a network request.
+
+The README loads `downloads.svg` directly from the separate `download-stats`
+branch. `.github/workflows/download-stats.yml` refreshes that branch hourly, after
+release publication, and when the generator changes on main. It uses the same
+paginated DMG counter, commits only `downloads.svg` and `downloads.json`, and never
+updates main or builds the app. API failures preserve the last successful badge.
+Run the workflow manually to refresh on demand. GitHub scheduling and image caches
+can delay visibility; this is a periodically refreshed count, not a real-time counter.
+Use the direct raw URL: GitHub's relative-image redirect drops query parameters,
+so a `?v=` on a relative README image does not reliably bypass the raw-image cache.
 
 Website and documentation pull requests run lightweight checks without installing
 or building the desktop app. Run the same checks locally with

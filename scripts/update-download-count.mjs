@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { countDmgDownloads, fetchAllReleases, releasesUrl } from '../website/downloads.js';
@@ -27,9 +26,8 @@ export function renderDownloadCount(snapshot) {
   </g>
 </svg>
 `;
-  const version = createHash('sha256').update(svg).digest('hex').slice(0, 12);
   const readme = `<!-- dmg-downloads:start -->
-  <a href="https://github.com/shekhardtu/linty/releases"><img alt="${number} downloads across all releases; checked ${date}" src="website/downloads.svg?v=${version}" /></a>
+  <a href="https://github.com/shekhardtu/linty/releases"><img alt="Downloads across all published releases" src="https://raw.githubusercontent.com/shekhardtu/linty/download-stats/downloads.svg" /></a>
   <!-- dmg-downloads:end -->`;
   const website = `<!-- dmg-downloads:start -->
           <span data-dmg-download-count> · <a href="https://github.com/shekhardtu/linty/releases" title="Installer downloads across all published releases, including prereleases. Not unique users. Checked ${date}.">${number} downloads</a><time hidden datetime="${snapshot.checkedAt}">${date}</time></span>

@@ -6,7 +6,7 @@
 
 <p align="center">
   <!-- dmg-downloads:start -->
-  <a href="https://github.com/shekhardtu/linty/releases"><img alt="19 downloads across all releases; checked 2026-09-29" src="website/downloads.svg?v=65bd1dc2bfd2" /></a>
+  <a href="https://github.com/shekhardtu/linty/releases"><img alt="Downloads across all published releases" src="https://raw.githubusercontent.com/shekhardtu/linty/download-stats/downloads.svg" /></a>
   <!-- dmg-downloads:end -->
   <a href="https://github.com/shekhardtu/linty/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/shekhardtu/linty?style=flat-square&color=28756f" /></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/shekhardtu/linty?style=flat-square&color=28756f" /></a>
@@ -71,7 +71,7 @@ Read the [privacy notice](PRIVACY.md) and [license and responsible use](TERMS.md
 - **Downloads and updates use the network.** Model hosts and GitHub receive connection metadata. Website hosting is separate from app processing; see the [website disclosure](PRIVACY.md#website-and-github).
 - **No app usage telemetry.** Linty does not send app usage analytics. Downloads and update checks still connect to GitHub.
 
-The download badge counts only `.dmg` installer downloads across all published GitHub releases, including older filenames and prereleases. It excludes updater archives, signatures, and metadata. This badge is a dated snapshot of downloads, not a count of unique users. The website refreshes its count from GitHub on page load; [view the snapshot](website/downloads.json).
+The download badge counts `.dmg` installer downloads across all published GitHub releases, including older filenames and prereleases. It excludes updater archives, signatures, and metadata such as update checks. It refreshes hourly and after releases; GitHub scheduling and image caching can delay updates. Downloads are not unique users. The website refreshes its count from GitHub on page load; [view the badge's latest snapshot](https://github.com/shekhardtu/linty/blob/download-stats/downloads.json).
 
 <details>
 <summary>Technical comparisons and measured performance</summary>
