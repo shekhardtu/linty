@@ -81,6 +81,30 @@ try {
 
   await navigate('Settings');
   await navigate('Privacy & storage');
+  const sharing = page.getByRole('switch', { name: 'Share telemetry', exact: true });
+  await sharing.waitFor();
+  assert.equal(await sharing.getAttribute('aria-checked'), 'false', 'Previously confirmed off stays off');
+  assert.deepEqual(await page.evaluate(() => window.__QA__.telemetryEvents), [], 'No events when off');
+  await sharing.click();
+  await page.waitForFunction(() => window.__QA__.stores[1].telemetry?.enabled === true);
+  await page.waitForFunction(() => window.__QA__.telemetryEvents.some(e => e.command === 'telemetry_page_viewed'));
+  await page.evaluate(() => window.dispatchEvent(new ErrorEvent('error', { message: 'PRIVATE-DICTATION-SENTINEL' })));
+  await page.waitForFunction(() => window.__QA__.telemetryEvents.some(e => e.command === 'telemetry_frontend_error'));
+  assert.ok(!JSON.stringify(await page.evaluate(() => window.__QA__.telemetryEvents)).includes('PRIVATE-DICTATION-SENTINEL'), 'Raw errors never enter IPC');
+  await page.evaluate(() => { window.__QA__.failures.telemetry_set_consent = 'Disk full. Retry saving the preference.'; });
+  await sharing.click();
+  await page.getByRole('alert').filter({ hasText: 'Disk full' }).waitFor();
+  assert.equal(await sharing.getAttribute('aria-checked'), 'false', 'Failed opt-out save still stops sharing for this session');
+  await page.evaluate(() => { delete window.__QA__.failures.telemetry_set_consent; });
+  await page.getByRole('button', { name: 'Retry saving', exact: true }).click();
+  await page.waitForFunction(() => window.__QA__.stores[1].telemetry.enabled === false);
+  const eventsBefore = (await page.evaluate(() => window.__QA__.telemetryEvents)).length;
+  await page.evaluate(() => window.dispatchEvent(new ErrorEvent('error', { message: 'PRIVATE-DICTATION-SENTINEL' })));
+  await navigate('History');
+  await page.getByRole('heading', { name: 'Your words', exact: true }).waitFor();
+  assert.equal((await page.evaluate(() => window.__QA__.telemetryEvents)).length, eventsBefore, 'No events after opting out');
+  await navigate('Settings');
+  await navigate('Privacy & storage');
   await page.getByRole('button', { name: 'Privacy notice', exact: true }).click();
   await page.getByRole('dialog', { name: 'Privacy notice', exact: true }).getByRole('heading', { name: 'Storage and your choices', exact: true }).waitFor();
   await page.keyboard.press('Escape');
@@ -95,6 +119,41 @@ try {
   await onboarding.page.keyboard.press('Escape');
   assert.ok(!(await onboarding.page.evaluate(() => window.__QA__.calls)).includes('request_microphone'), 'Notice is available before requesting microphone permission');
   await onboarding.context.close();
+  const unavailable = await browser.newContext({ viewport: { width: 900, height: 650 } });
+  await unavailable.addInitScript(fixture, { telemetryAvailable: false });
+  const unavailablePage = await unavailable.newPage();
+  await unavailablePage.goto(`http://127.0.0.1:${port}`);
+  await unavailablePage.getByRole('heading', { name: 'Your dictation', exact: true }).waitFor();
+  await unavailablePage.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Settings', exact: true }).click();
+  await unavailablePage.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Privacy & storage', exact: true }).click();
+  assert.equal(await unavailablePage.getByRole('switch', { name: 'Share telemetry', exact: true }).isDisabled(), true, 'Unconfigured builds cannot opt in');
+  await unavailable.close();
+  // First introduction on an existing installation: preselected draft, no
+  // capture before confirmation, then preserve the choice on ordinary reloads.
+  for (const enable of [true, false]) {
+    const upgrade = await browser.newContext({ viewport: { width: 640, height: 480 } });
+    await upgrade.addInitScript(fixture, { telemetryDecided: false });
+    const upgradePage = await upgrade.newPage();
+    await upgradePage.goto(`http://127.0.0.1:${port}`);
+    const invitation = upgradePage.getByRole('dialog', { name: 'Help improve Linty', exact: true });
+    await invitation.waitFor();
+    const choice = invitation.getByRole('switch', { name: 'Share telemetry', exact: true });
+    assert.equal(await choice.getAttribute('aria-checked'), 'true', 'Initial choice is preselected');
+    assert.deepEqual(await upgradePage.evaluate(() => window.__QA__.telemetryEvents), [], 'Preselection is not consent');
+    assert.equal(await invitation.evaluate(el => el.scrollWidth <= el.clientWidth + 1), true);
+    const consentAudit = await new AxeBuilder({ page: upgradePage }).analyze();
+    assert.deepEqual(consentAudit.violations.map(v => v.id), [], 'Consent invitation is accessible');
+    if (!enable) await choice.click();
+    await invitation.getByRole('button', { name: 'Confirm preference', exact: true }).click();
+    await invitation.waitFor({ state: 'hidden' });
+    assert.equal(await upgradePage.evaluate(() => window.__QA__.stores[1].telemetry.enabled), enable);
+    const saved = await upgradePage.evaluate(() => structuredClone(window.__QA__.stores[1]));
+    await upgrade.addInitScript(settings => Object.assign(window.__QA__.stores[1], settings), saved);
+    await upgradePage.reload();
+    await upgradePage.getByRole('heading', { name: 'Your dictation', exact: true }).waitFor();
+    assert.equal(await invitation.count(), 0, 'Saved choice is not requested again on upgrade');
+    await upgrade.close();
+  }
   assert.deepEqual(external, [], 'Reading bundled notices makes no external web request');
   console.log(`Offline notices, focus, minimum window and access before microphone permission passed (${engine.name()}).`);
 } finally {

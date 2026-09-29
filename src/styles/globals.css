@@ -477,6 +477,7 @@ kbd { border: 1px solid var(--color-border); border-bottom-width: 2px; border-ra
 /* Modal and initial loading states. HTML dialog supplies focus containment. */
 .confirmation-dialog { position: fixed; inset: 0; margin: auto; width: min(400px, calc(100vw - 48px)); padding: 28px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-bg-elevated); color: var(--color-text-primary); box-shadow: 0 16px 48px color-mix(in srgb, var(--color-shadow) 50%, transparent); }
 .confirmation-dialog::backdrop { background: rgba(0,0,0,.25); }
+.telemetry-consent-dialog { width: min(500px, calc(100vw - 48px)); max-height: calc(100dvh - 48px); overflow-y: auto; }
 .dialog-icon { color: var(--color-error); margin-bottom: 16px; }
 .confirmation-dialog h2 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
 .confirmation-dialog p { font-size: 13px; line-height: 1.6; color: var(--color-text-secondary); margin-top: 8px; }

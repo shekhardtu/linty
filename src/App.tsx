@@ -24,6 +24,7 @@ import { RecordingFocus } from "@/components/RecordingFocus.component";
 import { ConfirmResetDialogue } from "@/components/shared/ConfirmReset.dialogue";
 import { UpdateRequiredDialogue } from "@/components/shared/UpdateRequired.dialogue";
 import { UpdateAcknowledgmentDialogue } from "@/components/shared/UpdateAcknowledgment.dialogue";
+import { TelemetryConsentDialogue } from "@/components/shared/TelemetryConsent.dialogue";
 
 import { ToastContainer } from "@/components/shared/ToastContainer.component";
 import { HistoryPage } from "@/pages/History.page";
@@ -37,6 +38,7 @@ import { SystemCheckPage } from "@/pages/SystemCheck.page";
 import { ShortcutsPage } from "@/pages/Shortcuts.page";
 import { AboutPage } from "@/pages/About.page";
 import { OnboardingPage } from "@/pages/Onboarding.page";
+import { loadTelemetry, observeFrontendErrors, reportOnboardingCompleted, reportPage, saveTelemetry, useTelemetry } from "@/services/telemetry.service";
 
 export default function App() {
   const currentView = useAppStore((s) => s.currentView);
@@ -47,6 +49,16 @@ export default function App() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [permissionState, setPermissionState] = useState<"checking" | "ready" | "microphone" | "accessibility">("checking");
   const showingSetup = !onboardingComplete || permissionState !== "ready";
+  const telemetry = useTelemetry();
+  const updateNotice = useAppStore(s => s.updateNotice);
+  const updateRequired = useAppStore(s => s.updateRequired);
+  useEffect(() => {
+    void loadTelemetry();
+    return observeFrontendErrors();
+  }, []);
+  useEffect(() => {
+    if (!showingSetup) reportPage(currentView);
+  }, [currentView, showingSetup, telemetry.enabled]);
 
   // A saved completion flag does not mean macOS still grants access (for
   // example, after reinstalling). Check both permissions before showing the app.
@@ -94,7 +106,9 @@ export default function App() {
   const { checkForUpdate } = useUpdater();
 
   const handleOnboardingComplete = useCallback(async () => {
+    const firstCompletion = !useAppStore.getState().onboardingComplete;
     await saveOnboardingComplete(true);
+    if (firstCompletion) reportOnboardingCompleted();
     setPermissionState("ready");
   }, [saveOnboardingComplete]);
 
@@ -119,6 +133,7 @@ export default function App() {
   const handleResetConfirm = useCallback(async () => {
     setShowResetConfirm(false);
     try {
+      await saveTelemetry(false);
       // 1. Clear plugin-store in-memory caches — the Rust backend holds
       //    state that survives webview reload, so deleting files alone
       //    does nothing (autoSave re-writes them from memory).
@@ -232,6 +247,7 @@ export default function App() {
         onCancel={() => setShowResetConfirm(false)}
       />
       <UpdateRequiredDialogue />
+      <TelemetryConsentDialogue paused={showResetConfirm || Boolean(updateNotice) || updateRequired} />
       <UpdateAcknowledgmentDialogue paused={showResetConfirm} />
     </div>
   );

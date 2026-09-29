@@ -28,6 +28,7 @@ import { ThemePreview } from "@/components/settings/ThemePreview.component";
 import { BrandMark } from "@/components/shared/BrandMark.component";
 import { HistoryStorage } from "@/components/settings/HistoryStorage.component";
 import { AudioStorage } from "@/components/settings/AudioStorage.component";
+import { TelemetryPreferences } from "@/components/settings/TelemetryPreferences.component";
 import { DictationLanguages } from "@/components/settings/DictationLanguages.component";
 import { modelLabel } from "@/lib/model-labels.util";
 import type { ThemePreference } from "@/store/slices/settings.slice";
@@ -190,6 +191,7 @@ function PrivacySection() {
         </div>
       </div>
       <LegalNotice />
+      <TelemetryPreferences />
       <SectionCard>
         <Toggle
           enabled={trackApplicationUsage}

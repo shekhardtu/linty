@@ -19,6 +19,7 @@ mod input_activity;
 mod legacy_settings;
 pub mod logging;
 mod model_store;
+mod telemetry;
 pub use model_store::sha256_hex;
 #[cfg(all(feature = "parakeet", target_arch = "aarch64"))]
 pub mod parakeet;
@@ -749,6 +750,7 @@ fn reset_all_data(
     state: tauri::State<'_, AppState>,
     history: tauri::State<'_, history::HistoryState>,
 ) -> Result<(), String> {
+    telemetry::revoke();
     app.state::<reformat::ReformatState>().cancel();
     app.state::<reformat::ReformatState>()
         .unload_if_idle(u64::MAX, 1);
@@ -1506,6 +1508,7 @@ pub fn run() {
             // Version banner, crash marker path and panic hook, before
             // anything else in setup can fail or panic.
             logging::init(app.handle());
+            telemetry::init(app.handle());
             if let Err(error) = legacy_settings::remove_retired_settings(app.handle()) {
                 log::warn!("[settings] Could not finish retired-settings cleanup: {error}");
             }
@@ -1555,6 +1558,11 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            telemetry::telemetry_snapshot,
+            telemetry::telemetry_set_consent,
+            telemetry::telemetry_page_viewed,
+            telemetry::telemetry_onboarding_completed,
+            telemetry::telemetry_frontend_error,
             updater::check_for_update,
             dictation::start_dictation,
             dictation::stop_dictation,
