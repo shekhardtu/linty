@@ -1,22 +1,41 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import { countDmgDownloads, fetchAllReleases, parseDmgFilename, fetchLatestInstaller, refreshDownloadInfo, latestDownloadUrl, latestReleaseUrl } from '../website/downloads.js';
+import { countAppDownloads, fetchAllReleases, parseDmgFilename, fetchLatestInstaller, refreshDownloadInfo, latestDownloadUrl, latestReleaseUrl } from '../website/downloads.js';
 
-test('counts every DMG filename including old versioned names and prereleases, excluding updater assets and drafts', () => {
-  assert.deepEqual(countDmgDownloads([
+test('combines installers and app updates across published releases, excluding signatures, update checks, unrelated assets and drafts', () => {
+  assert.deepEqual(countAppDownloads([
     { assets: [
       { name: 'Linty_aarch64.dmg', download_count: 31 },
       { name: 'Linty_0.0.42_aarch64.dmg', download_count: 1 },
       { name: 'Linty_x64.DMG', download_count: 5 },
       { name: 'Linty.app.tar.gz', download_count: 80 },
+      { name: 'Linty.app.tar.gz.sig', download_count: 99 },
       { name: 'Linty_aarch64.dmg.sig', download_count: 99 },
       { name: 'latest.json', download_count: 1000 },
       { name: 'AnotherApp.dmg', download_count: 1000 },
+      { name: 'AnotherApp.app.tar.gz', download_count: 1000 },
+      { name: 'linty.tar.gz', download_count: 1000 },
     ] },
-    { prerelease: true, assets: [{ name: 'Linty-beta.dmg', download_count: 2 }] },
-    { draft: true, assets: [{ name: 'Linty.dmg', download_count: 90 }] },
-  ]), { downloads: 39, assets: 4 });
+    { prerelease: true, assets: [
+      { name: 'Linty-beta.dmg', download_count: 2 },
+      { name: 'Linty-beta.app.tar.gz', download_count: 3 },
+    ] },
+    { draft: true, assets: [
+      { name: 'Linty.dmg', download_count: 90 },
+      { name: 'Linty.app.tar.gz', download_count: 90 },
+    ] },
+  ]), { downloads: 122, assets: 6 });
+});
+
+test('counts universal and historical versioned updater archives with repeated downloads', () => {
+  const names = ['Linty.app.tar.gz', 'linty-0.0.5.app.tar.gz', 'Linty_aarch64.app.tar.gz',
+    'Linty_0.0.42_x86_64.app.tar.gz', 'Linty-v1.2.3-universal.app.tar.gz', 'linty-1.2.3-beta.2-arm64.APP.TAR.GZ'];
+  assert.deepEqual(countAppDownloads([{ assets: names.map(name => ({ name, download_count: 2 })) }]),
+    { downloads: 12, assets: 6 });
+  assert.deepEqual(countAppDownloads([{ assets: ['../Linty.app.tar.gz', 'notlinty.app.tar.gz',
+    'linty-backup.app.tar.gz', 'Linty.app.tar.gz.sig', 'Linty.app.tar.gz.zip', null]
+    .map(name => ({ name, download_count: 1000 })) }]), { downloads: 0, assets: 0 });
 });
 
 test('follows release pagination beyond 100 releases and avoids counting overlapping pages twice', async () => {
@@ -24,11 +43,14 @@ test('follows release pagination beyond 100 releases and avoids counting overlap
   const firstPage = Array.from({ length: 100 }, (_, id) => ({ id, assets: [{ name: `Linty_0.0.${id}.dmg`, download_count: 1 }] }));
   const releases = await fetchAllReleases({ token: '', fetchImpl: async url => {
     requests.push(url);
-    return { ok: true, json: async () => requests.length === 1 ? firstPage : [firstPage[99], { id: 100, assets: [{ name: 'Linty_0.0.100.dmg', download_count: 7 }] }] };
+    return { ok: true, json: async () => requests.length === 1 ? firstPage : [firstPage[99], { id: 100, assets: [
+      { name: 'Linty_0.0.100.dmg', download_count: 7 },
+      { name: 'Linty.app.tar.gz', download_count: 4 },
+    ] }] };
   } });
   assert.equal(requests.length, 2);
   assert.ok(requests[1].endsWith('per_page=100&page=2'));
-  assert.deepEqual(countDmgDownloads(releases), { downloads: 107, assets: 101 });
+  assert.deepEqual(countAppDownloads(releases), { downloads: 111, assets: 102 });
 });
 
 test('rejects failures and malformed data instead of publishing an incomplete or invalid count', async () => {
@@ -38,8 +60,14 @@ test('rejects failures and malformed data instead of publishing an incomplete or
     ? { ok: true, json: async () => Array.from({ length: 100 }, (_, id) => ({ id, assets: [] })) }
     : { ok: false, status: 500 } }), /HTTP 500/);
   for (const download_count of [-1, '12', NaN, 1.5]) {
-    assert.throws(() => countDmgDownloads([{ assets: [{ name: 'Linty.dmg', download_count }] }]), /invalid DMG download count/);
+    for (const name of ['Linty.dmg', 'Linty.app.tar.gz']) {
+      assert.throws(() => countAppDownloads([{ assets: [{ name, download_count }] }]), /invalid app download count/);
+    }
   }
+  assert.throws(() => countAppDownloads([{ assets: [
+    { name: 'Linty.dmg', download_count: Number.MAX_SAFE_INTEGER },
+    { name: 'Linty.app.tar.gz', download_count: 1 },
+  ] }]), /out of range/);
 });
 
 test('README live badge URL and landing-page snapshot match the generated output', () => {
@@ -101,22 +129,25 @@ function pageFixture() {
   const links = [{ href: latestReleaseUrl }, { href: latestReleaseUrl }];
   const requestLink = { href: 'https://github.com/shekhardtu/linty/issues/59' };
   const document = { querySelectorAll: selector => {
-    if (selector === '[data-dmg-download-count]') return [{ querySelector: tag => tag === 'a' ? counterLink : time }];
+    if (selector === '[data-download-count]') return [{ querySelector: tag => tag === 'a' ? counterLink : time }];
     assert.equal(selector, '[data-download], [data-mac-download]');
     return links; // Unsupported-platform links have data-download removed by main.js.
   } };
   return { document, counterLink, time, links, requestLink };
 }
 
-test('shows lifetime downloads from old releases and prereleases while linking only to designated latest', async () => {
+test('shows lifetime installers plus app updates while download buttons still link to the latest DMG', async () => {
   const page = pageFixture();
   const old = stableRelease('0.0.1', ['Linty_0.0.1_aarch64.dmg', 'Linty_aarch64.dmg']);
   old.assets[0].download_count = 900;
   const beta = { ...stableRelease('0.0.3'), prerelease: true };
   const latest = stableRelease('0.0.2');
+  latest.assets.push({ name: 'Linty.app.tar.gz', download_count: 12 },
+    { name: 'latest.json', download_count: 1000 }, { name: 'Linty.app.tar.gz.sig', download_count: 1000 });
   const results = await refreshDownloadInfo({ document: page.document, fetchImpl: async url => response(url.endsWith('/latest') ? latest : [beta, latest, old]) });
   assert.ok(results.every(result => result.status === 'fulfilled'));
-  assert.equal(page.counterLink.textContent, '915 downloads');
+  assert.equal(page.counterLink.textContent, '927 downloads');
+  assert.match(page.counterLink.title, /Installer and app update downloads/);
   assert.notEqual(page.time.dateTime, '2026-09-20T00:00:00.000Z');
   assert.ok(page.links.every(link => link.href.endsWith('/v0.0.2/linty-0.0.2.dmg')));
   assert.equal(page.requestLink.href, 'https://github.com/shekhardtu/linty/issues/59');

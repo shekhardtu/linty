@@ -1,7 +1,7 @@
 <!-- Generated from src/content/legal.json by scripts/legal-docs.mjs. -->
 # Privacy notice
 
-Updated 2026-09-29
+Updated 2026-09-30
 
 Linty is open-source dictation software. This notice describes the official app and linty.ai. Forks and other distributions may differ.
 
@@ -33,7 +33,7 @@ Technical diagnostic logs stay on your Mac unless you share them. They rotate by
 
 Yofix hosts linty.ai and receives connection metadata. Its injected analytics has been observed sending page paths, referrers, viewport width, event IDs, and performance measurements. This website’s source opts out of that observed script and blocks analytics connections; this does not disable host-side logs. Host retention has not been confirmed.
 
-The landing page requests public release information from GitHub to refresh the installer download count and link to the latest versioned installer. GitHub receives your IP address and request metadata. These requests omit credentials and referrers. The count includes repeated installer downloads across published releases; it does not identify unique people or confirm installations. If GitHub is unavailable, the page keeps its dated snapshot and links to GitHub’s latest release page.
+The landing page requests public release information from GitHub to refresh the download count and link to the latest versioned installer. GitHub receives your IP address and request metadata. These requests omit credentials and referrers. The count combines installer and app update downloads across published releases, including repeated downloads; it excludes signatures and update checks and does not identify unique people or confirm installations. If GitHub is unavailable, the page keeps its dated snapshot and links to GitHub’s latest release page.
 
 The website saves your chosen theme and motion preference in browser storage until you change them or clear site data. Platform detection happens in your browser.
 

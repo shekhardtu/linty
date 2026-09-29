@@ -5,9 +5,9 @@
 <p align="center"><strong>Privacy first. Your voice, your Mac, your words.</strong><br />Free, on-device dictation for macOS. Hold a key, speak, release to paste.</p>
 
 <p align="center">
-  <!-- dmg-downloads:start -->
+  <!-- app-downloads:start -->
   <a href="https://github.com/shekhardtu/linty/releases"><img alt="Downloads across all published releases" src="https://raw.githubusercontent.com/shekhardtu/linty/download-stats/downloads.svg" /></a>
-  <!-- dmg-downloads:end -->
+  <!-- app-downloads:end -->
   <a href="https://github.com/shekhardtu/linty/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/shekhardtu/linty?style=flat-square&color=28756f" /></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/shekhardtu/linty?style=flat-square&color=28756f" /></a>
   <img alt="macOS 14 or later" src="https://img.shields.io/badge/macOS-14%2B-425c6b?style=flat-square&logo=apple&logoColor=white" />
@@ -71,7 +71,7 @@ Read the [privacy notice](PRIVACY.md) and [license and responsible use](TERMS.md
 - **Downloads and updates use the network.** Model hosts and GitHub receive connection metadata. Website hosting is separate from app processing; see the [website disclosure](PRIVACY.md#website-and-github).
 - **No app usage telemetry.** Linty does not send app usage analytics. Downloads and update checks still connect to GitHub.
 
-The download badge counts `.dmg` installer downloads across all published GitHub releases, including older filenames and prereleases. It excludes updater archives, signatures, and metadata such as update checks. It refreshes every 12 hours and after releases; GitHub scheduling and image caching can delay updates. Downloads are not unique users. The website refreshes its count from GitHub on page load; [view the badge's latest snapshot](https://github.com/shekhardtu/linty/blob/download-stats/downloads.json).
+The download badge combines `.dmg` installer downloads and `.app.tar.gz` app update downloads across all published GitHub releases, including older filenames and prereleases. It excludes signatures and metadata such as update checks. Repeated downloads count. It refreshes every 12 hours and after releases; GitHub scheduling and image caching can delay updates. Downloads are not unique users or completed installations. The website refreshes the same combined count from GitHub on page load; [view the badge's latest snapshot](https://github.com/shekhardtu/linty/blob/download-stats/downloads.json).
 
 <details>
 <summary>Technical comparisons and measured performance</summary>

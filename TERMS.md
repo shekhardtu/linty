@@ -1,7 +1,7 @@
 <!-- Generated from src/content/legal.json by scripts/legal-docs.mjs. -->
 # License and responsible use
 
-Updated 2026-09-29
+Updated 2026-09-30
 
 Linty is provided under the MIT license. This notice does not add restrictions to that license or remove rights provided by applicable law.
 
