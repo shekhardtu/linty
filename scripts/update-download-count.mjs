@@ -31,7 +31,7 @@ export function renderDownloadCount(snapshot) {
   <a href="https://github.com/shekhardtu/linty/releases"><img alt="${number} DMG downloads across all releases; checked ${date}" src="website/downloads.svg?v=${version}" /></a>
   <!-- dmg-downloads:end -->`;
   const website = `<!-- dmg-downloads:start -->
-          <p class="fine-print" data-dmg-download-count title="Installer downloads across all published releases, including prereleases. Not unique users."><a href="https://github.com/shekhardtu/linty/releases">${number} lifetime DMG downloads</a> · Checked <time datetime="${snapshot.checkedAt}">${date}</time></p>
+          <p class="fine-print" data-dmg-download-count><a href="https://github.com/shekhardtu/linty/releases" title="Installer downloads across all published releases, including prereleases. Not unique users. Checked ${date}.">${number} downloads</a><time hidden datetime="${snapshot.checkedAt}">${date}</time></p>
           <!-- dmg-downloads:end -->`;
   return { svg, readme, website };
 }

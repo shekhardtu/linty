@@ -96,7 +96,7 @@ test('resolves the actual published versioned asset using GitHub latest, never t
 });
 
 function pageFixture() {
-  const counterLink = { textContent: '19 lifetime DMG downloads' };
+  const counterLink = { textContent: '19 downloads' };
   const time = { dateTime: '2026-09-20T00:00:00.000Z', textContent: '2026-09-20' };
   const links = [{ href: latestReleaseUrl }, { href: latestReleaseUrl }];
   const requestLink = { href: 'https://github.com/shekhardtu/linty/issues/59' };
@@ -116,7 +116,7 @@ test('shows lifetime downloads from old releases and prereleases while linking o
   const latest = stableRelease('0.0.2');
   const results = await refreshDownloadInfo({ document: page.document, fetchImpl: async url => response(url.endsWith('/latest') ? latest : [beta, latest, old]) });
   assert.ok(results.every(result => result.status === 'fulfilled'));
-  assert.equal(page.counterLink.textContent, '915 lifetime DMG downloads');
+  assert.equal(page.counterLink.textContent, '915 downloads');
   assert.notEqual(page.time.dateTime, '2026-09-20T00:00:00.000Z');
   assert.ok(page.links.every(link => link.href.endsWith('/v0.0.2/linty-0.0.2.dmg')));
   assert.equal(page.requestLink.href, 'https://github.com/shekhardtu/linty/issues/59');
@@ -131,7 +131,7 @@ test('API failure preserves the dated snapshot and latest-release fallback indep
       if (failed === 'both' || (isLatest ? failed === 'latest' : failed === 'count')) return { ok: false, status: 403 };
       return response(isLatest ? latest : [latest]);
     } });
-    assert.equal(page.counterLink.textContent, failed === 'latest' ? '6 lifetime DMG downloads' : '19 lifetime DMG downloads');
+    assert.equal(page.counterLink.textContent, failed === 'latest' ? '6 downloads' : '19 downloads');
     assert.equal(page.links[0].href, failed === 'count' ? latest.assets[0].browser_download_url : latestReleaseUrl);
     if (failed !== 'latest') assert.equal(page.time.dateTime, '2026-09-20T00:00:00.000Z');
   }
