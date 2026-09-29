@@ -16,7 +16,7 @@ export function DictationLanguages() {
   const preparation = useSyncExternalStore(languagePreparation.subscribe, languagePreparation.getSnapshot);
   const dictating = useAppStore(s => s.isRecording || ["preparing", "recording", "transcribing", "correcting", "pasting"].includes(s.status));
   const loadedModel = useAppStore(s => s.loadedModelFilename);
-  const setCurrentView = useAppStore(s => s.setCurrentView);
+  const setRecordingFocusOpen = useAppStore(s => s.setRecordingFocusOpen);
   const [languages, setLanguages] = useState(autoDetectLanguages);
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -70,7 +70,7 @@ export function DictationLanguages() {
       {error && <p role="alert" className="text-sm text-error">{error}</p>}
       <div className="dictation-language-status">
         <LanguageReadiness hideWhenReady />
-        <button type="button" className="standard-button" disabled={!ready || dictating || saving || (auto && changed)} onClick={() => setCurrentView("system-check")}>
+        <button type="button" className="standard-button" disabled={!ready || dictating || saving || (auto && changed)} onClick={(event) => { event.currentTarget.focus(); setRecordingFocusOpen(true); }}>
           <Mic size={14} aria-hidden="true" />Try dictation
         </button>
       </div>

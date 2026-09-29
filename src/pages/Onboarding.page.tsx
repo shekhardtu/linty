@@ -489,7 +489,7 @@ function DoneStep({ onComplete, onChangeLanguage }: { onComplete: () => Promise<
     savingRef.current = true;
     setSaving(true); setError("");
     try {
-      if (await onComplete()) useAppStore.getState().setCurrentView("system-check");
+      if (await onComplete()) useAppStore.getState().setRecordingFocusOpen(true);
     } catch {
       setError("Could not finish setup. Please try again.");
     } finally {

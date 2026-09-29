@@ -140,29 +140,43 @@ try {
 
   assert.equal(await page.locator('#app-sidebar').getByText('A little less typing', {exact:true}).count(), 1);
   assert.equal(await page.getByRole('main').getByText('A little less typing', {exact:true}).count(), 0);
-  // Recent rows copy the full text, including clicks in empty space beneath the action icons.
+  // Recent rows open the same reading panel as History without copying.
   const recentRows = page.locator('.overview-transcripts .transcript-row');
   assert.equal(await recentRows.locator('.transcript-engine').count(), 0, 'Overview omits redundant engine badges');
   const copyCount = () => page.evaluate(() => window.__QA__.calls.filter(command => command === 'plugin:clipboard-manager|write_text').length);
+  const backToOverview = async () => {
+    await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Overview', exact: true }).click();
+    await recentRows.first().waitFor();
+  };
   for (let i = 0; i < 5; i++) {
     const row = recentRows.nth(i);
     const expected = await row.locator('.transcript-preview').textContent();
     const before = await copyCount();
     const box = await row.boundingBox();
     await row.click({position:{x:box.width-4,y:box.height-8}});
-    assert.equal(await page.evaluate(() => window.__QA__.clipboard), expected);
-    assert.equal(await copyCount(), before + 1, 'A row click copies exactly once');
-    assert.equal(await row.locator('.transcript-select').getAttribute('aria-pressed'), null, 'Copy is an action, not a toggle');
+    await page.locator('.history-detail .reading-text').waitFor();
+    assert.equal(await page.locator('.history-detail .reading-text').textContent(), expected);
+    assert.equal(await copyCount(), before, 'Opening a row does not change the clipboard');
+    await backToOverview();
   }
   const firstRecent = recentRows.first();
   const firstRecentText = await firstRecent.locator('.transcript-preview').textContent();
   for (const key of ['Enter','Space']) {
-    const before = await copyCount();
     await firstRecent.locator('.transcript-select').focus();
     await page.keyboard.press(key);
-    assert.equal(await page.evaluate(() => window.__QA__.clipboard), firstRecentText);
-    assert.equal(await copyCount(), before + 1);
+    await page.locator('.history-detail .reading-text').waitFor();
+    assert.equal(await page.locator('.history-detail .reading-text').textContent(), firstRecentText);
+    await backToOverview();
   }
+  // An old History search must not hide a recent row selected from Overview.
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'History', exact: true }).click();
+  await page.getByRole('searchbox', { name: 'Search transcripts or apps' }).fill('no-such-previous-search');
+  await backToOverview();
+  await firstRecent.locator('.transcript-select').click();
+  await page.locator('.history-detail .reading-text').waitFor();
+  assert.equal(await page.locator('.history-detail .reading-text').textContent(), firstRecentText);
+  assert.equal(await page.getByRole('searchbox', { name: 'Search transcripts or apps' }).inputValue(), '');
+  await backToOverview();
   let beforeCopy = await copyCount();
   await firstRecent.getByRole('button',{name:'Copy transcript',exact:true}).click();
   assert.equal(await copyCount(), beforeCopy + 1, 'The separate copy icon does not trigger the row again');
@@ -172,7 +186,7 @@ try {
   await page.getByRole('button',{name:'Undo',exact:true}).click();
   await page.locator('.overview-transcripts [data-transcript-id="qa-0"]').waitFor();
   await page.evaluate(() => { window.__QA__.failures['plugin:clipboard-manager|write_text'] = 'Clipboard unavailable'; window.__QA__.clipboard = 'Existing clipboard'; });
-  await firstRecent.locator('.transcript-select').click();
+  await firstRecent.getByRole('button',{name:'Copy transcript',exact:true}).click();
   await page.getByText('Could not copy transcription. Please try again.',{exact:true}).waitFor();
   assert.equal(await page.evaluate(() => window.__QA__.clipboard), 'Existing clipboard');
   await page.evaluate(() => { delete window.__QA__.failures['plugin:clipboard-manager|write_text']; });
@@ -771,8 +785,9 @@ try {
   await setup.getByRole('button',{name:'Continue',exact:true}).click();
   await setup.getByRole('button',{name:'Try dictation'}).waitFor();
   await setup.getByRole('button',{name:'Try dictation'}).click();
-  await setup.getByRole('heading',{name:'All set to listen.',exact:true}).waitFor();
-  assert.equal(await setup.locator('.microphone-test').count(),0,'Onboarding finishes without opening a recorder');
+  await setup.getByRole('dialog',{name:'Focused dictation',exact:true}).waitFor();
+  await setup.getByRole('button',{name:'Back to Overview',exact:true}).click();
+  assert.equal(await setup.locator('.microphone-test').count(),0,'Closing removes the only recorder');
   await setup.getByRole('button',{name:'Overview',exact:true}).click();
   await setup.getByText('Ready for your first dictation').waitFor();
   assert.equal(await setup.getByRole('region', {name:'Dictation summary'}).getByText('0', {exact:true}).count(), 1);

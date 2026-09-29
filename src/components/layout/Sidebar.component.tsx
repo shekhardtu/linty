@@ -1,8 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Search, Loader2, ArrowDownToLine } from "lucide-react";
-import { getVersion } from "@tauri-apps/api/app";
+import { Search } from "lucide-react";
 import { useAppStore } from "@/store/app.store";
-import { useUpdater } from "@/hooks/useUpdater.hook";
 import {
   NAVIGATION_ITEMS,
   SETTINGS_SECTIONS,
@@ -172,49 +170,6 @@ function SidebarSearch() {
   );
 }
 
-function VersionIndicator() {
-  const [version, setVersion] = useState("");
-  const { updateStatus, updateVersion, updateProgress, setCurrentView } =
-    useAppStore();
-  const { checkForUpdate, downloadAndInstall } = useUpdater();
-  useEffect(() => {
-    getVersion()
-      .then(setVersion)
-      .catch(() => {});
-  }, []);
-  return (
-    <div className="sidebar-version">
-      <button onClick={() => setCurrentView("about")} title="About Linty">
-        Linty {version}
-      </button>
-      {updateStatus === "checking" && (
-        <Loader2
-          size={12}
-          className="animate-spin"
-          aria-label="Checking for updates"
-        />
-      )}
-      {updateStatus === "downloading" && (
-        <span role="status">{updateProgress}%</span>
-      )}
-      {updateStatus === "available" && (
-        <button
-          className="text-accent"
-          onClick={downloadAndInstall}
-          title={`Install version ${updateVersion}`}
-        >
-          <ArrowDownToLine size={12} /> Update
-        </button>
-      )}
-      {updateStatus === "error" && (
-        <button className="text-error" onClick={() => checkForUpdate()}>
-          Retry update
-        </button>
-      )}
-    </div>
-  );
-}
-
 export function Sidebar() {
   const {
     currentView,
@@ -294,7 +249,6 @@ export function Sidebar() {
           ({ id, label, icon: Icon }) => nav(id, label, <Icon size={16} />),
         )}
       </nav>
-      <div className="sidebar-breathing-space" aria-hidden="true" />
       <div className="sidebar-tip">
         <div className="sidebar-tip-shortcut">
           <span>Hold</span>
@@ -302,7 +256,6 @@ export function Sidebar() {
         </div>
         <p>Release to paste.</p>
       </div>
-      <VersionIndicator />
     </aside>
   );
 }

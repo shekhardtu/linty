@@ -120,7 +120,7 @@ function DictationSection() {
 function AudioSection() {
   const { inputs, saving, error, select } = useAudioInput();
   const recording = useAppStore((state) => state.isRecording);
-  const setCurrentView = useAppStore((state) => state.setCurrentView);
+  const setRecordingFocusOpen = useAppStore((state) => state.setRecordingFocusOpen);
   const selected = inputs?.selected;
   const available = !selected || inputs?.devices.some((device) => device.name === selected && device.selectable);
   const options = audioInputOptions(inputs);
@@ -151,7 +151,7 @@ function AudioSection() {
         />
       </SectionCard>
       {(error || !available) && <p role="status" className="text-sm text-warning">{error || "Your selected microphone is unavailable or has an ambiguous name. Choose another input or System Default."}</p>}
-      <button className="text-link" onClick={() => setCurrentView("system-check")}>
+      <button className="text-link" onClick={(event) => { event.currentTarget.focus(); setRecordingFocusOpen(true); }}>
         Test your microphone <ArrowRight size={14} aria-hidden="true" />
       </button>
     </div>

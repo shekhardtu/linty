@@ -82,3 +82,48 @@ test("failed writes stay visible across unrelated saves and recover on retry", a
   assert.equal(feedback.getSnapshot(), "saved");
   t.mock.timers.tick(2500);
 });
+
+
+test("navigation clears completed feedback and cancels delayed success", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const feedback = createSettingsSaveFeedback();
+  await feedback.run("theme", async () => {});
+  feedback.dismissSuccess();
+  t.mock.timers.tick(3000);
+  assert.equal(feedback.getSnapshot(), "idle");
+  await feedback.run("theme", async () => {});
+  t.mock.timers.tick(300);
+  assert.equal(feedback.getSnapshot(), "saved");
+  feedback.dismissSuccess();
+  assert.equal(feedback.getSnapshot(), "idle");
+});
+
+test("navigation preserves an in-flight save without a stale success on the next page", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const feedback = createSettingsSaveFeedback();
+  const disk = deferred();
+  const saving = feedback.run("theme", () => disk.promise);
+  feedback.dismissSuccess();
+  assert.equal(feedback.getSnapshot(), "saving");
+  disk.resolve();
+  await saving;
+  t.mock.timers.tick(3000);
+  assert.equal(feedback.getSnapshot(), "idle");
+  await feedback.run("language", async () => {});
+  t.mock.timers.tick(300);
+  assert.equal(feedback.getSnapshot(), "saved", "A change on the new page still gets confirmation");
+  t.mock.timers.tick(2500);
+});
+
+test("navigation never hides an unresolved save error", async () => {
+  const feedback = createSettingsSaveFeedback();
+  const disk = deferred();
+  const saving = feedback.run("theme", () => disk.promise);
+  const rejected = assert.rejects(saving, /Disk full/);
+  feedback.dismissSuccess();
+  disk.reject(new Error("Disk full"));
+  await rejected;
+  assert.equal(feedback.getSnapshot(), "error");
+  feedback.dismissSuccess();
+  assert.equal(feedback.getSnapshot(), "error");
+});

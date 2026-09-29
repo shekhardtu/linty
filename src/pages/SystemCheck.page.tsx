@@ -17,11 +17,12 @@ import {
 import { LegalNotice } from "@/components/shared/LegalNotice.component";
 import { LanguageReadiness } from "@/components/settings/LanguageReadiness.component";
 import { languagePreparation } from "@/services/language-preparation.service";
-import { AUTO_LANGUAGE, languageLabel, validAutoDetectLanguages } from "@/lib/languages.util";
+import { AUTO_LANGUAGE, validAutoDetectLanguages } from "@/lib/languages.util";
 import { formatTriggerLabel } from "@/lib/trigger.util";
 import { useAppStore } from "@/store/app.store";
 import { FnKeyConflictWarning } from "@/components/shared/FnKeyConflictWarning.component";
 import { cn } from "@/lib/utils";
+import "@/styles/system-check.css";
 import {
   PageLayout,
   PageHeader,
@@ -220,36 +221,16 @@ export function SystemCheckPage() {
   const ready = permissionsReady && speechReady;
 
   return (
-    <PageLayout reading>
-      <PageHeader page="system-check" />
-      <div className={cn("system-readiness", ready && "is-ready")}>
-        {ready ? <CheckCircle2 /> : <AlertCircle />}
-        <div>
-          <h2>
-            {ready ? "All set to listen." : !permissionsReady ? "Allow access. Then start talking."
-              : failed ? "Speech support needs attention." : needsLanguages ? "Choose your spoken languages." : "Getting your language ready."}
-          </h2>
-          <p>
-            {ready
-              ? <>Open a text field, hold <kbd>{formatTriggerLabel(triggerKey)}</kbd>, speak, and release to paste.</>
-              : !permissionsReady ? "macOS needs your permission to hear your voice and insert text into other apps."
-              : failed ? "Review the preparation details below to get dictation ready."
-              : needsLanguages ? "Select one to three languages in Settings → Dictation for Auto-detect."
-              : "Your permissions are ready. Linty is preparing dictation automatically."}
-          </p>
-        </div>
-      </div>
-
-      <div className="mb-6 text-[13px] text-text-secondary">
-        <p><strong className="text-text-primary">{languageLabel(transcriptionLanguage)}</strong> · Hold <kbd>{formatTriggerLabel(triggerKey)}</kbd> while Linty is in focus to try dictation in a dialog.</p>
-      </div>
+    <PageLayout reading className="system-check-page">
+      <PageHeader page="system-check" description={ready
+        ? <>Click where you want to type. Hold <kbd>{formatTriggerLabel(triggerKey)}</kbd>, speak, then release.</>
+        : !permissionsReady ? "Allow microphone and accessibility access to start dictating."
+        : failed ? "Speech support needs attention. Review the preparation details below."
+        : needsLanguages ? "Choose one to three languages in Settings → Dictation for Auto-detect."
+        : "Your permissions are ready. Linty is preparing dictation automatically."} />
 
       {/* Section label */}
-      <div className="mb-2.5">
-        <span className="text-[13px] font-semibold text-text-primary">
-          Permissions
-        </span>
-      </div>
+      <h2 className="system-check-permissions-title">Permissions</h2>
 
       {/* Permission cards */}
       <div className="settings-group">
@@ -272,15 +253,15 @@ export function SystemCheckPage() {
         />
       </div>
 
-      <FnKeyConflictWarning className="mt-3" />
+      <FnKeyConflictWarning className="system-check-warning" />
 
       {/* Footer note */}
-      <p className="mt-3 text-[11px] text-text-muted">
+      <p className="system-check-note">
         Permission status updates automatically when you return from System
         Settings.
       </p>
 
-      <div className="mt-5"><LanguageReadiness hideWhenReady /></div>
+      {!speechReady && <div className="system-check-preparation"><LanguageReadiness hideWhenReady /></div>}
       <LegalNotice compact />
     </PageLayout>
   );

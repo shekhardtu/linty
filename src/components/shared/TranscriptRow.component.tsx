@@ -1,6 +1,5 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { showTranscriptMenu } from "@/lib/transcript-menu.util";
-import { copyTranscript } from "@/lib/transcript-clipboard.util";
 import { Volume2 } from "lucide-react";
 import { AppIcon } from "@/components/shared/AppIcon.component";
 import { useAppIcon } from "@/hooks/useAppIcons.hook";
@@ -12,7 +11,6 @@ interface TranscriptRowProps {
   transcript: TranscriptRecord;
   selected?: boolean;
   onClick?: () => void;
-  copyOnClick?: boolean;
   onDelete?: (id: string) => Promise<void>;
   actions?: React.ReactNode;
   className?: string;
@@ -23,18 +21,12 @@ export function TranscriptRow({
   transcript: t,
   selected,
   onClick,
-  copyOnClick = false,
   onDelete,
   actions,
   className,
   presentation = "default",
 }: TranscriptRowProps) {
   const appIcon = useAppIcon(t.application?.bundleId);
-  const activate = copyOnClick
-    ? () => {
-        void copyTranscript(t);
-      }
-    : onClick;
   const time = (
     <time dateTime={new Date(t.timestamp).toISOString()}>
       {new Date(t.timestamp).toLocaleTimeString([], {
@@ -97,7 +89,6 @@ export function TranscriptRow({
         "transcript-row group",
         history && "transcript-row-history",
         onClick && "is-selectable",
-        copyOnClick && "is-copyable",
         selected && "is-selected",
         className,
       )}
@@ -119,18 +110,14 @@ export function TranscriptRow({
         }
       }}
     >
-      {activate ? (
+      {onClick ? (
         <button
           type="button"
           data-transcript-id={t.transcriptId}
-          aria-pressed={copyOnClick ? undefined : !!selected}
-          aria-label={
-            copyOnClick ? `Copy transcription: ${t.finalText}` : undefined
-          }
-          title={copyOnClick ? "Copy transcription" : undefined}
+          aria-pressed={selected}
           onClick={(e) => {
             e.currentTarget.focus();
-            activate();
+            onClick();
           }}
           className="transcript-select"
         >

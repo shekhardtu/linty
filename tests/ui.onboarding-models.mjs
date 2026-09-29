@@ -173,6 +173,15 @@ try {
     assert.equal(await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().toasts.length), 0);
   };
 
+  const checkSetupDictation = async page => {
+    const dialog = page.getByRole('dialog', { name: 'Focused dictation', exact: true });
+    await dialog.waitFor();
+    assert.equal(await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().currentView), 'dashboard', 'Finishing setup does not redirect to System Check');
+    assert.equal(await dialog.locator('.microphone-test').count(), 1);
+    assert.equal(await page.locator('#page-content .microphone-test').count(), 0);
+    await dialog.getByRole('button', { name: 'Back to Overview', exact: true }).click();
+  };
+
   // First launch keeps onboarding, starts default preparation immediately,
   // and lets customers keep the preselected language and shortcut on one path.
   let page = await open({ fresh: true, microphone: 'denied', accessibility: false });
@@ -222,8 +231,8 @@ try {
   await waitLanguage(page, 'en');
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), true);
   await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
-  await page.getByRole('heading', { name: 'All set to listen.', exact: true }).waitFor();
-  assert.equal(await page.locator('.microphone-test').count(), 0, 'Setup finishes without an embedded recorder');
+  await checkSetupDictation(page);
+  assert.equal(await page.locator('.microphone-test').count(), 0, 'Closing the dialog removes the only recorder');
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].onboardingComplete), true);
   await page.waitForFunction(() => window.__QA__.emittedEvents.some(e => e.event === 'tray-state-changed' && e.payload.setupComplete && e.payload.localReady));
   await page.evaluate(() => window.__QA__.emit('fnkey-pressed'));
@@ -346,8 +355,8 @@ try {
     await reachDone(page);
     assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
     await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
-    await page.getByRole('heading', { name: 'All set to listen.', exact: true }).waitFor();
-    assert.equal(await page.locator('.microphone-test').count(), 0, 'Setup finishes without an embedded recorder');
+    await checkSetupDictation(page);
+    assert.equal(await page.locator('.microphone-test').count(), 0, 'Closing the dialog removes the only recorder');
     await page.close();
   }
 
@@ -397,6 +406,7 @@ try {
   await page.evaluate(() => { window.__QA__.accessibility = true; });
   await reachDone(page);
   await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
+  await checkSetupDictation(page);
   await page.getByRole('navigation', { name: 'Main navigation' }).waitFor();
   await page.close();
 
@@ -490,8 +500,8 @@ try {
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].onboardingComplete), false);
   await page.evaluate(() => { delete window.__QA__.failures['plugin:store|save']; });
   await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
-  await page.getByRole('heading', { name: 'All set to listen.', exact: true }).waitFor();
-  assert.equal(await page.locator('.microphone-test').count(), 0, 'Setup finishes without an embedded recorder');
+  await checkSetupDictation(page);
+  assert.equal(await page.locator('.microphone-test').count(), 0, 'Closing the dialog removes the only recorder');
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].selectedModelFilename), WHISPER);
   await page.close();
 
@@ -511,8 +521,8 @@ try {
     await reachDone(page);
     assert.equal(await page.getByRole('button', { name: 'Change language', exact: true }).count(), 0);
     await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
-    await page.getByRole('heading', { name: 'All set to listen.', exact: true }).waitFor();
-    assert.equal(await page.locator('.microphone-test').count(), 0, 'Setup finishes without an embedded recorder');
+    await checkSetupDictation(page);
+    assert.equal(await page.locator('.microphone-test').count(), 0, 'Closing the dialog removes the only recorder');
     assert.deepEqual(await page.evaluate(() => window.__QA__.loads), [options.expected]);
     await page.close();
   }
@@ -551,8 +561,9 @@ try {
   await audit(page);
   await page.screenshot({ path: `artifacts/language/${engine.name()}-dictation-languages.png` });
   await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
-  await page.getByRole('heading', { name: 'Ready when you are', exact: true }).waitFor();
-  await page.getByRole('button', { name: /Configure dictation language$/ }).click();
+  await page.getByRole('dialog', { name: 'Focused dictation', exact: true }).waitFor();
+  assert.deepEqual(await page.evaluate(async () => { const s = (await import('/src/store/app.store.ts')).useAppStore.getState(); return [s.currentView, s.settingsSection]; }), ['settings', 'general']);
+  await page.getByRole('button', { name: 'Back to Dictation', exact: true }).click();
   await page.getByRole('heading', { name: 'Dictation', exact: true }).waitFor();
   await chooseLanguage(page, 'Hindi'); await waitLanguage(page, 'hi');
   assert.equal(await page.getByRole('combobox', { name: 'Text cleanup', exact: true }).count(), 0, 'Hindi hides cleanup');
@@ -653,7 +664,7 @@ try {
   page = await open({ returning: true, language: 'auto', languages: [], existing: [WHISPER] });
   await waitLanguage(page, 'auto');
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'System Check', exact: true }).click();
-  await page.getByRole('heading', { name: 'Choose your spoken languages.', exact: true }).waitFor();
+  await page.getByText('Choose one to three languages in Settings → Dictation for Auto-detect.', { exact: true }).waitFor();
   assert.equal(await page.getByRole('heading', { name: 'Microphone Test', exact: true }).count(), 0);
   await openLanguageSettings(page);
   assert.equal(await page.getByRole('button', { name: 'Try dictation', exact: true }).isDisabled(), true);

@@ -45,10 +45,13 @@ try {
         assert.deepEqual(await rect(row),rowRect,'Hover preserves row geometry');
         assert.equal(await rowHandle.evaluate(el=>el.isConnected),true,'Hover preserves the DOM');
       }
+      const rowText=await row.locator('.transcript-preview').textContent();
       const rowBox=await row.boundingBox();
       await row.click({position:{x:rowBox.width-4,y:rowBox.height-8}});
-      await page.waitForFunction(()=>window.__QA__.clipboard.length>0);
-      assert.equal(await page.evaluate(()=>window.__QA__.clipboard),await row.locator('.transcript-preview').textContent(),'Press feedback preserves the stretched row action');
+      await page.locator('.history-detail .reading-text').waitFor();
+      assert.equal(await page.locator('.history-detail .reading-text').textContent(),rowText,'Press feedback preserves the stretched row action');
+      await page.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name:'Overview',exact:true}).click();
+      await row.waitFor();
       if(theme==='light' && reducedMotion==='no-preference') {
         const copy=row.getByRole('button',{name:'Copy transcript',exact:true});
         await copy.click();

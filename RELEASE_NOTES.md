@@ -1,5 +1,6 @@
 ## What's new
 
-- Try your microphone in the dictation dialog by holding your trigger key while Linty is in focus. System Check no longer repeats the recorder and transcript view.
-- Round estimated time savings up to the next whole minute, so short recordings with positive savings show about one minute instead of zero.
-- Simplify System Check, Dictation settings, and recent transcriptions on Overview by removing repeated readiness and local-processing labels.
+- System Check uses the familiar page layout with clearer instructions, more room between permissions, and no unnecessary scrolling at standard window sizes.
+- Find the app version and update controls in the bottom status bar. Save confirmations appear after changes and clear when you navigate.
+- Open a recent transcription from Overview directly in History’s reading panel. Copy remains available as a separate action.
+- Try dictation from language settings, audio settings, or completed setup in a dialog without being sent to System Check.

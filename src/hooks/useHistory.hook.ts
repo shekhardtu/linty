@@ -36,10 +36,10 @@ export function useHistory(paginated = false) {
   const [pageQuery, setPageQuery] = useState(searchQuery);
   const currentPage = pageQuery === searchQuery ? page : 0;
   useEffect(() => {
+    if (pageQuery === searchQuery) return;
     setPage(0);
     setPageQuery(searchQuery);
-    setSelectedTranscriptId(null);
-  }, [searchQuery, setSelectedTranscriptId]);
+  }, [searchQuery, pageQuery]);
   useEffect(() => {
     void initializeHistory().catch(() => {});
   }, []);

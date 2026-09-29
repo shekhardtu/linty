@@ -35,10 +35,6 @@
   color: var(--color-text-muted);
   margin-top: 2px;
 }
-.sidebar-breathing-space {
-  flex: 1;
-  min-height: 24px;
-}
 .sound-pattern {
   position: absolute;
   display: block;
@@ -198,9 +194,6 @@
   }
 }
 @media (max-height: 640px) {
-  .sidebar-breathing-space {
-    min-height: 0;
-  }
   .setup-brand {
     margin-bottom: 12px;
   }

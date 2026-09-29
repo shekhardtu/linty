@@ -45,7 +45,7 @@ export function PageHeader({
 }: {
   page?: AppView;
   title?: string;
-  description?: string | null;
+  description?: ReactNode;
   eyebrow?: string;
   actions?: ReactNode;
   editorial?: boolean;

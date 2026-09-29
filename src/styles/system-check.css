@@ -1,0 +1,29 @@
+.system-check-page {
+  overflow-y: auto;
+}
+.system-check-permissions-title {
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.system-check-page .permission-row {
+  padding-block: 22px;
+  gap: 20px;
+  align-items: center;
+}
+.system-check-note {
+  margin-top: 18px;
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--color-text-muted);
+}
+.system-check-warning,
+.system-check-preparation {
+  margin-top: 20px;
+}
+.system-check-page .legal-notice {
+  margin-top: 20px;
+}
+.system-check-page .legal-notice-links {
+  justify-content: flex-start;
+}

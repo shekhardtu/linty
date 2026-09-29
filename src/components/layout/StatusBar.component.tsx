@@ -1,16 +1,17 @@
-import { useSyncExternalStore } from "react";
-import { AlertCircle, AudioLines, Check, Cpu, HardDrive, Loader2 } from "lucide-react";
+import { useEffect, useSyncExternalStore } from "react";
+import { AlertCircle, AudioLines, Check, Cpu, Loader2 } from "lucide-react";
 import { useAppStore } from "@/store/app.store";
+import { VersionIndicator } from "./VersionIndicator.component";
 import { settingsSaveFeedback } from "@/lib/settings-save-feedback";
 import { dictationPreparation } from "@/services/dictation-preparation.service";
 import { AUTO_LANGUAGE, modelSupportsLanguage, validAutoDetectLanguages } from "@/lib/languages.util";
 
 export function StatusBar() {
-  const { status, isRecording, error, loadedModelFilename, transcriptionLanguage, autoDetectLanguages, setSettingsSection, currentView } = useAppStore();
+  const { status, isRecording, error, loadedModelFilename, transcriptionLanguage, autoDetectLanguages, setSettingsSection, currentView, settingsSection } = useAppStore();
   const saveStatus = useSyncExternalStore(settingsSaveFeedback.subscribe, settingsSaveFeedback.getSnapshot);
   const preparation = useSyncExternalStore(dictationPreparation.subscribe, dictationPreparation.getSnapshot);
-  const showAboutCredit = currentView === "about" && (saveStatus === "idle" || saveStatus === "saved");
-  const saveLabel = saveStatus === "saving" ? "Saving changes…" : saveStatus === "saved" ? "Changes saved locally" : saveStatus === "error" ? "Couldn't save changes. Try again." : "Changes are saved locally";
+  useEffect(() => settingsSaveFeedback.dismissSuccess(), [currentView, settingsSection]);
+  const saveLabel = saveStatus === "saving" ? "Saving changes…" : saveStatus === "saved" ? "Changes saved locally" : "Couldn't save changes. Try again.";
   const recording = isRecording || status === "recording";
   const preparing = status === "preparing" || preparation === "preparing";
   const busy = preparing || ["transcribing", "correcting", "pasting"].includes(status);
@@ -27,15 +28,14 @@ export function StatusBar() {
     : activity;
   return (
     <footer className="status-bar">
-      {showAboutCredit ? <p className="status-save">Made with care.</p> : <div className={`status-save is-${saveStatus}`} role="status" aria-atomic="true" title={saveLabel}>
+      <VersionIndicator>{saveStatus !== "idle" ? <div className={`status-save is-${saveStatus}`} role="status" aria-atomic="true" title={saveLabel}>
         <span className="status-save-indicator" aria-hidden="true">
-          <HardDrive size={13} className={saveStatus === "idle" ? "is-active" : ""} />
           <Loader2 size={13} className={saveStatus === "saving" ? "is-active animate-spin" : ""} />
           <Check size={13} className={saveStatus === "saved" ? "is-active" : ""} />
           <AlertCircle size={13} className={saveStatus === "error" ? "is-active" : ""} />
         </span>
         <span>{saveLabel}</span>
-      </div>}
+      </div> : undefined}</VersionIndicator>
       <div className="status-engine-region" role="status" aria-atomic="true">
         <button className={`status-engine is-${engineState}`} onClick={() => setSettingsSection("general")}
           aria-label={`${engine}: ${activity}. Configure dictation language`} title={`${engine}: ${detail}`}>

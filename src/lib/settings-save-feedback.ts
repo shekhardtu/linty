@@ -4,6 +4,7 @@ export type SettingsSaveStatus = "idle" | "saving" | "saved" | "error";
 export function createSettingsSaveFeedback() {
   let status: SettingsSaveStatus = "idle";
   let pending = 0;
+  let showSuccess = true;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const failures = new Set<string>();
   const listeners = new Set<() => void>();
@@ -14,6 +15,7 @@ export function createSettingsSaveFeedback() {
   const settle = () => {
     if (pending) return;
     if (failures.size) { publish("error"); return; }
+    if (!showSuccess) { publish("idle"); return; }
     // Let even a fast local write give a quiet, readable processing cue.
     timer = setTimeout(() => {
       publish("saved");
@@ -26,9 +28,15 @@ export function createSettingsSaveFeedback() {
       listeners.add(listener);
       return () => { listeners.delete(listener); };
     },
+    dismissSuccess() {
+      showSuccess = false;
+      clearTimeout(timer);
+      if (!pending && !failures.size) publish("idle");
+    },
     async run<T>(key: string, work: () => Promise<T>): Promise<T> {
       clearTimeout(timer);
       pending += 1;
+      showSuccess = true;
       publish("saving");
       try {
         const result = await work();

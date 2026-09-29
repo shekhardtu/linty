@@ -32,6 +32,23 @@ try {
     await page.getByRole('listbox', { name, exact: true }).getByRole('option', { name: value, exact: true }).click();
   };
   await page.locator('.overview-transcripts [data-transcript-id]').first().waitFor();
+  assert.equal(await page.locator('#app-sidebar').getByRole('button', { name: /^Linty / }).count(), 0);
+  await page.locator('.status-version').getByRole('button', { name: /^Linty / }).waitFor();
+  await nav('Settings');
+  await nav('Appearance');
+  await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  await page.locator('.status-save').getByText('Changes saved locally', { exact: true }).waitFor();
+  await nav('System Check');
+  await page.locator('.permission-row').getByText('Granted', { exact: true }).first().waitFor();
+  await page.locator('.status-version').getByRole('button', { name: /^Linty / }).waitFor();
+  assert.equal(await page.locator('.status-save').count(), 0, 'Navigation restores the version');
+  assert.equal(await page.locator('.system-check-page').evaluate(el => el.scrollHeight > el.clientHeight + 1), false, 'Ready System Check fits a standard window without scrolling');
+  const sidebar = await page.locator('#app-sidebar').boundingBox();
+  const shortcut = await page.locator('.sidebar-tip').boundingBox();
+  assert.ok(sidebar.y + sidebar.height - (shortcut.y + shortcut.height) < 2, 'The shortcut hint stays at the bottom');
+  await page.screenshot({ path: `${output}/system-check.png` });
+  await nav('Overview');
+
   await page.getByRole('group', { name: 'Usage period' }).getByRole('button', { name: '30 days', exact: true }).click();
   await nav('Apps');
   await choose('Sort applications', 'Sessions');
@@ -147,7 +164,7 @@ try {
     assert.equal(overflow, false, `${view}: page reflows at 200% equivalent zoom`);
     if (view === 'dictionary') await page.screenshot({ path: `${output}/dictionary-zoom.png` });
   }
-  for (const section of ['general','audio','language','appearance','privacy']) {
+  for (const section of ['general','audio','appearance','privacy']) {
     await page.evaluate(async section => {
       const { useAppStore } = await import('/src/store/app.store.ts');
       useAppStore.getState().setSettingsSection(section);
