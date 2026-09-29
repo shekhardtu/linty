@@ -34,8 +34,7 @@ export function estimatePayoff(timing: UsageTiming, baseline: number) {
   };
 }
 export function formatEstimatedTime(seconds: number) {
-  const minutes = Math.round(Math.abs(seconds) / 60);
-  if (!minutes) return "<1m";
+  const minutes = Math.ceil(Math.abs(seconds) / 60);
   return minutes >= 60
     ? `${Math.floor(minutes / 60).toLocaleString()}h${minutes % 60 ? ` ${minutes % 60}m` : ""}`
     : `${minutes}m`;

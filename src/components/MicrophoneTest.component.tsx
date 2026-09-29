@@ -19,7 +19,7 @@ type Feedback = { kind: "success" | "empty" | "error"; message: string } | null;
 const activeStatuses = new Set(["preparing", "recording", "transcribing", "correcting", "pasting"]);
 const formatDuration = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 
-export function MicrophoneTest({ focused = false }: { focused?: boolean }) {
+export function MicrophoneTest() {
   const headingId = useId();
   const quietSeconds = useAppStore(s => s.quietSeconds);
   const { isRecording, recordingDuration, startRecording, stopRecording } = useRecording();
@@ -89,13 +89,13 @@ export function MicrophoneTest({ focused = false }: { focused?: boolean }) {
 
   const title = isRecording ? "Listening to you…"
     : isProcessing ? status === "preparing" ? "Getting ready…" : "Turning your voice into text…"
-    : feedback?.kind === "success" ? focused ? "Your transcript is ready" : "Your test is complete"
+    : feedback?.kind === "success" ? "Your transcript is ready"
     : feedback?.kind === "error" ? "We couldn’t finish this recording"
     : feedback?.kind === "empty" ? "No transcript this time"
     : "Let’s try your microphone";
   const detail = isRecording ? "Speak naturally. Choose Stop & transcribe when you’re finished."
     : isProcessing ? "You can review your words here as soon as they’re ready."
-    : feedback?.message ?? (focused ? "Start a recording whenever you’re ready." : "Record a short sentence to see how Linty hears you.");
+    : feedback?.message ?? "Start a recording whenever you’re ready.";
   const buttonLabel = isRecording ? "Stop & transcribe" : isProcessing ? "Working…" : feedback?.kind === "error" || feedback?.kind === "empty" ? "Try again" : transcripts.length ? "Record again" : "Start recording";
   const illustrationState: VoiceIllustrationState = isRecording ? "recording" : isProcessing ? "processing" : feedback?.kind === "success" ? "complete" : feedback ? "attention" : "idle";
   const phaseLabel = isRecording ? "Listening" : isProcessing ? "Making words" : feedback?.kind === "success" ? "Captured" : feedback ? "Try again" : "Ready when you are";
@@ -104,9 +104,9 @@ export function MicrophoneTest({ focused = false }: { focused?: boolean }) {
     <section className="microphone-test" aria-labelledby={headingId} data-recording={isRecording} data-phase={illustrationState}>
       <header className="microphone-test-heading">
         <div className="microphone-test-intro">
-          {focused && <span className="microphone-test-eyebrow">A little less typing. A little more you.</span>}
-          <h2 id={headingId}>{focused ? <>Your voice.<br /><span>Your words.</span></> : "Microphone Test"}</h2>
-          <p>{focused ? "Speak naturally. Take your time." : "Check your microphone and review what you said."}</p>
+          <span className="microphone-test-eyebrow">A little less typing. A little more you.</span>
+          <h2 id={headingId}>Your voice.<br /><span>Your words.</span></h2>
+          <p>Speak naturally. Take your time.</p>
           <span className="microphone-test-device"><Mic size={13} aria-hidden="true" />{inputs?.selected || inputs?.defaultDevice || "System default microphone"}</span>
         </div>
         <VoiceIllustration state={illustrationState} />
@@ -125,7 +125,7 @@ export function MicrophoneTest({ focused = false }: { focused?: boolean }) {
           <button
             className="standard-button primary-button microphone-test-toggle"
             onClick={() => { void handleToggle(); }}
-            aria-label={focused ? buttonLabel : `${isRecording ? "Stop" : "Start"} microphone test: ${buttonLabel}`}
+            aria-label={buttonLabel}
             disabled={isProcessing || stopping}
           >
             {isRecording ? <Square size={13} fill="currentColor" aria-hidden="true" /> : isProcessing ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Mic size={16} aria-hidden="true" />}
@@ -144,13 +144,13 @@ export function MicrophoneTest({ focused = false }: { focused?: boolean }) {
       </div>
 
       <div className="microphone-test-history">
-        <div className="microphone-test-history-heading"><h3><span className="microphone-test-section-number" aria-hidden="true">02</span>{focused ? "Your recent transcripts" : "Your test transcripts"}</h3><span>{transcripts.length} / 3</span></div>
-        <p className="microphone-test-history-note">Your last 3 {focused ? "recordings" : "tests"} stay here until you leave this screen. Transcripts are also saved in History, where you can delete them.</p>
-        {transcripts.length ? <ol aria-label={focused ? "Recent transcripts" : "Recent microphone test transcripts"}>
+        <div className="microphone-test-history-heading"><h3><span className="microphone-test-section-number" aria-hidden="true">02</span>Your recent transcripts</h3><span>{transcripts.length} / 3</span></div>
+        <p className="microphone-test-history-note">Your last 3 recordings stay here until you leave this screen. Transcripts are also saved in History, where you can delete them.</p>
+        {transcripts.length ? <ol aria-label="Recent transcripts">
           {transcripts.map((transcript, index) => <li key={transcript.generation} className="microphone-test-transcript">
             <div className="microphone-test-transcript-heading">
-              <div><span>{index === 0 ? "Latest" : "Earlier"} {focused ? "recording" : "test"}</span><time dateTime={new Date(transcript.timestamp).toISOString()}>{new Date(transcript.timestamp).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</time></div>
-              <button className="standard-button microphone-test-copy" onClick={() => { void copy(transcript); }} aria-label={`Copy ${index === 0 ? "latest" : `earlier ${index + 1}`} ${focused ? "recording" : "test"} transcript`}>
+              <div><span>{index === 0 ? "Latest" : "Earlier"} recording</span><time dateTime={new Date(transcript.timestamp).toISOString()}>{new Date(transcript.timestamp).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</time></div>
+              <button className="standard-button microphone-test-copy" onClick={() => { void copy(transcript); }} aria-label={`Copy ${index === 0 ? "latest" : `earlier ${index + 1}`} recording transcript`}>
                 {copied === transcript.generation ? <Check size={13} aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
                 {copied === transcript.generation ? "Copied" : "Copy"}
               </button>

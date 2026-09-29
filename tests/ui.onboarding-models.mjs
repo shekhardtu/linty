@@ -222,7 +222,8 @@ try {
   await waitLanguage(page, 'en');
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), true);
   await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
-  await page.getByRole('heading', { name: 'Microphone Test', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'All set to listen.', exact: true }).waitFor();
+  assert.equal(await page.locator('.microphone-test').count(), 0, 'Setup finishes without an embedded recorder');
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].onboardingComplete), true);
   await page.waitForFunction(() => window.__QA__.emittedEvents.some(e => e.event === 'tray-state-changed' && e.payload.setupComplete && e.payload.localReady));
   await page.evaluate(() => window.__QA__.emit('fnkey-pressed'));
@@ -345,7 +346,8 @@ try {
     await reachDone(page);
     assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
     await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
-    await page.getByRole('heading', { name: 'Microphone Test', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'All set to listen.', exact: true }).waitFor();
+    assert.equal(await page.locator('.microphone-test').count(), 0, 'Setup finishes without an embedded recorder');
     await page.close();
   }
 
@@ -488,7 +490,8 @@ try {
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].onboardingComplete), false);
   await page.evaluate(() => { delete window.__QA__.failures['plugin:store|save']; });
   await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
-  await page.getByRole('heading', { name: 'Microphone Test', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'All set to listen.', exact: true }).waitFor();
+  assert.equal(await page.locator('.microphone-test').count(), 0, 'Setup finishes without an embedded recorder');
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].selectedModelFilename), WHISPER);
   await page.close();
 
@@ -508,7 +511,8 @@ try {
     await reachDone(page);
     assert.equal(await page.getByRole('button', { name: 'Change language', exact: true }).count(), 0);
     await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
-    await page.getByRole('heading', { name: 'Microphone Test', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'All set to listen.', exact: true }).waitFor();
+    assert.equal(await page.locator('.microphone-test').count(), 0, 'Setup finishes without an embedded recorder');
     assert.deepEqual(await page.evaluate(() => window.__QA__.loads), [options.expected]);
     await page.close();
   }

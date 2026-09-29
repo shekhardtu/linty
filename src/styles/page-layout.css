@@ -827,9 +827,6 @@
 .language-picker-option small { display: block; color: var(--color-text-muted); font-size: 11px; line-height: 1.7; }
 .language-picker-empty { font-size: 12px; padding: 16px; color: var(--color-text-secondary); }
 .language-readiness { padding: 18px 20px; border-radius: 10px; background: var(--color-success-glow); border: 1px solid var(--color-border-subtle); text-align: left; width: 100%; }
-.language-readiness.is-compact { padding: 0; border: 0; background: transparent; }
-.language-readiness.is-compact .language-readiness-heading { font-size: 12px; }
-.language-readiness.is-compact strong { font-weight: 400; }
 .language-readiness.has-error { background: var(--color-bg-elevated); }
 .language-readiness-heading { display: flex; align-items: center; gap: 9px; color: var(--color-accent); font-size: 13px; }
 .language-readiness.has-error .language-readiness-heading { color: var(--color-warning); }

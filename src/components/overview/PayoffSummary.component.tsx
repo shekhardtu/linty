@@ -34,8 +34,8 @@ export function PayoffSummary({
     : null;
   const [open, setOpen] = useState(false);
   const info = useRef<HTMLButtonElement>(null);
-  const positive = estimate && estimate.savedSeconds >= 30;
-  const similar = estimate && Math.abs(estimate.savedSeconds) < 30;
+  const positive = estimate && estimate.savedSeconds > 0;
+  const similar = estimate && estimate.savedSeconds === 0;
   const label =
     !estimate || positive
       ? "Estimated time saved"
@@ -75,9 +75,7 @@ export function PayoffSummary({
       </div>
       <div className="metric-value payoff-value">
         {estimate
-          ? similar
-            ? "~0m"
-            : `~${formatEstimatedTime(estimate.savedSeconds)}`
+          ? `~${formatEstimatedTime(estimate.savedSeconds)}`
           : "—"}
       </div>
       <p className="payoff-caption">
@@ -261,15 +259,13 @@ function EstimateDetails({
           </div>
           <div>
             <dt>
-              {estimate && estimate.savedSeconds < -30
+              {estimate && estimate.savedSeconds < 0
                 ? "Estimated additional time"
                 : "Estimated time saved"}
             </dt>
             <dd>
               {estimate
-                ? Math.abs(estimate.savedSeconds) < 30
-                  ? "~0m"
-                  : `~${formatEstimatedTime(estimate.savedSeconds)}`
+                ? `~${formatEstimatedTime(estimate.savedSeconds)}`
                 : "—"}
             </dd>
           </div>

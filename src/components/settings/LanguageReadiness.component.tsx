@@ -4,13 +4,13 @@ import { useAppStore } from "@/store/app.store";
 import { languagePreparation, prepareLanguage } from "@/services/language-preparation.service";
 import { AUTO_LANGUAGE, languageLabel, validAutoDetectLanguages } from "@/lib/languages.util";
 
-export function LanguageReadiness({ compact = false }: { compact?: boolean }) {
+export function LanguageReadiness({ hideWhenReady = false }: { hideWhenReady?: boolean }) {
   const preparation = useSyncExternalStore(languagePreparation.subscribe, languagePreparation.getSnapshot);
   const { transcriptionLanguage, autoDetectLanguages, loadedModelFilename } = useAppStore();
   const ready = preparation.status === "ready" || (preparation.status === "idle" && !!loadedModelFilename);
   const needsLanguages = ready && (preparation.language ?? transcriptionLanguage) === AUTO_LANGUAGE && !validAutoDetectLanguages(autoDetectLanguages);
   const failed = preparation.status === "error" || preparation.status === "unavailable";
-  const compactReady = compact && ready && !needsLanguages && !failed && (!preparation.language || preparation.language === transcriptionLanguage);
+  if (hideWhenReady && ready && !needsLanguages && !failed && (!preparation.language || preparation.language === transcriptionLanguage)) return null;
   const language = languageLabel(preparation.language ?? transcriptionLanguage);
   const cleanup = preparation.resource === "cleanup";
   const title = failed ? cleanup ? "Text cleanup needs attention" : "Speech support needs attention"
@@ -20,17 +20,17 @@ export function LanguageReadiness({ compact = false }: { compact?: boolean }) {
     : preparation.status === "waiting" ? "Waiting for your dictation to finish"
     : cleanup ? "Preparing English text cleanup…"
     : `Preparing ${language === "Auto-detect" ? "automatic language detection" : language}…`;
-  return <div className={`language-readiness ${failed ? "has-error" : ""} ${compactReady ? "is-compact" : ""}`}>
+  return <div className={`language-readiness ${failed ? "has-error" : ""}`}>
     <div className="language-readiness-heading" role="status" aria-live="polite">
       {failed || needsLanguages ? <AlertCircle size={17} /> : ready ? <Check size={17} /> : preparation.status === "downloading" ? <Download size={17} /> : <Loader2 size={17} className="animate-spin" />}
       <strong>{title}</strong>
     </div>
-    {!compactReady && <p role={failed ? "alert" : undefined}>{failed ? preparation.error
+    <p role={failed ? "alert" : undefined}>{failed ? preparation.error
       : needsLanguages ? "Select and save one to three languages in Settings → Dictation before recording."
       : ready ? "Your speech is transcribed on this Mac. No internet connection needed."
       : cleanup ? "One-time download · about 496 MB."
       : preparation.status === "downloading" ? `One-time download${preparation.model ? ` · about ${preparation.model.size_mb} MB` : ""}.`
-      : "Getting speech support ready…"}</p>}
+      : "Getting speech support ready…"}</p>
     {preparation.status === "downloading" && <div className="language-download-progress">
       <progress aria-label={cleanup ? "Text cleanup download" : "Speech support download"} max={100} value={preparation.progress} /><span>{preparation.progress}%</span>
     </div>}

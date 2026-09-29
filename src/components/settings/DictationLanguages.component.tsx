@@ -69,7 +69,7 @@ export function DictationLanguages() {
       {dictating && <p className="preferences-footnote" role="status">Finish dictating before changing language.</p>}
       {error && <p role="alert" className="text-sm text-error">{error}</p>}
       <div className="dictation-language-status">
-        <LanguageReadiness compact />
+        <LanguageReadiness hideWhenReady />
         <button type="button" className="standard-button" disabled={!ready || dictating || saving || (auto && changed)} onClick={() => setCurrentView("system-check")}>
           <Mic size={14} aria-hidden="true" />Try dictation
         </button>

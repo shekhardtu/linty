@@ -14,7 +14,6 @@ import {
   reinitFnKeyMonitor,
   openSystemSettings,
 } from "@/services/permissions.service";
-import { MicrophoneTest } from "@/components/MicrophoneTest.component";
 import { LegalNotice } from "@/components/shared/LegalNotice.component";
 import { LanguageReadiness } from "@/components/settings/LanguageReadiness.component";
 import { languagePreparation } from "@/services/language-preparation.service";
@@ -242,7 +241,7 @@ export function SystemCheckPage() {
       </div>
 
       <div className="mb-6 text-[13px] text-text-secondary">
-        <p><strong className="text-text-primary">{languageLabel(transcriptionLanguage)}</strong> · Hold <kbd>{formatTriggerLabel(triggerKey)}</kbd> to dictate.</p>
+        <p><strong className="text-text-primary">{languageLabel(transcriptionLanguage)}</strong> · Hold <kbd>{formatTriggerLabel(triggerKey)}</kbd> while Linty is in focus to try dictation in a dialog.</p>
       </div>
 
       {/* Section label */}
@@ -281,9 +280,8 @@ export function SystemCheckPage() {
         Settings.
       </p>
 
-      <div className="mt-5"><LanguageReadiness compact /></div>
+      <div className="mt-5"><LanguageReadiness hideWhenReady /></div>
       <LegalNotice compact />
-      {micStatus === "granted" && speechReady && <MicrophoneTest />}
     </PageLayout>
   );
 }
