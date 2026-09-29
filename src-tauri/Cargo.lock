@@ -3308,7 +3308,7 @@ dependencies = [
 
 [[package]]
 name = "linty"
-version = "0.0.1"
+version = "0.0.5"
 dependencies = [
  "anyhow",
  "base64 0.23.1",
