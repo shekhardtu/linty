@@ -71,9 +71,6 @@
 .overview-transcripts .transcript-actions {
   padding: 18px 0 0 8px;
 }
-.overview-transcripts .transcript-engine {
-  margin-left: 0;
-}
 .overview-transcripts,
 .overview-apps {
   border-top: 1px solid var(--color-border-subtle);

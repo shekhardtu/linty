@@ -1,7 +1,7 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { showTranscriptMenu } from "@/lib/transcript-menu.util";
 import { copyTranscript } from "@/lib/transcript-clipboard.util";
-import { Archive, Cpu, Volume2 } from "lucide-react";
+import { Volume2 } from "lucide-react";
 import { AppIcon } from "@/components/shared/AppIcon.component";
 import { useAppIcon } from "@/hooks/useAppIcons.hook";
 import { formatDuration } from "@/lib/usage.util";
@@ -84,11 +84,9 @@ export function TranscriptRow({
           </span>
         )}
         {history && <span aria-hidden="true">·</span>}
-        <span className="transcript-engine" title={t.modelName}>
-          {!history &&
-            (t.engine !== "local" ? <Archive size={11} /> : <Cpu size={11} />)}
-          {t.engine !== "local" ? "Previous version" : history ? "On-device" : "Local"}
-        </span>
+        {history && <span className="transcript-engine" title={t.modelName}>
+          {t.engine !== "local" ? "Previous version" : "On-device"}
+        </span>}
         {history && t.audio && <span className="transcript-saved-audio" aria-label="Saved audio" title="Saved audio"><Volume2 size={12} aria-hidden="true" /></span>}
       </span>
     </>

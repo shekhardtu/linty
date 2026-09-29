@@ -2,6 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {estimatePayoff,typingSpeed,validTypingSpeed,formatEstimatedTime,previousUsageWindow,canCompareHistory,paceChange} from '../src/lib/payoff.util.ts';
 const timing={words:6240,seconds:2880,processingSeconds:180,sessions:150,missingSessions:0};
+test('estimated time rounds partial minutes up while preserving zero and whole minutes',()=>{
+ for(const [seconds,expected] of [[0,'0m'],[0.1,'1m'],[29,'1m'],[60,'1m'],[60.1,'2m'],[3599,'1h'],[3600,'1h'],[3601,'1h 1m'],[-0.1,'1m'],[-60.1,'2m']])assert.equal(formatEstimatedTime(seconds),expected);
+ const short=estimatePayoff({words:33,seconds:33/121*60,processingSeconds:5,sessions:1,missingSessions:0},40);
+ assert.ok(short.savedSeconds>0 && short.savedSeconds<30);
+ assert.equal(formatEstimatedTime(short.savedSeconds),'1m');
+});
 test('savings include processing and respond to a personal baseline without clamping losses',()=>{
  const estimate=estimatePayoff(timing,40);assert.equal(estimate.typingSeconds,9360);assert.equal(estimate.savedSeconds,6300);assert.equal(estimate.wordsPerMinute,130);assert.equal(formatEstimatedTime(estimate.savedSeconds),'1h 45m');
  assert.equal(estimatePayoff(timing,60).savedSeconds,3180);

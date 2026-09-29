@@ -71,6 +71,22 @@ try {
       }
     }
   };
+  // Small savings must agree between the overview and its calculation details.
+  const short = await browser.newPage({ viewport: { width: 1080, height: 900 }, reducedMotion: 'reduce' });
+  await short.addInitScript(fixture, { historyCount: 1, theme: 'dark' });
+  await short.addInitScript(() => {
+    Object.assign(window.__QA__.stores[2].transcripts[0], { wordCount: 33, durationSeconds: 33 / 121 * 60, processingTimeMs: 3500 });
+  });
+  await short.goto(url);
+  const shortSummary = short.getByRole('region', { name: 'Dictation summary', exact: true });
+  await shortSummary.locator('.payoff-label').getByText('Estimated time saved', { exact: true }).waitFor();
+  assert.equal(await shortSummary.locator('.payoff-value').innerText(), '~1m', 'A short dictation never rounds positive savings down to zero');
+  assert.equal(await shortSummary.getByText('Both methods take about the same time.', { exact: true }).count(), 0);
+  await short.screenshot({ path: `${output}/short-dictation-savings.png` });
+  await short.getByRole('button', { name: 'How time saved is estimated', exact: true }).click();
+  const shortDetails = short.getByRole('dialog', { name: 'How this is estimated', exact: true });
+  await shortDetails.getByText('~1m', { exact: true }).waitFor();
+  await short.close();
   await audit('overview-light'); await screenshot('overview-light');
   // The typing assumption is supplementary: available on hover/focus and editable from its info icon.
   const estimateInfo = page.getByRole('button',{name:'How time saved is estimated',exact:true});
@@ -126,6 +142,7 @@ try {
   assert.equal(await page.getByRole('main').getByText('A little less typing', {exact:true}).count(), 0);
   // Recent rows copy the full text, including clicks in empty space beneath the action icons.
   const recentRows = page.locator('.overview-transcripts .transcript-row');
+  assert.equal(await recentRows.locator('.transcript-engine').count(), 0, 'Overview omits redundant engine badges');
   const copyCount = () => page.evaluate(() => window.__QA__.calls.filter(command => command === 'plugin:clipboard-manager|write_text').length);
   for (let i = 0; i < 5; i++) {
     const row = recentRows.nth(i);
@@ -754,7 +771,8 @@ try {
   await setup.getByRole('button',{name:'Continue',exact:true}).click();
   await setup.getByRole('button',{name:'Try dictation'}).waitFor();
   await setup.getByRole('button',{name:'Try dictation'}).click();
-  await setup.getByRole('heading',{name:'Microphone Test',exact:true}).waitFor();
+  await setup.getByRole('heading',{name:'All set to listen.',exact:true}).waitFor();
+  assert.equal(await setup.locator('.microphone-test').count(),0,'Onboarding finishes without opening a recorder');
   await setup.getByRole('button',{name:'Overview',exact:true}).click();
   await setup.getByText('Ready for your first dictation').waitFor();
   assert.equal(await setup.getByRole('region', {name:'Dictation summary'}).getByText('0', {exact:true}).count(), 1);

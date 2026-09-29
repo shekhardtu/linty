@@ -167,33 +167,31 @@ try {
   assert.ok(await store.evaluate(s=>s.getState().toasts.some(toast=>toast.type==='error' && toast.action?.label==='Copy text')),'A failed paste keeps its copy recovery action');
 
   await mkdir('artifacts/dictation-pill',{recursive:true});
-  // The in-app microphone test uses native input history, just like the pill.
-  await page.evaluate(()=>{window.__QA__.hasAudio=false;window.__QA__.failPaste=false;delete window.__QA__.deliveryStatus;});
+  // Focused dictation uses native input history, just like the pill.
+  await page.evaluate(()=>{window.__QA__.hasAudio=false;window.__QA__.failPaste=false;delete window.__QA__.deliveryStatus;document.hasFocus=()=>true;});
   await page.getByRole('button',{name:'System Check',exact:true}).click();
-  const microphoneTest=page.locator('.microphone-test');
-  const startTest=page.getByRole('button',{name:/^Start microphone test:/});
-  await startTest.scrollIntoViewIfNeeded();
-  await page.locator('main').evaluate(el=>Promise.allSettled(el.getAnimations({subtree:true}).filter(a=>a.effect.getTiming().iterations!==Infinity).map(a=>a.finished)));
-  const idleControl=await startTest.boundingBox();
-  await startTest.click(); await status('recording');
-  const stopTest=page.getByRole('button',{name:/^Stop microphone test:/});
+  assert.equal(await page.locator('.microphone-test').count(),0,'System Check has no embedded recorder');
+  await page.clock.runFor(501);
+  await double('Control+Option+Space'); await status('recording');
+  const focus=page.getByRole('dialog',{name:'Focused dictation',exact:true});
+  const microphoneTest=focus.locator('.microphone-test');
+  const startTest=focus.getByRole('button',{name:'Try again',exact:true});
+  const stopTest=focus.getByRole('button',{name:'Stop & transcribe',exact:true});
   await page.waitForFunction(()=>document.querySelectorAll('.microphone-test .waveform-bar').length===80);
   await page.clock.runFor(100);
   const liveControl=await stopTest.boundingBox();
   assert.ok(liveControl.width >= 154,'The microphone control has a readable action label');
-  assert.equal(liveControl.width,idleControl.width);
-  assert.equal(liveControl.x,idleControl.x); assert.equal(liveControl.y,idleControl.y,'Starting a test never moves its control');
-  const testLevels=()=>microphoneTest.locator('.waveform-bar').evaluateAll(bars=>bars.map(bar=>new DOMMatrix(bar.style.transform).d*bar.offsetHeight));
+  const testLevels=()=>microphoneTest.locator('.waveform-bar').evaluateAll(bars=>bars.map(bar=>new DOMMatrix(bar.style.transform).d));
   const feedTest=async levels=>{
     await page.evaluate(levels=>{for(const rms of levels) window.__QA__.emit('audio-amplitude',rms);},levels);
     await page.clock.runFor(70);
   };
   await feedTest(Array(100).fill(.003));
-  assert.ok((await testLevels()).every(height=>height<8),'The app test keeps background noise close to the baseline');
+  assert.ok((await testLevels()).every(height=>height<.2),'The app test keeps background noise close to the baseline');
   await feedTest(Array(100).fill(.05));
-  assert.ok((await testLevels()).every(height=>height>14 && height<24),'Normal input leaves room for emphasis in the app test');
+  assert.ok((await testLevels()).every(height=>height>.35 && height<.6),'Normal input leaves room for emphasis in the app test');
   await feedTest(Array(120).fill(0));
-  assert.ok((await testLevels()).every(height=>Math.abs(height-4)<.000001),'Repeated zero frames clear the complete history');
+  assert.ok((await testLevels()).every(height=>Math.abs(height-.1)<.000001),'Repeated zero frames clear the complete history');
   const phrase=[0,.001,.003,.008,.018,.06,.04,.009,.002,0,.001,.005,.025,.09,.04,.018,.004,.001,.0004];
   await feedTest(phrase);
   assert.ok(new Set(await testLevels()).size>10,'The app waveform displays the actual variation in input');
@@ -212,12 +210,12 @@ try {
   }
   await startTest.click(); await status('recording');
   await page.clock.runFor(100);
-  assert.ok((await testLevels()).every(height=>Math.abs(height-4)<.000001),'A new test starts with an empty waveform');
-  await page.getByRole('button',{name:'Overview',exact:true}).click();
-  await page.clock.runFor(100);
-  assert.equal((await get()).recording,true,'Leaving System Check only removes the visualization');
-  await page.getByRole('button',{name:'System Check',exact:true}).click();
+  assert.ok((await testLevels()).every(height=>Math.abs(height-.1)<.000001),'A new test starts with an empty waveform');
+  assert.equal(await focus.getByRole('button',{name:'Back to System Check',exact:true}).isDisabled(),true,'Finish recording before closing the dialog');
   await stopTest.click(); await status('idle');
+  await focus.getByRole('button',{name:'Back now',exact:true}).click();
+  assert.equal(await microphoneTest.count(),0,'Closing the dialog removes the recorder');
+  await page.evaluate(()=>{document.hasFocus=()=>false;});
   await page.getByRole('button',{name:'Shortcuts',exact:true}).click();
   await store.evaluate(s=>s.getState().toasts.forEach(toast=>s.getState().removeToast(toast.toastId)));
   await page.clock.runFor(500);

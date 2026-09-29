@@ -68,19 +68,34 @@ try {
   const feedWave = () => page.evaluate(() => {
     for (let i = 0; i < 100; i++) window.__QA__.emit('audio-amplitude', [.001, .004, .02, .07, .12, .03, .007, 0][i % 8]);
   });
-  const widget = page.locator('.microphone-test');
+  const focus = page.getByRole('dialog', { name: 'Focused dictation', exact: true });
+  const press = () => page.evaluate(() => window.__QA__.emit('fnkey-pressed'));
+  const release = () => page.evaluate(() => window.__QA__.emit('fnkey-released'));
+  const recordInFocus = async () => {
+    await press(); await page.clock.runFor(250); await status('recording'); await focus.waitFor();
+  };
+  const widget = focus.locator('.microphone-test');
   const transcripts = widget.locator('.microphone-test-transcript > p:first-of-type');
-  const start = () => widget.getByRole('button', { name: /^Start microphone test:/ }).click();
-  const stop = () => widget.getByRole('button', { name: /^Stop microphone test:/ }).click();
+  const start = () => widget.getByRole('button', { name: /^(Start recording|Record again|Try again)$/ }).click();
+  const stop = () => widget.getByRole('button', { name: 'Stop & transcribe', exact: true }).click();
 
   await navigate('system-check');
-  await widget.waitFor();
-  await audit('Idle microphone test');
-  await widget.screenshot({ path: `${output}/test-idle-dark.png` });
-  await start(); await status('recording'); await feedWave();
+  await page.getByRole('heading', { name: 'All set to listen.', exact: true }).waitFor();
+  assert.equal(await page.locator('.microphone-test').count(), 0, 'System Check has no embedded recorder');
+  assert.equal(await page.getByText('Ready for offline dictation', { exact: true }).count(), 0, 'Ready status is not repeated');
+  assert.equal(await focus.count(), 0, 'Navigation alone does not open dictation');
+  await audit('System Check');
+  await page.screenshot({ path: `${output}/system-check-dark.png` });
+  await navigate('settings');
+  await store.evaluate(s => s.getState().setSettingsSection('general'));
+  await page.getByRole('combobox', { name: 'Transcription language', exact: true }).waitFor();
+  assert.equal(await page.getByText('Ready for offline dictation', { exact: true }).count(), 0, 'Settings omit the redundant ready status');
+  await navigate('system-check');
+  await recordInFocus(); await feedWave();
   await waveWidth(widget);
   await widget.screenshot({ path: `${output}/test-recording-dark.png` });
-  await stop(); await status('done');
+  await release(); await status('done');
+  await focus.getByRole('button', { name: 'Stay here', exact: true }).click();
   await page.clock.runFor(15_000);
   assert.equal(await transcripts.first().innerText(), 'My first microphone test.', 'Results survive all shared reset timers');
   // Repeating the same phrase is still a distinct test. Keep only the newest three.
@@ -90,10 +105,10 @@ try {
     await stop(); await status('done');
   }
   assert.deepEqual(await transcripts.allTextContents(), ['Fourth recording.', 'Third recording.', 'My first microphone test.']);
-  await widget.getByRole('button', { name: 'Copy latest test transcript', exact: true }).click();
+  await widget.getByRole('button', { name: 'Copy latest recording transcript', exact: true }).click();
   assert.equal(await page.evaluate(() => window.__QA__.clipboard), 'Fourth recording.');
   await page.evaluate(() => { window.__QA__.failures['plugin:clipboard-manager|write_text'] = 'Clipboard unavailable'; });
-  await widget.getByRole('button', { name: 'Copy latest test transcript', exact: true }).click();
+  await widget.getByRole('button', { name: 'Copy latest recording transcript', exact: true }).click();
   await widget.getByRole('alert').getByText('Couldn’t copy. Try again, or select the text to copy it.').waitFor();
   assert.equal(await transcripts.count(), 3, 'A clipboard error never removes a transcript');
   await page.evaluate(() => { delete window.__QA__.failures['plugin:clipboard-manager|write_text']; });
@@ -113,19 +128,16 @@ try {
     await widget.screenshot({ path: `${output}/test-history-${theme}.png` });
     await audit(`Transcript history ${theme}`);
   }
-  await navigate('dashboard'); await navigate('system-check');
-  assert.equal(await transcripts.count(), 0, 'Leaving clears the local test results');
+  await focus.getByRole('button', { name: 'Back now', exact: true }).click();
+  assert.equal(await page.locator('.microphone-test').count(), 0, 'Closing removes the only recorder');
 
-  const focus = page.getByRole('dialog', { name: 'Focused dictation', exact: true });
-  const press = () => page.evaluate(() => window.__QA__.emit('fnkey-pressed'));
-  const release = () => page.evaluate(() => window.__QA__.emit('fnkey-released'));
-  const recordInFocus = async () => {
-    await press(); await page.clock.runFor(250); await status('recording'); await focus.waitFor();
-  };
   for (const view of ['dashboard', 'history', 'apps', 'dictionary', 'shortcuts', 'system-check', 'settings', 'about']) {
     await navigate(view);
     await setQA({ phrase: `Recording from ${view}.` });
+    assert.equal(await page.locator('.microphone-test').count(), 0, 'No page embeds a recorder');
     await recordInFocus();
+    assert.equal(await page.locator('.microphone-test').count(), 1, 'Only the dialog owns a recorder');
+    assert.equal(await transcripts.count(), 0, 'Each visit starts with no local results');
     assert.equal(await store.evaluate(s => s.getState().currentView), view, 'The original page stays mounted');
     const bounds = await focus.boundingBox();
     assert.equal(bounds.width, 1080); assert.equal(bounds.height, 900);

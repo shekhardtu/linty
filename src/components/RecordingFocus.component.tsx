@@ -59,7 +59,7 @@ function RecordingFocusDialog() {
         <span data-tauri-drag-region>Linty · Dictation</span>
       </header>
       <div className="recording-focus-content">
-        <MicrophoneTest focused />
+        <MicrophoneTest />
       </div>
       <footer className="recording-focus-return">
         <p>{busy ? "Take your time. The return countdown starts when your recording is finished."
