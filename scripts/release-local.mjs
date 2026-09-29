@@ -7,6 +7,8 @@ import { createInterface } from 'node:readline/promises';
 import { pathToFileURL } from 'node:url';
 import { initialVersion, nextVersion } from './prepare-release.mjs';
 import { findReusableChecks } from './reuse-pr-checks.mjs';
+import { runCommand, runTasks } from './run-tasks.mjs';
+import { runUiChecks } from './run-ui-checks.mjs';
 
 const repository = 'shekhardtu/linty';
 const target = 'universal-apple-darwin';
@@ -14,7 +16,6 @@ export const macTargets = ['aarch64-apple-darwin', 'x86_64-apple-darwin'];
 const versionPattern = /^\d+\.\d+\.\d+$/;
 const signingNames = ['APPLE_SIGNING_IDENTITY', 'APPLE_ID', 'APPLE_PASSWORD', 'APPLE_TEAM_ID',
   'TAURI_SIGNING_PRIVATE_KEY', 'TAURI_SIGNING_PRIVATE_KEY_PASSWORD'];
-export const localUiSuites = ['security', 'ui', 'onboarding', 'audio-history', 'correction-feedback', 'updates', 'privacy', 'microphone'];
 
 export function releaseCheckReporter({ gh, sourceSha, warn = console.warn }) {
   if (!/^[a-f0-9]{40}$/.test(sourceSha)) throw new Error('Release checks require an exact source commit.');
@@ -41,12 +42,19 @@ export function releaseCheckReporter({ gh, sourceSha, warn = console.warn }) {
   };
 }
 
-export function runBrowserChecks(build, env, checkedSource) {
+export async function runBrowserChecks(build, env, checkedSource, signal) {
   if (checkedSource?.reused === true) return;
-  build('yarn', ['playwright', 'install', 'webkit']);
-  for (const suite of localUiSuites) {
-    build('yarn', [`test:${suite}`], { env: { ...env, UI_BROWSER: 'webkit' } });
-  }
+  await build('yarn', ['playwright', 'install', 'webkit'], { env, signal });
+  await runUiChecks({ run: build, env, signal });
+}
+
+export async function buildAndCheckBrowsers({ build, env, signedEnv, browserChecks }) {
+  await runTasks([
+    signal => runBrowserChecks(build, env, browserChecks, signal),
+    signal => build('yarn', ['tauri', 'build', '--target', target, '--bundles', 'dmg,app',
+      '--features', 'local-stt,parakeet', '--config', JSON.stringify({ build: { beforeBuildCommand: null } })],
+    { env: signedEnv, signal }),
+  ]);
 }
 
 export function parseArgs(args) {
@@ -311,13 +319,16 @@ async function main(options) {
     build('swift', ['test', '--package-path', 'src-tauri/swift', '--scratch-path', path.join(cache, 'swift-tests'), '--disable-automatic-resolution']);
     build(py, ['tests/supervisor.test.py']);
     build(py, ['scripts/check-rust-advisories.py']);
-    runBrowserChecks(build, env, browserChecks);
-
     const bundle = path.join(targetDir, target, 'release', 'bundle');
     rmSync(bundle, { recursive: true, force: true }); // Only this command's dedicated output cache.
     const signedEnv = { ...env, ...Object.fromEntries(signingNames.map(name => [name, process.env[name]])) };
-    console.log('Building, signing, and notarizing locally...');
-    build('yarn', ['tauri', 'build', '--target', target, '--bundles', 'dmg,app', '--features', 'local-stt,parakeet'], { env: signedEnv });
+    console.log('Running browser checks alongside local building, signing, and notarization...');
+    // yarn build already validated dist. Reuse it so packaging cannot rewrite
+    // the production files while the security browser suite is testing them.
+    await buildAndCheckBrowsers({
+      build: (command, args, extra = {}) => runCommand(command, args, { ...extra, cwd: buildDir }),
+      env, signedEnv, browserChecks,
+    });
     const one = (directory, extension) => {
       const matches = readdirSync(directory).filter(name => name.endsWith(extension));
       if (matches.length !== 1) throw new Error(`Expected one ${extension} in ${directory}.`);
