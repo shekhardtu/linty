@@ -57,11 +57,14 @@ release page; they never pin an older installer. Regenerate before each website
 deployment so the fallback count stays current. The script’s `--check` verifies
 generated values without a network request.
 
-Website-only pull requests run focused checks without installing or building the
-desktop application. Run the same tests locally with
+Website and documentation pull requests run lightweight checks without installing
+or building the desktop app. Run the same checks locally with
 `node --test tests/website-*.test.mjs tests/privacy.test.mjs tests/check-scope.test.mjs`.
-Application, dependency, shared-tooling, and workflow changes still run the full
-suite; see [check scope](../docs/runbooks/releases.md#pull-request-check-scope).
+Expensive checks use positive watch paths: `src/` and UI inputs select Node/browser
+checks; `src-tauri/` and native inputs select Node/macOS checks. Shared legal JSON
+is under `src/` and therefore runs app checks, but not macOS builds. Dependency,
+build, and CI changes still select the full suite. See
+[check scope](../docs/runbooks/releases.md#pull-request-check-scope).
 
 Local asset URLs in `index.html` include a `?v=` content version so returning
 visitors fetch updated files. When an asset changes, update its version to the

@@ -2,35 +2,58 @@ import { execFileSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
-const websiteSupport = new Set([
-  'scripts/capture-website.mjs',
-  'scripts/website-preview.html',
-  'scripts/website-preview-data.mjs',
-  'scripts/update-download-count.mjs',
-  'tests/website-demo.test.mjs',
-  'tests/website-platform.test.mjs',
-  'tests/website-product.test.mjs',
-  'tests/website-download-count.test.mjs',
-]);
+// Expensive suites opt in through their inputs. Website/docs are lightweight by
+// default; add a watch here when an application build gains a new input location.
+const fullWatch = [
+  /^\.github\/(?:workflows|actions)\//,
+  /^(?:package\.json|yarn\.lock|package-lock\.json|pnpm-lock\.yaml|bun\.lockb?)$/,
+  /^(?:scripts\/check-scope\.mjs|tests\/check-scope\.test\.mjs)$/,
+  /^scripts\/(?:build-mac|prepare-release|publish-release|release-[^/]+|force-update|generate-icons)\.(?:mjs|sh)$/,
+];
+const appWatch = [
+  /^(?:src|public)\//,
+  /^(?:index|capsule)\.html$/,
+  /^(?:vite\.config\.[^/]+|tsconfig[^/]*\.json)$/,
+  /^tests\/(?:ui\.|previews\/)/,
+];
+const nativeWatch = [
+  /^src-tauri\//,
+  /^scripts\/(?:check-rust[^/]*|third-party-notices)\.(?:py|sh)$/,
+  /^scripts\/benchmarks\//,
+  /^tests\/(?:supervisor\.test|public_corpus_test)\.py$/,
+];
+const nodeWatch = [/^(?:scripts|tests)\//];
+const matches = (file, paths) => paths.some(pattern => pattern.test(file));
+
 export const fullSuiteJobs = ['public-corpus-tests', 'rust-logging', 'node-tests', 'native-tests', 'ui-tests'];
+const selectedJobs = {
+  website: ['website-tests'],
+  node: ['node-tests'],
+  app: ['node-tests', 'ui-tests'],
+  native: ['node-tests', 'native-tests', 'rust-logging', 'public-corpus-tests'],
+  full: fullSuiteJobs,
+};
 const full = reason => ({ scope: 'full', reason });
 
 export function classifyChanges(files) {
   if (!Array.isArray(files) || files.length === 0) return full('No changed files could be classified.');
-  let website = false;
+  let app = false;
+  let native = false;
+  let node = false;
   for (const file of files) {
     if (typeof file !== 'string' || file.split('/').some(part => ['', '.', '..'].includes(part))) {
       return full('Invalid changed-file path.');
     }
-    // Every PR updates release notes. Notes alone still affect the desktop app.
-    if (file === 'RELEASE_NOTES.md') continue;
-    if (!file.startsWith('website/') && !websiteSupport.has(file)) {
-      return full('Application, shared tooling, or other files changed.');
-    }
-    website = true;
+    if (matches(file, fullWatch)) return full('Dependency, release/build tooling, or CI inputs changed.');
+    app ||= matches(file, appWatch);
+    native ||= matches(file, nativeWatch);
+    node ||= matches(file, nodeWatch);
   }
-  return website ? { scope: 'website', reason: 'Only the website and its capture/test files changed.' }
-    : full('Release notes changed without website changes.');
+  if (app && native) return full('Both app/UI and native inputs changed.');
+  if (native) return { scope: 'native', reason: 'Native inputs changed; run native and Node checks.' };
+  if (app) return { scope: 'app', reason: 'App/UI inputs changed; run Node and browser-app checks.' };
+  if (node) return { scope: 'node', reason: 'JavaScript/Python tooling or tests changed; run Node checks and app build.' };
+  return { scope: 'website', reason: 'No application, native, dependency, or build inputs changed; run lightweight website/docs checks.' };
 }
 
 export function changedFiles({ base, head, cwd }) {
@@ -49,9 +72,9 @@ export function checkScope({ eventName, forceFull = false, readFiles }) {
 
 export function requiredChecksPassed(needs) {
   const scope = needs?.changes?.outputs?.scope;
-  if (needs?.changes?.result !== 'success' || !['full', 'website'].includes(scope)) return false;
-  const expected = Object.fromEntries(fullSuiteJobs.map(job => [job, scope === 'full' ? 'success' : 'skipped']));
-  expected['website-tests'] = scope === 'website' ? 'success' : 'skipped';
+  if (needs?.changes?.result !== 'success' || !Object.hasOwn(selectedJobs, scope ?? '')) return false;
+  const expected = Object.fromEntries(['website-tests', ...fullSuiteJobs].map(job =>
+    [job, selectedJobs[scope].includes(job) ? 'success' : 'skipped']));
   return Object.entries(expected).every(([job, result]) => needs[job]?.result === result)
     && Object.keys(needs).every(job => job === 'changes' || Object.hasOwn(expected, job));
 }

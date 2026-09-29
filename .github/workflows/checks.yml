@@ -38,7 +38,7 @@ jobs:
         run: node scripts/check-scope.mjs
 
   website-tests:
-    name: Website checks
+    name: Website and documentation checks
     needs: changes
     if: needs.changes.outputs.scope == 'website'
     runs-on: ubuntu-latest
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 24
-      # The static website tests use Node's built-ins; no app dependencies/build.
+      # Website and documentation checks use Node built-ins; no app install/build.
       - run: node --test tests/website-*.test.mjs tests/privacy.test.mjs tests/check-scope.test.mjs
       - name: Check website JavaScript syntax
         run: |
@@ -58,7 +58,7 @@ jobs:
   public-corpus-tests:
     name: Public corpus scoring and loader
     needs: changes
-    if: needs.changes.outputs.scope == 'full'
+    if: needs.changes.outputs.scope == 'full' || needs.changes.outputs.scope == 'native'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -73,7 +73,7 @@ jobs:
   rust-logging:
     name: Rust logging hygiene
     needs: changes
-    if: needs.changes.outputs.scope == 'full'
+    if: needs.changes.outputs.scope == 'full' || needs.changes.outputs.scope == 'native'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 — Node 24
@@ -83,7 +83,7 @@ jobs:
   node-tests:
     name: Node tests
     needs: changes
-    if: needs.changes.outputs.scope == 'full'
+    if: needs.changes.outputs.scope == 'full' || needs.changes.outputs.scope == 'native' || needs.changes.outputs.scope == 'app' || needs.changes.outputs.scope == 'node'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 — Node 24
@@ -94,6 +94,11 @@ jobs:
       # No install scripts: nothing here needs native builds.
       - run: yarn install --frozen-lockfile --ignore-scripts
       - run: yarn test
+      - name: Check website JavaScript syntax
+        run: |
+          for script in website/*.js scripts/capture-website.mjs scripts/website-preview-data.mjs; do
+            node --check "$script"
+          done
       - run: yarn build
       - run: yarn audit
       - run: python3 scripts/third-party-notices.py --check
@@ -101,7 +106,7 @@ jobs:
   native-tests:
     name: macOS native tests (${{ matrix.arch }})
     needs: changes
-    if: needs.changes.outputs.scope == 'full'
+    if: needs.changes.outputs.scope == 'full' || needs.changes.outputs.scope == 'native'
     strategy:
       fail-fast: false
       matrix:
@@ -162,7 +167,7 @@ jobs:
   ui-tests:
     name: UI tests (${{ matrix.browser }})
     needs: changes
-    if: needs.changes.outputs.scope == 'full'
+    if: needs.changes.outputs.scope == 'full' || needs.changes.outputs.scope == 'app'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
