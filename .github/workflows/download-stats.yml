@@ -1,0 +1,63 @@
+name: Refresh download badge
+
+on:
+  schedule:
+    - cron: '17 */12 * * *'
+  release:
+    types: [published]
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/download-stats.yml
+      - scripts/update-download-count.mjs
+      - website/downloads.js
+
+concurrency:
+  group: download-stats
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    if: github.repository == 'shekhardtu/linty'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - name: Count published installer downloads
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/update-download-count.mjs
+      - name: Publish badge data
+        shell: bash
+        run: |
+          set -euo pipefail
+          stats_dir="$(mktemp -d "$RUNNER_TEMP/download-stats.XXXXXX")"
+          trap 'git worktree remove --force "$stats_dir"' EXIT
+          stats_ref="$(git ls-remote --heads origin refs/heads/download-stats)"
+          if [ -n "$stats_ref" ]; then
+            git fetch --no-tags origin refs/heads/download-stats
+            git worktree add --detach "$stats_dir" FETCH_HEAD
+          else
+            git worktree add --detach "$stats_dir" HEAD
+            git -C "$stats_dir" switch --orphan download-stats
+          fi
+          cp website/downloads.svg website/downloads.json "$stats_dir/"
+          git -C "$stats_dir" add downloads.svg downloads.json
+          if git -C "$stats_dir" diff --cached --quiet; then
+            exit 0
+          fi
+          git -C "$stats_dir" -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'Refresh download count'
+          git -C "$stats_dir" push origin HEAD:refs/heads/download-stats

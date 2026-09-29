@@ -42,7 +42,7 @@ test('rejects failures and malformed data instead of publishing an incomplete or
   }
 });
 
-test('README badge and landing-page count agree with the shared published snapshot', () => {
+test('README live badge URL and landing-page snapshot match the generated output', () => {
   const result = spawnSync(process.execPath, ['scripts/update-download-count.mjs', '--check'], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
 });
