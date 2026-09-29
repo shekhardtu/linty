@@ -117,7 +117,7 @@ function results(scope) {
     website: ['website-tests'],
     node: ['node-tests'],
     app: ['node-tests', 'ui-tests'],
-    native: ['node-tests', 'native-tests', 'rust-logging', 'public-corpus-tests'],
+    native: ['node-tests', 'native-checks', 'public-corpus-tests'],
     full: fullSuiteJobs,
   };
   return {

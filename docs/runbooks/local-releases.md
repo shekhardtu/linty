@@ -26,9 +26,9 @@ rustup target add aarch64-apple-darwin x86_64-apple-darwin
 
 Rosetta must be installed on the release Mac to run the Intel test binaries.
 The prerequisite check verifies Intel execution with `arch -x86_64 /usr/bin/true`.
-Intel compilation and tests run here instead of on a hosted PR runner to conserve
-GitHub Actions minutes. They always run before publication, including when the
-release reuses successful PR browser checks.
+Apple Silicon and Intel compilation, Rust tests and Swift tests run here instead
+of on hosted PR runners to conserve GitHub Actions minutes. They always run before
+publication, including when the release reuses successful PR browser checks.
 Releases produce one **universal macOS 14+ app**: Apple silicon includes the
 Swift/Parakeet bridge and Metal inference; Intel includes Whisper and S1-mini CPU
 inference without the Swift bridge or Metal kernels. The two architectures share

@@ -25,12 +25,12 @@ const nativeWatch = [
 const nodeWatch = [/^(?:scripts|tests)\//];
 const matches = (file, paths) => paths.some(pattern => pattern.test(file));
 
-export const fullSuiteJobs = ['public-corpus-tests', 'rust-logging', 'node-tests', 'native-tests', 'ui-tests'];
+export const fullSuiteJobs = ['public-corpus-tests', 'native-checks', 'node-tests', 'ui-tests'];
 const selectedJobs = {
   website: ['website-tests'],
   node: ['node-tests'],
   app: ['node-tests', 'ui-tests'],
-  native: ['node-tests', 'native-tests', 'rust-logging', 'public-corpus-tests'],
+  native: ['node-tests', 'native-checks', 'public-corpus-tests'],
   full: fullSuiteJobs,
 };
 const full = reason => ({ scope: 'full', reason });
@@ -50,7 +50,7 @@ export function classifyChanges(files) {
     node ||= matches(file, nodeWatch);
   }
   if (app && native) return full('Both app/UI and native inputs changed.');
-  if (native) return { scope: 'native', reason: 'Native inputs changed; run native and Node checks.' };
+  if (native) return { scope: 'native', reason: 'Native inputs changed; run source/security, corpus and Node checks.' };
   if (app) return { scope: 'app', reason: 'App/UI inputs changed; run Node and browser-app checks.' };
   if (node) return { scope: 'node', reason: 'JavaScript/Python tooling or tests changed; run Node checks and app build.' };
   return { scope: 'website', reason: 'No application, native, dependency, or build inputs changed; run lightweight website/docs checks.' };

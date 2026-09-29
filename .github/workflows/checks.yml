@@ -70,15 +70,23 @@ jobs:
       - run: python -m pip install -r scripts/benchmarks/public-requirements.txt
       - run: python -m unittest discover -s tests -p public_corpus_test.py -v
 
-  rust-logging:
-    name: Rust logging hygiene
+  native-checks:
+    name: Native source and security checks
     needs: changes
     if: needs.changes.outputs.scope == 'full' || needs.changes.outputs.scope == 'native'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 — Node 24
+      # Rust/Swift compilation and native tests run in the local release flow.
+      # These checks inspect source and dependency metadata without building.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --check --manifest-path src-tauri/Cargo.toml
       - name: No print macros in app code
         run: scripts/check-rust-logging.sh
+      - run: python3 tests/supervisor.test.py
+      - run: python3 scripts/check-rust-advisories.py
 
   node-tests:
     name: Node tests
@@ -102,59 +110,6 @@ jobs:
       - run: yarn build
       - run: yarn audit
       - run: python3 scripts/third-party-notices.py --check
-
-  native-tests:
-    name: macOS native tests (arm64)
-    needs: changes
-    if: needs.changes.outputs.scope == 'full' || needs.changes.outputs.scope == 'native'
-    # Intel tests and universal compilation run in the local release flow.
-    # Keep PR feedback on Apple Silicon without a duplicate hosted Intel build.
-    runs-on: macos-14
-    env:
-      CARGO_INCREMENTAL: '1'
-      LINTY_PARAKEET_LIB_DIR: ${{ github.workspace }}/src-tauri/swift/.build/ci-prebuilt
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: 24
-          cache: yarn
-      - run: yarn install --frozen-lockfile --ignore-scripts
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-      - name: Restore or build Swift bridge
-        id: swift-bridge
-        uses: ./.github/actions/swift-bridge
-      - name: Identify Rust compiler
-        id: rust-compiler
-        run: echo "hash=$(rustc -vV | shasum -a 256 | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
-      - name: Restore incremental native build
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          # Keep workspace objects and incremental state. rust-cache's default
-          # cleanup discards these and disables incremental compilation.
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            src-tauri/target/debug
-            src-tauri/target/.rustc_info.json
-            src-tauri/swift/.build/ci-tests
-          key: native-incremental-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-compiler.outputs.hash }}-${{ steps.swift-bridge.outputs.toolchain-hash }}-${{ hashFiles('src-tauri/Cargo.lock', 'src-tauri/Cargo.toml') }}-${{ hashFiles('src-tauri/src/**', 'src-tauri/tests/**', 'src-tauri/build.rs', 'src-tauri/tauri.conf.json', 'src-tauri/capabilities/**', 'src-tauri/permissions/**', 'src-tauri/icons/**', 'src-tauri/licenses/**', 'src-tauri/swift/Package.*', 'src-tauri/swift/Sources/**', 'src-tauri/swift/Tests/**', 'src/**', 'public/**', 'package.json', 'yarn.lock', 'RELEASE_NOTES.md', 'vite.config.*', '.github/workflows/checks.yml', '.github/actions/swift-bridge/action.yml') }}
-          restore-keys: |
-            native-incremental-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-compiler.outputs.hash }}-${{ steps.swift-bridge.outputs.toolchain-hash }}-${{ hashFiles('src-tauri/Cargo.lock', 'src-tauri/Cargo.toml') }}-
-            native-incremental-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-compiler.outputs.hash }}-${{ steps.swift-bridge.outputs.toolchain-hash }}-
-      - run: cargo fmt --check --manifest-path src-tauri/Cargo.toml
-      - run: cargo test --locked --manifest-path src-tauri/Cargo.toml --features local-stt,parakeet
-      - name: Build native application with production assets
-        run: node node_modules/@tauri-apps/cli/tauri.js build --debug --no-bundle --features local-stt,parakeet
-      - run: swift test --package-path src-tauri/swift --scratch-path src-tauri/swift/.build/ci-tests --disable-automatic-resolution
-      - run: python3 tests/supervisor.test.py
-      - run: python3 scripts/check-rust-advisories.py
 
   ui-tests:
     name: UI tests (${{ matrix.browser }})
@@ -207,7 +162,7 @@ jobs:
   required-checks:
     name: Required checks
     if: always()
-    needs: [changes, website-tests, public-corpus-tests, rust-logging, node-tests, native-tests, ui-tests]
+    needs: [changes, website-tests, public-corpus-tests, native-checks, node-tests, ui-tests]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
