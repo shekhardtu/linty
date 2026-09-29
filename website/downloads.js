@@ -44,22 +44,28 @@ export function parseDmgFilename(name) {
   };
 }
 
-export function countDmgDownloads(releases) {
+function isUpdaterArchive(name) {
+  // Updater archives use the same product/version/architecture naming as DMGs.
+  return typeof name === 'string' && /\.app\.tar\.gz$/i.test(name) &&
+    parseDmgFilename(name.replace(/\.app\.tar\.gz$/i, '.dmg')) !== null;
+}
+
+export function countAppDownloads(releases) {
   let downloads = 0;
   let assets = 0;
   for (const release of releases) {
     if (release.draft) continue;
     if (!Array.isArray(release.assets)) throw new Error('GitHub returned a release without assets.');
     for (const asset of release.assets) {
-      if (!parseDmgFilename(asset.name)) continue;
+      if (!parseDmgFilename(asset.name) && !isUpdaterArchive(asset.name)) continue;
       if (!Number.isSafeInteger(asset.download_count) || asset.download_count < 0) {
-        throw new Error('GitHub returned an invalid DMG download count.');
+        throw new Error('GitHub returned an invalid app download count.');
       }
       downloads += asset.download_count;
       assets += 1;
     }
   }
-  if (!Number.isSafeInteger(downloads)) throw new Error('DMG download total is out of range.');
+  if (!Number.isSafeInteger(downloads)) throw new Error('App download total is out of range.');
   return { downloads, assets };
 }
 
@@ -97,12 +103,12 @@ export async function refreshDownloadInfo({ document: page = document, fetchImpl
   return Promise.allSettled([
     (async () => {
       const releases = await fetchAllReleases({ fetchImpl });
-      const { downloads } = countDmgDownloads(releases);
+      const { downloads } = countAppDownloads(releases);
       const checkedAt = new Date().toISOString();
-      page.querySelectorAll('[data-dmg-download-count]').forEach(counter => {
+      page.querySelectorAll('[data-download-count]').forEach(counter => {
         const link = counter.querySelector('a');
         link.textContent = `${downloads.toLocaleString('en-US')} downloads`;
-        link.title = `Installer downloads across all published releases, including prereleases. Not unique users. Checked ${checkedAt.slice(0, 10)}.`;
+        link.title = `Installer and app update downloads across all published releases, including prereleases. Not unique users. Checked ${checkedAt.slice(0, 10)}.`;
         const time = counter.querySelector('time');
         time.dateTime = checkedAt;
         time.textContent = checkedAt.slice(0, 10);
@@ -122,4 +128,3 @@ export async function latestDownloadUrl(options) {
   try { return (await fetchLatestInstaller(options)).url; }
   catch { return latestReleaseUrl; }
 }
-

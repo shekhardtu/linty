@@ -28,12 +28,14 @@ Browser platform detection only selects the operating system; it must not infer
 the processor from `MacIntel`, which Apple silicon browsers also report.
 
 On every page load, `downloads.js` requests public GitHub release metadata. It
-paginates all published releases and sums Linty DMG asset download counts, including
-both aliases, old versioned filenames, and prereleases. A shared regex parser
+paginates all published releases and sums Linty `.dmg` installer and `.app.tar.gz`
+app update asset download counts, including both installer aliases, old versioned
+filenames, and prereleases. A shared regex parser
 recognizes case-insensitive `linty.dmg`, `linty-VERSION.dmg`, and historical Tauri
 `Linty_VERSION_ARCH.dmg` / `Linty_ARCH.dmg` names, with hyphens or underscores,
-optional `v` before versions, prerelease versions, and ARM/Intel/universal suffixes. Updater archives,
-signatures, metadata, and draft releases are excluded. Repeated downloads count;
+optional `v` before versions, prerelease versions, and ARM/Intel/universal suffixes.
+Updater archives use the same naming rules with an `.app.tar.gz` extension.
+Signatures, metadata such as update checks, and draft releases are excluded. Repeated downloads count;
 this is not a count of unique people, website clicks, or completed installations.
 Deleted releases/assets no longer contribute. GitHub may delay count updates;
 the page does not increment the number when someone clicks a button. The page
@@ -62,7 +64,7 @@ generated values without a network request.
 The README loads `downloads.svg` directly from the separate `download-stats`
 branch. `.github/workflows/download-stats.yml` refreshes that branch every 12 hours, after
 release publication, and when the generator changes on main. It uses the same
-paginated DMG counter, commits only `downloads.svg` and `downloads.json`, and never
+combined installer and app update counter, commits only `downloads.svg` and `downloads.json`, and never
 updates main or builds the app. API failures preserve the last successful badge.
 Run the workflow manually to refresh on demand. GitHub scheduling and image caches
 can delay visibility; this is a periodically refreshed count, not a real-time counter.

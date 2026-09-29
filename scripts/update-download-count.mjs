@@ -1,10 +1,10 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { countDmgDownloads, fetchAllReleases, releasesUrl } from '../website/downloads.js';
-export { countDmgDownloads, fetchAllReleases } from '../website/downloads.js';
+import { countAppDownloads, fetchAllReleases, releasesUrl } from '../website/downloads.js';
+export { countAppDownloads, fetchAllReleases } from '../website/downloads.js';
 
 const root = new URL('../', import.meta.url);
-const marker = /<!-- dmg-downloads:start -->[\s\S]*?<!-- dmg-downloads:end -->/;
+const marker = /<!-- app-downloads:start -->[\s\S]*?<!-- app-downloads:end -->/;
 
 export function renderDownloadCount(snapshot) {
   if (!Number.isSafeInteger(snapshot.downloads) || snapshot.downloads < 0 ||
@@ -17,7 +17,7 @@ export function renderDownloadCount(snapshot) {
   const labelWidth = 78;
   const width = labelWidth + valueWidth;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="20" role="img" aria-label="Downloads: ${number}; checked ${date}">
-  <title>Downloads: ${number}; checked ${date}. DMG installers across all published releases, including prereleases. Not unique users.</title>
+  <title>Downloads: ${number}; checked ${date}. DMG installers and app update archives across all published releases, including prereleases. Not unique users.</title>
   <path fill="#555" d="M0 0h${labelWidth}v20H0z"/>
   <path fill="#28756f" d="M${labelWidth} 0h${valueWidth}v20H${labelWidth}z"/>
   <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
@@ -26,12 +26,12 @@ export function renderDownloadCount(snapshot) {
   </g>
 </svg>
 `;
-  const readme = `<!-- dmg-downloads:start -->
+  const readme = `<!-- app-downloads:start -->
   <a href="https://github.com/shekhardtu/linty/releases"><img alt="Downloads across all published releases" src="https://raw.githubusercontent.com/shekhardtu/linty/download-stats/downloads.svg" /></a>
-  <!-- dmg-downloads:end -->`;
-  const website = `<!-- dmg-downloads:start -->
-          <span data-dmg-download-count> · <a href="https://github.com/shekhardtu/linty/releases" title="Installer downloads across all published releases, including prereleases. Not unique users. Checked ${date}.">${number} downloads</a><time hidden datetime="${snapshot.checkedAt}">${date}</time></span>
-          <!-- dmg-downloads:end -->`;
+  <!-- app-downloads:end -->`;
+  const website = `<!-- app-downloads:start -->
+          <span data-download-count> · <a href="https://github.com/shekhardtu/linty/releases" title="Installer and app update downloads across all published releases, including prereleases. Not unique users. Checked ${date}.">${number} downloads</a><time hidden datetime="${snapshot.checkedAt}">${date}</time></span>
+          <!-- app-downloads:end -->`;
   return { svg, readme, website };
 }
 
@@ -51,7 +51,7 @@ async function main() {
   } else {
     const options = { token: process.env.GITHUB_TOKEN };
     const releases = await fetchAllReleases(options);
-    snapshot = { ...countDmgDownloads(releases), releases: releases.length, checkedAt: new Date().toISOString(), source: releasesUrl };
+    snapshot = { ...countAppDownloads(releases), releases: releases.length, checkedAt: new Date().toISOString(), source: releasesUrl };
   }
   const rendered = renderDownloadCount(snapshot);
   const outputs = [
@@ -62,10 +62,10 @@ async function main() {
   ];
   for (const [path, content] of outputs) {
     if (check) {
-      if (await readFile(new URL(path, root), 'utf8') !== content) throw new Error(`${path} does not match the DMG download snapshot. Run node scripts/update-download-count.mjs.`);
+      if (await readFile(new URL(path, root), 'utf8') !== content) throw new Error(`${path} does not match the app download snapshot. Run node scripts/update-download-count.mjs.`);
     } else await writeFile(new URL(path, root), content);
   }
-  console.log(`${snapshot.downloads} DMG downloads across ${snapshot.releases} releases; ${check ? 'generated files match' : 'README and landing page updated'}.`);
+  console.log(`${snapshot.downloads} installer and app update downloads across ${snapshot.releases} releases; ${check ? 'generated files match' : 'README and landing page updated'}.`);
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
