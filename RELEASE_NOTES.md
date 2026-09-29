@@ -1,5 +1,6 @@
 ## What's new
 
+- Bring System Settings forward when opening permission settings, and show the exact path if macOS cannot open it.
 - Find the projects behind Linty in About, and read their bundled credits and license notices offline.
 - Download speech support and English text cleanup together as soon as setup opens, so both can make progress while you allow permissions.
 - Check Microphone and Accessibility access before opening the app, and guide you through restoring either permission after a reinstall.

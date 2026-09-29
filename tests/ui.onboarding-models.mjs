@@ -25,6 +25,7 @@ function setupBridge({ existing = [], parakeet = true, local = true, language = 
   qa.holdPermissionChecks = holdPermissionChecks;
   qa.pendingPermissionChecks = [];
   qa.triggers = [];
+  qa.settingsURLs = [];
   qa.installed = new Set(existing);
   qa.downloads = [];
   qa.loads = [];
@@ -53,6 +54,7 @@ function setupBridge({ existing = [], parakeet = true, local = true, language = 
       return true;
     }
     if (command === 'request_accessibility') { await original(command, args); return qa.accessibility; }
+    if (command === 'open_system_settings') qa.settingsURLs.push(args.pane);
     if (command === 'set_trigger_modifier') qa.triggers.push(args.modifier);
     if (command === 's1_model_status') return { ...await original(command, args), progress: qa.cleanupProgress };
     if (command === 'download_s1_model') {
@@ -146,6 +148,29 @@ try {
     await page.evaluate(() => new Promise(requestAnimationFrame));
     const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
     assert.deepEqual(result.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => n.failureSummary) })), []);
+  };
+
+  const checkSettingsButton = async (page, button, pane, path) => {
+    const urls = {
+      accessibility: 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility',
+      microphone: 'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone',
+      keyboard: 'x-apple.systempreferences:com.apple.Keyboard-Settings.extension',
+    };
+    const count = await page.evaluate(() => window.__QA__.settingsURLs.length);
+    await button.click();
+    await page.waitForFunction(count => window.__QA__.settingsURLs.length > count, count);
+    assert.equal(await page.evaluate(() => window.__QA__.settingsURLs.at(-1)), urls[pane]);
+    await page.evaluate(() => { window.__QA__.failures.open_system_settings = 'Launch failed'; });
+    await button.click();
+    await page.getByRole('alert').getByText(`Could not open System Settings. Go to System Settings → ${path}.`, { exact: true }).waitFor();
+    await page.evaluate(async () => {
+      delete window.__QA__.failures.open_system_settings;
+      (await import('/src/store/app.store.ts')).useAppStore.setState({ toasts: [] });
+    });
+    await page.getByRole('alert').waitFor({ state: 'detached' });
+    await button.click();
+    await page.waitForFunction(count => window.__QA__.settingsURLs.length === count + 3, count);
+    assert.equal(await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().toasts.length), 0);
   };
 
   // First launch keeps onboarding, starts default preparation immediately,
@@ -308,12 +333,14 @@ try {
       await page.getByRole('heading', { name: 'Microphone access', exact: true }).waitFor();
       await page.getByRole('button', { name: 'Open System Settings', exact: true }).waitFor();
       assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
+      await checkSettingsButton(page, page.getByRole('button', { name: 'Open System Settings', exact: true }), 'microphone', 'Privacy & Security → Microphone');
       await page.evaluate(() => { window.__QA__.microphone = 'authorized'; });
     }
     await page.getByRole('heading', { name: 'Accessibility access', exact: true }).waitFor();
     await page.getByRole('button', { name: 'Open System Settings', exact: true }).waitFor();
     assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
     assert.equal(await page.getByRole('button', { name: 'Skip for now', exact: true }).count(), 0);
+    await checkSettingsButton(page, page.getByRole('button', { name: 'Open System Settings', exact: true }), 'accessibility', 'Privacy & Security → Accessibility');
     await page.evaluate(() => { window.__QA__.accessibility = true; });
     await reachDone(page);
     assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).count(), 0);
@@ -321,6 +348,39 @@ try {
     await page.getByRole('heading', { name: 'Microphone Test', exact: true }).waitFor();
     await page.close();
   }
+
+  // The granted rows shown in System Check must still open the exact pane,
+  // report native failures, and allow retrying without unhandled rejections.
+  page = await open({ returning: true, existing: [PARAKEET] });
+  await waitLanguage(page, 'en');
+  await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().setCurrentView('system-check'));
+  for (const [label, pane, path] of [
+    ['Accessibility', 'accessibility', 'Privacy & Security → Accessibility'],
+    ['Microphone Access', 'microphone', 'Privacy & Security → Microphone'],
+  ]) {
+    const row = page.locator('.permission-row').filter({ hasText: label });
+    await row.getByText('Granted', { exact: true }).waitFor();
+    await checkSettingsButton(page, row.getByRole('button', { name: 'Open Settings', exact: true }), pane, path);
+  }
+  await page.evaluate(async () => {
+    const original = window.__TAURI_INTERNALS__.invoke;
+    window.__TAURI_INTERNALS__.invoke = (command, args) => command === 'check_fn_key_conflict'
+      ? Promise.resolve({ usage_type: 2, conflict: true }) : original(command, args);
+    (await import('/src/store/app.store.ts')).useAppStore.setState({ triggerKey: 'fn' });
+  });
+  await checkSettingsButton(page, page.getByRole('button', { name: 'Open Keyboard Settings', exact: true }), 'keyboard', 'Keyboard');
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(async theme => {
+      (await import('/src/store/app.store.ts')).useAppStore.getState().setTheme(theme);
+      window.__QA__.failures.open_system_settings = 'Launch failed';
+    }, theme);
+    await page.locator('.permission-row').filter({ hasText: 'Accessibility' }).getByRole('button', { name: 'Open Settings', exact: true }).click();
+    await page.getByRole('alert').getByText('Could not open System Settings. Go to System Settings → Privacy & Security → Accessibility.', { exact: true }).waitFor();
+    await page.screenshot({ path: `artifacts/language/${engine.name()}-settings-error-${theme}.png`, animations: 'disabled' });
+    await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.setState({ toasts: [] }));
+    await page.getByRole('alert').waitFor({ state: 'detached' });
+  }
+  await page.close();
 
   // Access revoked after the permission steps is checked again before saving.
   page = await open({ fresh: true, existing: [PARAKEET] });
