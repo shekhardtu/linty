@@ -95,7 +95,7 @@ export const NAVIGATION_ITEMS = [
     group: "setup",
     icon: Info,
     keywords:
-      "version check for updates install update website github licenses help support report bug feedback",
+      "version check for updates install update website github licenses credits acknowledgments open source attribution help support report bug feedback",
   },
 ] as const;
 

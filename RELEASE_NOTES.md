@@ -1,5 +1,6 @@
 ## What's new
 
+- Find the projects behind Linty in About, and read their bundled credits and license notices offline.
 - Download speech support and English text cleanup together as soon as setup opens, so both can make progress while you allow permissions.
 - Check Microphone and Accessibility access before opening the app, and guide you through restoring either permission after a reinstall.
 - Refresh local speech, macOS integration, and app update dependencies on Intel and Apple silicon.

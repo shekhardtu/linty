@@ -3,6 +3,7 @@ import { ArrowRight, ArrowUpRight, CircleCheck, Download, Loader2 } from "lucide
 import { open } from "@tauri-apps/plugin-shell";
 import { getVersion } from "@tauri-apps/api/app";
 import { LegalNotice } from "@/components/shared/LegalNotice.component";
+import { OpenSourceCredits } from "@/components/shared/OpenSourceCredits.component";
 import { PageLayout } from "@/components/shared/PageLayout.component";
 import { installedReleaseNotes, ReleaseNotes, releaseUrl } from "@/components/shared/ReleaseNotes.component";
 import { useUpdater } from "@/hooks/useUpdater.hook";
@@ -98,6 +99,8 @@ export function AboutPage() {
           </button>
         </section>
       </div>
+
+      <OpenSourceCredits />
 
       <nav className="about-links" aria-label="Linty links">
         <button className="text-link" onClick={() => openLink("https://linty.ai")}>
