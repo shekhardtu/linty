@@ -167,12 +167,14 @@ jobs:
 
       - name: Notarize & staple DMG
         env:
+          APPLE_SIGNING_IDENTITY: "Developer ID Application: Hari Shekhar (3RPKRQ84N3)"
           APPLE_ID: ${{ secrets.LINTY_APPLE_NOTARIZATION_APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.LINTY_APPLE_NOTARIZATION_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.LINTY_APPLE_TEAM_ID }}
         run: |
           xcrun lipo src-tauri/target/universal-apple-darwin/release/bundle/macos/Linty.app/Contents/MacOS/linty -verify_arch arm64 x86_64
           DMG_PATH=$(ls src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg | head -1)
+          node scripts/prepare-macos-dmg.mjs "$DMG_PATH"
           echo "Notarizing DMG: $DMG_PATH"
           xcrun notarytool submit "$DMG_PATH" \
             --apple-id "$APPLE_ID" \

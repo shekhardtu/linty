@@ -49,7 +49,7 @@ test('dependencies, release/build tooling, and CI inputs always watch the full s
   for (const file of ['package.json', 'yarn.lock', 'package-lock.json',
     '.github/workflows/checks.yml', '.github/actions/swift-bridge/action.yml',
     'scripts/check-scope.mjs', 'tests/check-scope.test.mjs', 'scripts/build-mac.sh',
-    'scripts/prepare-release.mjs', 'scripts/publish-release.sh', 'scripts/release-local.mjs',
+    'scripts/prepare-release.mjs', 'scripts/prepare-macos-dmg.mjs', 'scripts/release-artifacts.mjs', 'scripts/publish-release.sh', 'scripts/release-local.mjs',
     'scripts/generate-icons.mjs', 'scripts/run-tasks.mjs', 'scripts/run-ui-checks.mjs']) {
     assert.equal(classifyChanges(['website/index.html', file]).scope, 'full', file);
   }

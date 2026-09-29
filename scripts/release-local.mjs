@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
@@ -9,6 +8,8 @@ import { initialVersion, nextVersion } from './prepare-release.mjs';
 import { findReusableChecks } from './reuse-pr-checks.mjs';
 import { runCommand, runTasks } from './run-tasks.mjs';
 import { runUiChecks } from './run-ui-checks.mjs';
+import { prepareMacosDmg } from './prepare-macos-dmg.mjs';
+import { appDigest, cleanupPublishedArtifacts, fileDigest, releaseTargetDirectory } from './release-artifacts.mjs';
 
 const repository = 'shekhardtu/linty';
 const target = 'universal-apple-darwin';
@@ -289,7 +290,7 @@ async function main(options) {
     const builtSha = buildGit(['rev-parse', 'HEAD']).trim();
     mkdirSync(path.join(buildDir, 'release'), { recursive: true });
     const cache = path.join(storage, 'cache');
-    const targetDir = path.join(cache, 'target');
+    const targetDir = releaseTargetDirectory(storage);
     const swiftDir = path.join(cache, 'swift-bridge');
     const venv = path.join(cache, 'python');
     const env = { ...baseEnv, CARGO_TARGET_DIR: targetDir };
@@ -341,6 +342,8 @@ async function main(options) {
     build('xcrun', ['lipo', path.join(app, 'Contents/MacOS/linty'), '-verify_arch', 'arm64', 'x86_64']);
     build('codesign', ['--verify', '--deep', '--strict', app]);
     build('xcrun', ['stapler', 'validate', app]);
+    prepareMacosDmg(dmg, { identity: process.env.APPLE_SIGNING_IDENTITY,
+      run: (command, args) => build(command, args) });
     build('xcrun', ['notarytool', 'submit', dmg, '--apple-id', process.env.APPLE_ID,
       '--password', process.env.APPLE_PASSWORD, '--team-id', process.env.APPLE_TEAM_ID, '--wait']);
     build('xcrun', ['stapler', 'staple', dmg]);
@@ -371,8 +374,8 @@ async function main(options) {
     if (buildGit(['status', '--porcelain', '--untracked-files=no']).trim()) throw new Error('Tracked release source changed during the build.');
     buildGit(['bundle', 'create', 'release/release-source.bundle', 'HEAD', ...(options.initialRelease ? [] : [`^${sourceSha}`])]);
     const checksums = Object.fromEntries([...files.map(([name]) => name), 'latest.json', 'RELEASE_NOTES.md'].map(name =>
-      [name, createHash('sha256').update(readFileSync(path.join(buildDir, name))).digest('hex')]));
-    writeFileSync(path.join(buildDir, 'release/build.json'), `${JSON.stringify({ version, releaseType, bump: options.bump, initialRelease: Boolean(options.initialRelease), sourceSha, builtSha, browserChecks, checksums }, null, 2)}\n`);
+      [name, fileDigest(path.join(buildDir, name))]));
+    writeFileSync(path.join(buildDir, 'release/build.json'), `${JSON.stringify({ version, releaseType, bump: options.bump, initialRelease: Boolean(options.initialRelease), sourceSha, builtSha, browserChecks, checksums, appDigest: appDigest(app) }, null, 2)}\n`);
     releaseChecks.pass();
     if (options.mode === '--build-only') {
       console.log(`Local build verified; no release published. Artifacts and build record: ${buildDir}`);
@@ -381,6 +384,16 @@ async function main(options) {
     publishBuiltRelease({ git, gh, sourceSha, builtSha, version, buildDir, initialRelease: options.initialRelease, requireLocalPublisher,
       upload: tag => run('bash', ['scripts/publish-release.sh', tag], { cwd: buildDir, env: ghEnv }) });
     console.log(`Published https://github.com/${repository}/releases/tag/v${version}\nBuild record: ${buildDir}/release/build.json`);
+    try {
+      const release = JSON.parse(gh(['api', `repos/${repository}/releases/tags/v${version}`]));
+      cleanupPublishedArtifacts({ buildDir, release,
+        unregister: app => build('/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister', ['-u', app]) });
+      console.log('Verified published assets; removed generated DMGs and the temporary app bundle. Caches and updater archives retained.');
+    } catch (error) {
+      // Publication succeeded. Preserve anything unverified for diagnosis, and
+      // never report this as a failed release that should be published again.
+      console.warn(`Release published, but local artifact cleanup was skipped: ${error.message}`);
+    }
   } catch (error) {
     releaseChecks?.fail();
     if (buildDir) console.error(`Build worktree retained for diagnosis or upload retry: ${buildDir}`);
