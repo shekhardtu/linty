@@ -168,12 +168,15 @@ try {
     await pill.clock.runFor(6000);
     assert.equal(await pill.locator('.capsule-recording').count(), 1, 'The old feedback timer cannot hide a new recording');
     await send({ state: 'done' }); await pill.clock.runFor(1400);
+    // Clock callbacks can queue React's removal without committing it yet.
+    await pill.locator('.capsule-pill').waitFor({ state: 'detached' });
     assert.equal(await pill.locator('.capsule-pill').count(), 0, 'An acknowledgment that was already shown never resumes after dictation');
     await notify();
     await pill.locator('.capsule-feedback').waitFor();
     await pill.clock.runFor(2000);
     assert.equal(await pill.locator('.capsule-feedback').count(), 1, 'The brief acknowledgment gives time to read');
     await pill.clock.runFor(1300);
+    await pill.locator('.capsule-pill').waitFor({ state: 'detached' });
     assert.equal(await pill.locator('.capsule-pill').count(), 0, 'Feedback dismisses after three seconds plus its exit animation');
     await send({ state: 'transcribing' });
     await notify();
