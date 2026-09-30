@@ -3,6 +3,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 fn main() {
+    println!("cargo:rerun-if-env-changed=LINTY_POSTHOG_PROJECT_TOKEN");
+    println!("cargo:rerun-if-env-changed=LINTY_POSTHOG_HOST");
     let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
     assert!(target_os == "macos", "Linty supports macOS only");

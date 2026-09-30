@@ -7,7 +7,7 @@ Linty is open-source dictation software. This notice describes the official app 
 
 ## On your Mac
 
-Speech recognition and optional text cleanup run on your Mac and work offline after model download. Linty does not upload your recordings or transcripts. The app has no automatic usage-analytics or crash-upload service.
+Speech recognition and optional text cleanup run on your Mac and work offline after model download. Linty does not upload your recordings or transcripts. Optional telemetry combines limited usage statistics and technical error reports in one choice. It is preselected during setup, with a heads-up and confirmation before collection.
 
 Microphone access records dictation and microphone tests. Accessibility access supports shortcuts and pasting. Pasting uses the clipboard; receiving apps and clipboard managers may keep or sync copies.
 
@@ -20,6 +20,22 @@ App attribution is on by default and saves the active app’s name and identifie
 Settings → Privacy & storage provides retention, export, and deletion controls. Optional history expiry runs at most once per 24 hours while Linty is running. Turning off a saving preference does not delete earlier records. Deleting a transcript removes its recording and corrections; dictionary entries remain separate.
 
 Reset removes Linty’s application data and downloaded models. It does not erase diagnostic logs, exports, backups, or copies in other apps. The project cannot remotely access or delete your local archive.
+
+## Optional telemetry
+
+The Share telemetry choice is preselected during setup. Nothing is sent before you confirm it; turn it off before continuing if you prefer. Settings → Privacy & storage lets you change your choice later. Existing installations receive a one-time heads-up when telemetry is first introduced. Ordinary upgrades preserve your saved choice without asking again.
+
+Telemetry sends app launches, Linty page names, setup completion, dictation outcomes, elapsed and processing duration ranges, speech engine category, whether cleanup was enabled, and fixed error categories for dictation stages and interface failures. Reports include Linty’s version, build architecture, and event time. Rust panic reports are best effort; this integration does not include full native crash reports.
+
+A random installation ID links events across launches to count participating installations, returning usage, and installations affected by failures. It is not derived from your name, account, hardware, or network address. This is pseudonymous, not completely unlinkable. Turning sharing off deletes the ID; enabling it again creates a new one.
+
+No recordings, transcripts, clipboard contents, dictionary words, prompts, custom model names, source file paths, names of other apps, raw error messages, stack traces, diagnostic logs, memory dumps, account names, or hardware identifiers are uploaded. There is no session replay, screenshot capture, or automatic click tracking. Existing local history is never backfilled.
+
+Events are sent to the PostHog Cloud region configured in the installed build. PostHog receives the network address of requests; event payloads suppress IP storage and geolocation and do not create person profiles. The provider retains received events according to its service and project settings. Its privacy policy describes its own processing.
+
+Turning sharing off stops new collection and discards queued events. Pending events are held only in memory, with a short expiry. Requests already received by PostHog cannot be recalled, and disabling sharing does not delete those earlier events. Reset revokes sharing and deletes the local installation ID. If saving an opt-out fails, sharing stops for that session and the app asks you to retry before quitting.
+
+[PostHog privacy policy](https://posthog.com/privacy)
 
 ## Downloads, updates, and diagnostics
 

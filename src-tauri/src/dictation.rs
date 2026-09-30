@@ -1,5 +1,6 @@
 //! Native owner of one dictation. UI commands observe a session; they do not
 //! orchestrate inference, transformation, persistence or delivery.
+use crate::telemetry::{self, Diagnostic, Event, Ticket};
 use crate::{history, reformat, text_validation, StopResult};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -56,6 +57,11 @@ struct Session {
     cancelled: AtomicBool,
     changed: Notify,
     result: Mutex<Option<Result<Outcome, String>>>,
+    telemetry_ticket: Ticket,
+    started: Instant,
+    processing_started: Mutex<Option<Instant>>,
+    diagnostic_stage: Mutex<Diagnostic>,
+    faults: Mutex<Vec<Diagnostic>>,
 }
 impl Session {
     fn check(&self) -> Result<(), String> {
@@ -83,12 +89,83 @@ impl Session {
         }
     }
     fn finish(&self, result: Result<Outcome, String>) {
-        *self.result.lock().unwrap() = Some(result);
+        let mut stored = self.result.lock().unwrap();
+        if stored.is_some() {
+            return;
+        }
+        let cancelled = self.cancelled.load(Ordering::SeqCst);
+        let outcome = if cancelled {
+            telemetry::Outcome::Cancelled
+        } else {
+            match &result {
+                Err(_) => telemetry::Outcome::Failed,
+                Ok(result) => match result
+                    .record
+                    .as_ref()
+                    .and_then(|r| r["deliveryStatus"].as_str())
+                {
+                    None => telemetry::Outcome::NoSpeech,
+                    Some("verified") => telemetry::Outcome::Verified,
+                    Some("unverified" | "pasted") => telemetry::Outcome::Unverified,
+                    Some("skipped") => telemetry::Outcome::Skipped,
+                    _ => telemetry::Outcome::Failed,
+                },
+            }
+        };
+        telemetry::capture(
+            self.telemetry_ticket,
+            Event::DictationFinished {
+                outcome,
+                elapsed: self.started.elapsed(),
+                processing: self
+                    .processing_started
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .map(|start| start.elapsed()),
+                cleanup: self.options.cleanup,
+                speech_engine: telemetry::SpeechEngine::from_model(
+                    self.options.filename.as_deref(),
+                ),
+            },
+        );
+        if !cancelled {
+            let mut faults = self.faults.lock().unwrap_or_else(|e| e.into_inner());
+            if result.is_err() {
+                faults.push(
+                    *self
+                        .diagnostic_stage
+                        .lock()
+                        .unwrap_or_else(|e| e.into_inner()),
+                );
+            }
+            let mut reported = Vec::new();
+            for code in faults.drain(..) {
+                if reported.contains(&code) {
+                    continue;
+                }
+                telemetry::capture(self.telemetry_ticket, Event::Failure(code));
+                reported.push(code);
+            }
+        }
+        *stored = Some(result);
+        drop(stored);
         *self.phase.lock().unwrap() = Phase::Finished;
         self.changed.notify_waiters();
     }
     fn stage(&self, app: &tauri::AppHandle, stage: &str) -> Result<(), String> {
         self.check()?;
+        if let Some(code) = match stage {
+            "preparing" => Some(Diagnostic::Preparation),
+            "transcribing" => Some(Diagnostic::Transcription),
+            "correcting" => Some(Diagnostic::Cleanup),
+            "pasting" => Some(Diagnostic::Delivery),
+            _ => None,
+        } {
+            *self
+                .diagnostic_stage
+                .lock()
+                .unwrap_or_else(|e| e.into_inner()) = code;
+        }
         let generation = self.generation.load(Ordering::SeqCst);
         let _ = app.emit_to(
             "main",
@@ -146,6 +223,11 @@ impl Coordinator {
             cancelled: AtomicBool::new(false),
             changed: Notify::new(),
             result: Mutex::new(None),
+            telemetry_ticket: telemetry::ticket(),
+            started: Instant::now(),
+            processing_started: Mutex::new(None),
+            diagnostic_stage: Mutex::new(Diagnostic::RecordingStart),
+            faults: Mutex::new(Vec::new()),
         });
         *slot = Some(session.clone());
         Ok(session)
@@ -234,6 +316,14 @@ pub async fn stop_dictation(
         *phase = Phase::Processing;
     }
     let stopped = Instant::now();
+    *session
+        .processing_started
+        .lock()
+        .unwrap_or_else(|e| e.into_inner()) = Some(stopped);
+    *session
+        .diagnostic_stage
+        .lock()
+        .unwrap_or_else(|e| e.into_inner()) = Diagnostic::RecordingStop;
     let result = session
         .guard(5., crate::stop_recording(app.clone(), app.state()))
         .await;
@@ -377,6 +467,10 @@ async fn process<B: Backend>(
         .await
         .is_ok();
     if !saved {
+        s.faults
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .push(Diagnostic::HistoryWrite);
         outcome.warnings.push(
             "Could not save this dictation to History. Automatic paste was skipped; copy your text before closing Linty.".into(),
         );
@@ -428,6 +522,10 @@ async fn process<B: Backend>(
                     record["reformattedText"] = json!(candidate);
                 }
                 if result.metrics.status == "fallback" {
+                    s.faults
+                        .lock()
+                        .unwrap_or_else(|e| e.into_inner())
+                        .push(Diagnostic::Cleanup);
                     outcome.warnings.push(
                         "Cleanup could not preserve the text. Your original transcript was kept."
                             .into(),
@@ -435,6 +533,10 @@ async fn process<B: Backend>(
                 }
             }
             Err(_) => {
+                s.faults
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .push(Diagnostic::Cleanup);
                 backend.cancel_cleanup();
                 s.check()?;
                 outcome
@@ -447,6 +549,12 @@ async fn process<B: Backend>(
     }
     let validation = text_validation::validate(&raw, &candidate);
     if validation.status == "fallback" {
+        if o.cleanup {
+            s.faults
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .push(Diagnostic::Cleanup);
+        }
         candidate = raw.clone();
         if o.cleanup {
             record.as_object_mut().unwrap().remove("reformattedText");
@@ -503,6 +611,10 @@ async fn process<B: Backend>(
             .await
             .is_err()
     {
+        s.faults
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .push(Diagnostic::HistoryWrite);
         outcome.warnings.push("Could not save the finished text. Automatic paste was skipped; copy the text if you still need it.".into());
         record["deliveryStatus"] = json!("failed");
         outcome.record = Some(record);
@@ -520,6 +632,12 @@ async fn process<B: Backend>(
         .insertion_observed_ms
         .map(|ms| delivery_start_ms + ms));
     record["deliveryStatus"] = json!(delivery.status);
+    if delivery.status == "failed" {
+        s.faults
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .push(Diagnostic::Delivery);
+    }
     record["delivery"] = serde_json::to_value(&delivery).unwrap();
     if delivery.command_posted {
         record["attemptedText"] = json!(candidate);
@@ -530,6 +648,10 @@ async fn process<B: Backend>(
     record["pasteTimeMs"] = json!(millis(tick));
     record["processingTimeMs"] = json!(millis(stopped));
     if saved && persist(backend.update(id, record.clone())).await.is_err() {
+        s.faults
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .push(Diagnostic::HistoryWrite);
         outcome
             .warnings
             .push("Could not update the delivery result in History.".into());

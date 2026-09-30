@@ -223,6 +223,10 @@ try {
   assert.equal(await page.getByRole('button', { name: /Record a custom trigger/ }).count(), 0);
   assert.equal(await page.getByRole('button', { pressed: true }).count(), 1);
   await reachDone(page);
+  const sharing = page.getByRole('switch', { name: 'Share telemetry', exact: true });
+  assert.equal(await sharing.getAttribute('aria-checked'), 'true', 'Fresh setup preselects sharing');
+  assert.deepEqual(await page.evaluate(() => window.__QA__.telemetryEvents), [], 'Setup sends nothing before confirmation');
+  await sharing.click();
   assert.equal(await page.getByRole('button', { name: 'Try dictation', exact: true }).isDisabled(), true);
   await page.evaluate(name => window.__QA__.pendingDownloads[name].reject(), PARAKEET);
   await page.getByRole('button', { name: 'Retry preparation', exact: true }).click();
@@ -234,6 +238,8 @@ try {
   await checkSetupDictation(page);
   assert.equal(await page.locator('.microphone-test').count(), 0, 'Closing the dialog removes the only recorder');
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].onboardingComplete), true);
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].telemetry.enabled), false, 'Setup works with sharing off');
+  assert.deepEqual(await page.evaluate(() => window.__QA__.telemetryEvents), [], 'Finishing setup with sharing off sends nothing');
   await page.waitForFunction(() => window.__QA__.emittedEvents.some(e => e.event === 'tray-state-changed' && e.payload.setupComplete && e.payload.localReady));
   await page.evaluate(() => window.__QA__.emit('fnkey-pressed'));
   await page.waitForFunction(() => window.__QA__.calls.includes('start_dictation'));

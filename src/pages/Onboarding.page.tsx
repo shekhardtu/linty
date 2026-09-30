@@ -1,5 +1,7 @@
 import { BrandMark, SoundPattern } from "@/components/shared/BrandMark.component";
 import { LegalNotice } from "@/components/shared/LegalNotice.component";
+import { TelemetryChoice } from "@/components/settings/TelemetryPreferences.component";
+import { saveTelemetry, useTelemetry } from "@/services/telemetry.service";
 import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from "react";
 import { Mic, Shield, CheckCircle2, ArrowRight, Loader2, ExternalLink, Keyboard, Languages } from "lucide-react";
 import {
@@ -477,7 +479,10 @@ function TriggerStep({ onNext }: { onNext: () => void }) {
 /* ── Done Step ── */
 
 function DoneStep({ onComplete, onChangeLanguage }: { onComplete: () => Promise<boolean>; onChangeLanguage: () => void }) {
-  const { triggerKey, transcriptionLanguage } = useAppStore();
+  const telemetry = useTelemetry();
+  const [telemetryDraft, setShareTelemetry] = useState<boolean | null>(null);
+  const shareTelemetry = telemetryDraft ?? (telemetry.decided ? telemetry.enabled : true);
+  const { triggerKey, transcriptionLanguage, onboardingComplete } = useAppStore();
   const preparation = useSyncExternalStore(languagePreparation.subscribe, languagePreparation.getSnapshot);
   const triggerLabel = formatTriggerLabel(triggerKey);
   const ready = preparation.status === "ready";
@@ -488,10 +493,16 @@ function DoneStep({ onComplete, onChangeLanguage }: { onComplete: () => Promise<
     if (!ready || savingRef.current) return;
     savingRef.current = true;
     setSaving(true); setError("");
+    let confirmingTelemetry = false;
     try {
+      if (telemetry.available && (!telemetry.decided || (!onboardingComplete && telemetry.enabled !== shareTelemetry))) {
+        confirmingTelemetry = true;
+        await saveTelemetry(shareTelemetry);
+        confirmingTelemetry = false;
+      }
       if (await onComplete()) useAppStore.getState().setRecordingFocusOpen(true);
-    } catch {
-      setError("Could not finish setup. Please try again.");
+    } catch (reason) {
+      setError(confirmingTelemetry && reason instanceof Error ? reason.message : "Could not finish setup. Please try again.");
     } finally {
       savingRef.current = false;
       setSaving(false);
@@ -513,8 +524,12 @@ function DoneStep({ onComplete, onChangeLanguage }: { onComplete: () => Promise<
       {languageLabel(transcriptionLanguage)} · {triggerLabel}
     </p> : <div className="w-full mb-5"><LanguageReadiness /></div>}
     <FnKeyConflictWarning className="mb-6 max-w-[400px]" />
+    {(!telemetry.decided || !onboardingComplete) && telemetry.available && <div className="w-full mb-5">
+      <TelemetryChoice enabled={shareTelemetry} onChange={setShareTelemetry} disabled={saving} />
+      <p className="text-[12px] text-text-secondary mt-2">{telemetry.decided ? "Continuing saves any change to this choice." : "Continuing confirms this choice. Nothing is sent before confirmation."}</p>
+    </div>}
     {error && <p role="alert" className="text-error text-[13px] mb-3">{error}</p>}
-    <button disabled={!ready || saving} onClick={() => { void finish(); }} className="standard-button primary-button">
+    <button disabled={!ready || saving || !telemetry.loaded || telemetry.saving} onClick={() => { void finish(); }} className="standard-button primary-button">
       {saving ? "Saving…" : "Try dictation"}{saving ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}
     </button>
     {preparation.status === "error" && <button className="text-link text-[12px] mt-5" disabled={saving} onClick={onChangeLanguage}>Change language</button>}

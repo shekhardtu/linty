@@ -3345,6 +3345,7 @@ dependencies = [
  "time",
  "tokenizers",
  "tokio",
+ "uuid",
  "whatlang",
  "whisper-rs",
 ]

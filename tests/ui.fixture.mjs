@@ -5,6 +5,9 @@ export const fixture = ({
   theme = "light",
   historyCount = 18,
   update = null,
+  telemetryAvailable = true,
+  telemetryDecided = !onboarding,
+  telemetryEnabled = false,
 } = {}) => {
   const now = Date.now();
   const words = [
@@ -96,6 +99,8 @@ export const fixture = ({
     3: { corrections },
     4: dictionary,
   };
+  if (telemetryDecided) stores[1].telemetry = { schemaVersion: 1, enabled: telemetryEnabled };
+  let telemetryInitialized = false;
   let s1Downloaded = false;
   const history = { retentionDays: 0, generation: 0, revision: 1, saveAudio: false, lastCleanupAt: null };
   const sorted = (records) =>
@@ -443,6 +448,8 @@ export const fixture = ({
     emittedEvents: [],
     correctionFeedback: [],
     clipboard: "",
+    telemetry: { available: telemetryAvailable, enabled: false, decided: false, epoch: 0 },
+    telemetryEvents: [],
     audioInputs: { selected: null, defaultDevice: "Built-in Microphone", devices: [
       { name: "Built-in Microphone", selectable: true },
       { name: "USB Microphone", selectable: true },
@@ -473,8 +480,31 @@ export const fixture = ({
     unregisterCallback: (key) => callbacks.delete(key),
     invoke: async (command, args = {}) => {
       window.__QA__.calls.push(command);
-      if (window.__QA__.failures[command])
+      if (window.__QA__.failures[command]) {
+        if (command === 'telemetry_set_consent' && !args.enabled && window.__QA__.telemetry.enabled) {
+          window.__QA__.telemetry.enabled = false;
+          window.__QA__.telemetry.epoch++;
+        }
         throw new Error(window.__QA__.failures[command]);
+      }
+      if (command === "telemetry_snapshot") {
+        if (!telemetryInitialized) {
+          telemetryInitialized = true;
+          window.__QA__.telemetry = { available: telemetryAvailable, enabled: stores[1].telemetry?.enabled === true, decided: stores[1].telemetry?.schemaVersion === 1, epoch: 0 };
+        }
+        return structuredClone(window.__QA__.telemetry);
+      }
+      if (command === "telemetry_set_consent") {
+        const epoch = window.__QA__.telemetry.epoch + (window.__QA__.telemetry.enabled !== args.enabled ? 1 : 0);
+        window.__QA__.telemetry = { available: telemetryAvailable, enabled: args.enabled, decided: true, epoch };
+        stores[1].telemetry = { schemaVersion: 1, enabled: args.enabled };
+        return structuredClone(window.__QA__.telemetry);
+      }
+      if (command.startsWith("telemetry_")) {
+        if (window.__QA__.telemetry.enabled && args.epoch === window.__QA__.telemetry.epoch)
+          window.__QA__.telemetryEvents.push({ command, ...structuredClone(args) });
+        return;
+      }
       if (command === "show_correction_feedback") {
         window.__QA__.correctionFeedback.push(structuredClone(args.feedback));
         return;
