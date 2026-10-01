@@ -167,6 +167,41 @@ try {
   assert.ok(await store.evaluate(s=>s.getState().toasts.some(toast=>toast.type==='error' && toast.action?.label==='Copy text')),'A failed paste keeps its copy recovery action');
 
   await mkdir('artifacts/dictation-pill',{recursive:true});
+  // WebKit document focus can remain true while the native window is inactive.
+  await page.evaluate(()=>{
+    window.__QA__.hasAudio=false; window.__QA__.failPaste=false;
+    window.__QA__.windowFocused=false; document.hasFocus=()=>true;
+  });
+  await page.clock.runFor(501);
+  starts=await count('start_dictation');
+  await double('Control+Option+Space'); await status('recording');
+  await page.waitForFunction(()=>window.__QA__.capsule.at(-1)?.state==='recording');
+  assert.equal(await page.getByRole('dialog',{name:'Focused dictation',exact:true}).count(),0,'Stale document focus cannot suppress the background pill');
+  let hides=await count('hide_capsule');
+  await page.evaluate(()=>{window.__QA__.windowFocused=true;window.__QA__.emit('tauri://focus',true);});
+  await page.getByRole('dialog',{name:'Focused dictation',exact:true}).waitFor();
+  await page.waitForFunction(hides=>window.__QA__.calls.filter(c=>c==='hide_capsule').length>hides,hides);
+  let shows=await count('show_capsule');
+  await page.evaluate(()=>{window.__QA__.windowFocused=false;window.__QA__.emit('tauri://blur',false);});
+  await page.waitForFunction(shows=>window.__QA__.calls.filter(c=>c==='show_capsule').length>shows,shows);
+  assert.equal(await count('start_dictation'),starts+1,'Switching apps moves feedback without restarting the microphone');
+  await store.evaluate(s=>s.getState().setStatus('transcribing'));
+  await page.evaluate(()=>{window.__QA__.windowFocused=true;window.__QA__.emit('tauri://focus',true);});
+  await page.clock.runFor(10);
+  await page.evaluate(()=>{window.__QA__.windowFocused=false;window.__QA__.emit('tauri://blur',false);});
+  await page.waitForFunction(()=>window.__QA__.capsule.at(-1)?.state==='transcribing');
+  await store.evaluate(s=>s.getState().setStatus('recording'));
+  await single('Control+Option+Space'); await status('idle');
+  await page.getByRole('button',{name:'Back now',exact:true}).click();
+  for(const nativeState of [{windowFocused:true,windowVisible:false},{windowFocused:true,windowMinimized:true}]) {
+    await page.clock.runFor(501);
+    await page.evaluate(nativeState=>{Object.assign(window.__QA__,{windowVisible:true,windowMinimized:false},nativeState);},nativeState);
+    await double('Control+Option+Space'); await status('recording');
+    await page.waitForFunction(()=>window.__QA__.capsule.at(-1)?.state==='recording');
+    assert.equal(await page.getByRole('dialog',{name:'Focused dictation',exact:true}).count(),0,'A hidden or minimized Linty window uses the pill');
+    await single('Control+Option+Space'); await status('idle');
+  }
+  await page.evaluate(()=>{delete window.__QA__.windowFocused;delete window.__QA__.windowVisible;delete window.__QA__.windowMinimized;});
   // Focused dictation uses native input history, just like the pill.
   await page.evaluate(()=>{window.__QA__.hasAudio=false;window.__QA__.failPaste=false;delete window.__QA__.deliveryStatus;document.hasFocus=()=>true;});
   await page.getByRole('button',{name:'System Check',exact:true}).click();
@@ -224,6 +259,46 @@ try {
     await store.evaluate((s,theme)=>s.getState().setTheme(theme),theme);
     await page.screenshot({path:`artifacts/dictation-pill/shortcuts-single-finish-${engine.name()}-${theme}.png`,animations:'disabled'});
   }
+
+  // A reload or late listener must recover current state, without replaying a
+  // delayed snapshot over a more recent event.
+  const recoveryPill=await browser.newPage({viewport:{width:380,height:52},reducedMotion:'reduce'});
+  recoveryPill.on('pageerror',e=>errors.push(e.message));
+  await recoveryPill.addInitScript(fixture,{});
+  await recoveryPill.addInitScript(()=>{
+    const original=window.__TAURI_INTERNALS__.invoke;
+    window.__TAURI_INTERNALS__.invoke=(command,args)=>{
+      if(command==='get_capsule_state') {
+        window.__QA__.calls.push(command);
+        if(window.__QA__.deferSnapshot) return new Promise(resolve=>{window.__QA__.resolveSnapshot=resolve;});
+        return Promise.resolve({revision:4,state:'recording',generation:12,hands_free:true});
+      }
+      return original(command,args);
+    };
+  });
+  await recoveryPill.goto(`${url}/capsule.html`);
+  await recoveryPill.locator('.capsule-recording').waitFor();
+  assert.equal(await recoveryPill.locator('.capsule-time').innerText(),'0:00','The current recording renders even when its initial event was missed');
+  await recoveryPill.reload();
+  await recoveryPill.locator('.capsule-recording').waitFor();
+  await recoveryPill.evaluate(()=>window.__QA__.emit('capsule-state',{revision:3,state:'idle'}));
+  assert.equal(await recoveryPill.locator('.capsule-recording').count(),1,'An older queued idle event cannot hide the restored recording');
+  await recoveryPill.addInitScript(()=>{window.__QA__.deferSnapshot=true;});
+  await recoveryPill.reload();
+  await recoveryPill.waitForFunction(()=>!!window.__QA__.resolveSnapshot);
+  await recoveryPill.evaluate(()=>{
+    window.__QA__.emit('capsule-state',{revision:5,state:'transcribing',generation:12});
+    window.__QA__.resolveSnapshot({revision:4,state:'recording',generation:12});
+  });
+  await recoveryPill.locator('.capsule-transcribing').waitFor();
+  assert.equal(await recoveryPill.locator('.capsule-recording').count(),0,'A delayed snapshot cannot overwrite a newer processing event');
+  await recoveryPill.evaluate(()=>{
+    window.dispatchEvent(new CustomEvent('capsule-state-replay',{detail:{revision:6,state:'pasting',generation:12}}));
+    window.__QA__.emit('capsule-state',{revision:5,state:'transcribing',generation:12});
+  });
+  await recoveryPill.locator('.capsule-pasting').waitFor();
+  assert.equal(await recoveryPill.locator('.capsule-transcribing').count(),0,'Resuming the webview carries current state even if the ordinary event was lost');
+  await recoveryPill.close();
 
   for(const theme of ['dark','light']) for(const reducedMotion of ['no-preference','reduce']) {
     const context=await browser.newContext({viewport:{width:380,height:52},reducedMotion});
@@ -422,5 +497,5 @@ try {
     await context.close();
   }
   assert.deepEqual(errors,[]);
-  console.log(`Dictation checks passed in ${engine.name()}: configured triggers, silence recovery, stale events, paste outcomes, microphone waveform and cleanup, locked-only dragging, favicon, no transcript, centered morph, continuous processing, fast completion, interruption, reduced motion and accessibility.`);
+  console.log(`Dictation checks passed in ${engine.name()}: native focus, app switching, capsule reload/resume, configured triggers, silence recovery, stale events, paste outcomes, microphone waveform and cleanup, locked-only dragging, favicon, no transcript, centered morph, continuous processing, fast completion, interruption, reduced motion and accessibility.`);
 } finally { await browser?.close(); server.kill(); }

@@ -1430,6 +1430,7 @@ pub fn run() {
         .plugin(tauri_nspanel::init())
         .manage(AppState::new())
         .manage(dictation::Coordinator::default())
+        .manage(capsule::CapsulePresentation::default())
         .manage(audio_input::AudioInputState::default())
         .manage(history::HistoryState::default())
         .manage(reformat::ReformatState::default())
@@ -1611,6 +1612,7 @@ pub fn run() {
             capsule::show_capsule,
             capsule::hide_capsule,
             capsule::emit_capsule_state,
+            capsule::get_capsule_state,
             capsule::show_correction_feedback,
             capsule::play_capsule_sound,
         ])

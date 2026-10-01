@@ -66,4 +66,4 @@ commands.allow = [
 [[permission]]
 identifier = "capsule-commands"
 description = "Show and dismiss the recording overlay."
-commands.allow = ["show_capsule", "hide_capsule", "get_theme"]
+commands.allow = ["show_capsule", "hide_capsule", "get_capsule_state", "get_theme"]

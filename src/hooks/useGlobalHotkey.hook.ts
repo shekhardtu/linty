@@ -2,11 +2,13 @@ import { useEffect, useRef, useCallback } from "react";
 import { flushSync } from "react-dom";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   register,
   unregister,
   isRegistered,
 } from "@tauri-apps/plugin-global-shortcut";
+import { isDictationWindowActive } from "@/services/dictation-presentation.service";
 import { currentDictation, ownsDictation, isRecoveringDictation, recoverDictation, finishEmptyDictation } from "@/services/dictation-recovery.service";
 import { DictationTrigger } from "@/lib/dictation-trigger";
 import { useRecording } from "./useRecording.hook";
@@ -63,19 +65,20 @@ export function useGlobalHotkey(enabled = true) {
     // Cancel any stale hide/reset timers from a previous recording session
     clearPendingTimersRef.current();
 
-    const inFocus = document.hasFocus();
-
     try {
-      // Mount the focused view before capture starts so even a very fast result
-      // belongs to this visit. Keep the originating page and its state mounted.
-      if (inFocus) flushSync(() => useAppStore.getState().setRecordingFocusOpen(true));
+      const focus = isDictationWindowActive();
+      // Reserve startup before awaiting focus: a fast release must still wait
+      // for this microphone and close it rather than start a second capture.
       const starting = startRecordingRef.current();
       const session = currentDictation();
+      const inFocus = await focus;
+      if (!ownsDictation(session) || session.cancelled) return;
+      if (inFocus) flushSync(() => useAppStore.getState().setRecordingFocusOpen(true));
       const started = await starting;
       if (!ownsDictation(session)) return;
       if (!started) { isRecordingRef.current = false; gestureRef.current?.reset(); return; }
       // A quick release may already be stopping the stream. Never overwrite its state.
-      if (!inFocus && isRecordingRef.current && !processingRef.current) {
+      if (!await isDictationWindowActive() && isRecordingRef.current && !processingRef.current) {
         void invoke("show_capsule").then(() => {
           if (ownsDictation(session) && !session.cancelled && isRecordingRef.current && !processingRef.current) return showRecording();
         }).catch(() => {});
@@ -87,6 +90,36 @@ export function useGlobalHotkey(enabled = true) {
       await recoverDictation(error instanceof Error ? error.message : String(error));
     }
   }, [showRecording]);
+
+  // Dictation can outlive a focus change. Move its presentation between the
+  // main dialog and the pill without restarting capture or processing.
+  useEffect(() => {
+    let disposed = false;
+    let revision = 0;
+    const listener = getCurrentWindow().onFocusChanged(async () => {
+      const request = ++revision;
+      const focused = await isDictationWindowActive();
+      if (disposed || request !== revision) return;
+      const state = useAppStore.getState();
+      if (!["preparing", "recording", "transcribing", "correcting", "pasting"].includes(state.status)) return;
+      if (focused) {
+        state.setRecordingFocusOpen(true);
+        void invoke("hide_capsule").catch(() => {});
+      } else {
+        const session = currentDictation();
+        void invoke("show_capsule").then(() => {
+          if (disposed || request !== revision || !ownsDictation(session) || session.cancelled) return;
+          const latest = useAppStore.getState();
+          if (["preparing", "recording", "transcribing", "correcting", "pasting"].includes(latest.status)) {
+            return invoke("emit_capsule_state", {
+              state: latest.status, handsFree: latest.handsFree, generation: latest.recordingGeneration,
+            });
+          }
+        }).catch(() => {});
+      }
+    });
+    return () => { disposed = true; void listener.then(unlisten => unlisten()); };
+  }, []);
 
   const finishRecording = useCallback(async (discard = false) => {
     if (!isRecordingRef.current || processingRef.current) return;

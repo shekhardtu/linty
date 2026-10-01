@@ -475,6 +475,9 @@ export const fixture = ({
       window.__QA__.calls.push(command);
       if (window.__QA__.failures[command])
         throw new Error(window.__QA__.failures[command]);
+      if (command === "plugin:window|is_focused") return window.__QA__.windowFocused ?? document.hasFocus();
+      if (command === "plugin:window|is_visible") return window.__QA__.windowVisible ?? true;
+      if (command === "plugin:window|is_minimized") return window.__QA__.windowMinimized ?? false;
       if (command === "show_correction_feedback") {
         window.__QA__.correctionFeedback.push(structuredClone(args.feedback));
         return;

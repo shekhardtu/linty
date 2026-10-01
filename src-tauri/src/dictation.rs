@@ -317,7 +317,7 @@ fn terminal(app: &tauri::AppHandle, session: &Session, result: &Result<Outcome, 
         let _ = app.run_on_main_thread(move || {
             if handle.state::<Coordinator>().get(generation).is_ok() {
                 #[cfg(target_os = "macos")]
-                crate::capsule::hide_capsule(handle, None);
+                crate::capsule::hide_capsule(handle, None, None);
             }
         });
     });
