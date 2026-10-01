@@ -36,6 +36,14 @@ than ready until the linked components finish. Pressing the trigger opens the
 microphone immediately, then starts preparation in the background. The listening
 indicator, start sound, and duration follow actual microphone capture.
 
+Dictation presentation uses native window focus, visibility, and minimization
+rather than WebKit document focus. The pill appears while another app is active;
+Linty's focused dialog takes over when its visible window is active. Switching
+apps during capture or processing moves the feedback without restarting capture.
+The native panel retains a revisioned state snapshot and replays it when the
+webview resumes or reloads, so a missed event cannot leave the pill empty. Older
+state events and dismissal requests cannot replace a newer dictation's feedback.
+
 Releasing the trigger stops capture even when preparation is pending. Recorded
 samples stay in Rust while transcription waits for readiness, with a visible
 “Getting ready…” message in the pill. Concurrent requests share preparation; warm

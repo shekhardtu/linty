@@ -1,3 +1,3 @@
 ## What's new
 
-- The Mac installer is excluded from Spotlight while mounted, so its temporary app copy does not compete with the installed Linty app in search.
+- Dictation feedback is more reliable while using other apps. The recording pill restores its current state after a reload or resume and follows you when switching between Linty and another app.

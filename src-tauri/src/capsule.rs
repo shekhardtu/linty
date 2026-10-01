@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Mutex, MutexGuard};
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_nspanel::cocoa::appkit::{NSMainMenuWindowLevel, NSWindowCollectionBehavior};
 use tauri_nspanel::cocoa::base::nil;
@@ -137,6 +138,7 @@ fn save_position(app: &AppHandle, frame: NSRect) {
 
 #[derive(Clone, Serialize)]
 pub struct CapsuleState {
+    pub revision: u64,
     pub state: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hands_free: Option<bool>,
@@ -144,6 +146,52 @@ pub struct CapsuleState {
     pub generation: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+}
+
+/// Events are transient; a newly loaded capsule must recover the latest state.
+#[derive(Default)]
+pub struct CapsulePresentation(Mutex<Option<CapsuleState>>);
+
+impl CapsulePresentation {
+    fn latest(&self) -> MutexGuard<'_, Option<CapsuleState>> {
+        self.0.lock().unwrap_or_else(|error| {
+            // This cache contains only presentation data. Retaining its last
+            // snapshot after poisoning keeps feedback available without panic.
+            log::warn!("[capsule] Recovering presentation cache after a failed update");
+            error.into_inner()
+        })
+    }
+
+    fn update(&self, mut state: CapsuleState) -> CapsuleState {
+        let mut latest = self.latest();
+        state.revision = latest.as_ref().map_or(1, |previous| previous.revision + 1);
+        *latest = Some(state.clone());
+        state
+    }
+
+    fn clear(&self) {
+        self.update(CapsuleState {
+            revision: 0,
+            state: "idle".into(),
+            hands_free: None,
+            generation: None,
+            error: None,
+        });
+    }
+
+    fn is_current(&self, revision: u64) -> bool {
+        self.latest()
+            .as_ref()
+            .is_some_and(|latest| latest.revision == revision)
+    }
+}
+
+#[tauri::command]
+pub fn get_capsule_state(app: AppHandle) -> Option<CapsuleState> {
+    if SHOWING_FEEDBACK.load(Ordering::SeqCst) {
+        return None;
+    }
+    app.state::<CapsulePresentation>().latest().clone()
 }
 
 // ── Init ──
@@ -199,23 +247,37 @@ fn apply_panel_properties(panel: &tauri_nspanel::raw_nspanel::RawNSPanel) {
 
 #[tauri::command]
 #[allow(unexpected_cfgs)]
-pub fn show_capsule(app: AppHandle, feedback: Option<bool>) {
-    let Ok(panel) = app.get_webview_panel("capsule") else {
-        log::warn!("[capsule] show_capsule: panel not found");
-        return;
-    };
+pub fn show_capsule(app: AppHandle, feedback: Option<bool>) -> Result<(), String> {
+    if !feedback.unwrap_or(false) {
+        if let Some(main) = app.get_webview_window("main") {
+            // Focus can change while a frontend show request is in flight.
+            // The native dialog owns presentation while Linty is active.
+            match main
+                .is_focused()
+                .and_then(|focused| Ok(focused && main.is_visible()? && !main.is_minimized()?))
+            {
+                Ok(true) => return Ok(()),
+                Ok(false) => {}
+                Err(error) => log::warn!("[capsule] Could not check main window focus: {error}"),
+            }
+        }
+    }
+    let panel = app.get_webview_panel("capsule").map_err(|error| {
+        log::warn!("[capsule] show_capsule: panel not found: {error:?}");
+        "Recording panel unavailable".to_string()
+    })?;
 
     // Re-apply critical properties every show — macOS may reset them after
     // sleep/wake, display reconfiguration, or space changes.
-    panel.set_level(PANEL_LEVEL);
-    panel.set_floating_panel(true);
-    panel.set_hides_on_deactivate(false);
+    apply_panel_properties(&panel);
 
     // Wake the capsule webview's JS context — macOS may suspend WKWebView
     // for hidden windows. Evaluating JS forces the content process to resume
     // before we send state events.
     if let Some(capsule_window) = app.get_webview_window("capsule") {
-        let _ = capsule_window.eval("/* wake */");
+        if let Err(error) = capsule_window.eval("/* wake */") {
+            log::warn!("[capsule] Could not resume panel webview: {error}");
+        }
     }
 
     // Reuse the actual native position after dragging, including between states.
@@ -223,7 +285,8 @@ pub fn show_capsule(app: AppHandle, feedback: Option<bool>) {
     unsafe {
         let main_screen = tauri_nspanel::cocoa::appkit::NSScreen::mainScreen(nil);
         if main_screen == nil {
-            return;
+            log::warn!("[capsule] show_capsule: no screen available");
+            return Err("No screen available for recording panel".into());
         }
         let visible_frame: NSRect = msg_send![main_screen, visibleFrame];
         let screen_list = tauri_nspanel::cocoa::appkit::NSScreen::screens(nil);
@@ -257,11 +320,15 @@ pub fn show_capsule(app: AppHandle, feedback: Option<bool>) {
     // order_front_regardless avoids making the panel key (no focus steal)
     panel.order_front_regardless();
     SHOWING_FEEDBACK.store(feedback.unwrap_or(false), Ordering::SeqCst);
+    Ok(())
 }
 
 #[tauri::command]
-pub fn hide_capsule(app: AppHandle, feedback: Option<bool>) {
+pub fn hide_capsule(app: AppHandle, feedback: Option<bool>, revision: Option<u64>) {
     if SHOWING_FEEDBACK.load(Ordering::SeqCst) != feedback.unwrap_or(false) {
+        return;
+    }
+    if revision.is_some_and(|revision| !app.state::<CapsulePresentation>().is_current(revision)) {
         return;
     }
     let Ok(panel) = app.get_webview_panel("capsule") else {
@@ -272,6 +339,7 @@ pub fn hide_capsule(app: AppHandle, feedback: Option<bool>) {
     save_position(&app, frame);
     panel.order_out(None);
     SHOWING_FEEDBACK.store(false, Ordering::SeqCst);
+    app.state::<CapsulePresentation>().clear();
 }
 
 #[cfg(test)]
@@ -330,6 +398,49 @@ mod placement_tests {
     }
 }
 
+#[cfg(test)]
+mod presentation_tests {
+    use super::*;
+
+    fn state(mode: &str, generation: u64) -> CapsuleState {
+        CapsuleState {
+            revision: 0,
+            state: mode.into(),
+            hands_free: None,
+            generation: Some(generation),
+            error: None,
+        }
+    }
+
+    #[test]
+    fn snapshot_retains_the_latest_state_and_rejects_an_old_dismissal() {
+        let presentation = CapsulePresentation::default();
+        assert!(presentation.0.lock().unwrap().is_none());
+        let previous = presentation.update(state("done", 1));
+        let current = presentation.update(state("recording", 2));
+        assert!(!presentation.is_current(previous.revision));
+        assert!(presentation.is_current(current.revision));
+        let snapshot = presentation.0.lock().unwrap().clone().unwrap();
+        assert_eq!(snapshot.state, "recording");
+        assert_eq!(snapshot.generation, Some(2));
+        assert_eq!(snapshot.revision, current.revision);
+    }
+
+    #[test]
+    fn hiding_invalidates_the_previous_snapshot_without_reusing_a_revision() {
+        let presentation = CapsulePresentation::default();
+        let recording = presentation.update(state("recording", 1));
+        presentation.clear();
+        assert!(!presentation.is_current(recording.revision));
+        assert_eq!(
+            presentation.0.lock().unwrap().as_ref().unwrap().state,
+            "idle"
+        );
+        let next = presentation.update(state("recording", 2));
+        assert!(next.revision > recording.revision + 1);
+    }
+}
+
 // ── Emit state ──
 
 #[tauri::command]
@@ -344,13 +455,31 @@ pub fn emit_capsule_state(
         return;
     }
     SHOWING_FEEDBACK.store(false, Ordering::SeqCst);
-    let payload = CapsuleState {
+    let payload = app.state::<CapsulePresentation>().update(CapsuleState {
+        revision: 0,
         state,
         hands_free,
         generation,
         error,
-    };
-    let _ = app.emit_to("capsule", "capsule-state", &payload);
+    });
+    if let Err(error) = app.emit_to("capsule", "capsule-state", &payload) {
+        log::warn!("[capsule] Could not deliver panel state: {error}");
+    }
+    // Resume a suspended WKWebView with the state itself. A no-op wake followed
+    // by a transient event cannot guarantee that its listener was ready.
+    if let Some(window) = app.get_webview_window("capsule") {
+        match serde_json::to_string(&payload) {
+            Ok(payload) => {
+                let script = format!(
+                    "window.dispatchEvent(new CustomEvent('capsule-state-replay', {{ detail: {payload} }}));"
+                );
+                if let Err(error) = window.eval(script) {
+                    log::warn!("[capsule] Could not resume panel state: {error}");
+                }
+            }
+            Err(error) => log::warn!("[capsule] Could not serialize panel state: {error}"),
+        }
+    }
 }
 
 // ── Sound effects ──

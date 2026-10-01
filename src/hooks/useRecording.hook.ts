@@ -6,6 +6,7 @@ import { beginDictation, currentDictation, finishEmptyDictation, isRecoveringDic
 import type { DictationSession } from "@/lib/dictation-session";
 import { dictationOptions } from "@/services/dictation-options.service";
 import { initializeDictionary } from "@/services/dictionary.service";
+import { isDictationWindowActive } from "@/services/dictation-presentation.service";
 
 export interface StopResult {
   sample_count: number;
@@ -33,7 +34,7 @@ export function useRecording() {
         const settings = useAppStore.getState();
         if (!settings.settingsLoaded) throw new Error("Settings are still loading. Please try again.");
         useAppStore.getState().setStatus("preparing");
-        if (!document.hasFocus()) void invoke("show_capsule").then(() => {
+        if (!await isDictationWindowActive()) void invoke("show_capsule").then(() => {
           if (ownsDictation(session) && !session.cancelled && useAppStore.getState().status === "preparing") {
             return invoke("emit_capsule_state", { state: "preparing" });
           }

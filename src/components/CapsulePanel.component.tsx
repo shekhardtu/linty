@@ -11,6 +11,7 @@ import lintyFavicon from "../../src-tauri/icons/icon.svg?raw";
 
 type CapsuleMode = "idle" | "preparing" | "recording" | "transcribing" | "correcting" | "pasting" | "done" | "quiet-stop" | "error" | "feedback";
 interface CapsuleStatePayload {
+  revision?: number;
   state: CapsuleMode;
   error?: string;
   hands_free?: boolean;
@@ -61,6 +62,7 @@ export function CapsulePanel() {
   const presentFeedbackRef = useRef<(feedback: CorrectionFeedback) => void>(() => {});
   const modeRef = useRef<CapsuleMode>("idle");
   const generationRef = useRef<number | undefined>(undefined);
+  const revisionRef = useRef<number | undefined>(undefined);
   const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -85,7 +87,7 @@ export function CapsulePanel() {
       modeRef.current = "idle";
       setMode("idle");
       setDismissing(false);
-      invoke("hide_capsule", { feedback: wasFeedback }).catch(() => {});
+      invoke("hide_capsule", { feedback: wasFeedback, revision: wasFeedback ? undefined : revisionRef.current }).catch(() => {});
     }, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 180);
   }, []);
 
@@ -110,6 +112,7 @@ export function CapsulePanel() {
   }, [scheduleFeedbackDismissal]);
 
   useEffect(() => {
+    let disposed = false;
     const presentFeedback = (notice: CorrectionFeedback) => {
       if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
       if (exitTimerRef.current !== null) clearTimeout(exitTimerRef.current);
@@ -125,50 +128,65 @@ export function CapsulePanel() {
       scheduleFeedbackDismissal();
     };
     presentFeedbackRef.current = presentFeedback;
+    const receiveState = (payload: CapsuleStatePayload) => {
+      if (disposed) return;
+      if (payload.revision !== undefined) {
+        if (revisionRef.current !== undefined && payload.revision <= revisionRef.current) return;
+        revisionRef.current = payload.revision;
+      }
+      const { state, error, hands_free, generation } = payload;
+      // Late cleanup cannot dismiss a fresh acknowledgment. Once shown, an
+      // interrupted notice is finished; it never returns after dictation.
+      if (modeRef.current === "feedback") {
+        if (state === "idle") return;
+        feedbackRef.current = null;
+        feedbackDeadlineRef.current = null;
+        feedbackInteractionRef.current.focus = false;
+      }
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+      if (state === "idle") { dismiss(); return; }
+      if (exitTimerRef.current !== null) {
+        clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+      const newRecording = state === "recording" && (modeRef.current !== "recording" || generationRef.current !== generation);
+      modeRef.current = state;
+      setMode(state);
+      if (state === "recording" || state === "preparing" || state === "error" || state === "quiet-stop") setExpandedMode(state);
+      setDismissing(false);
+      if (state === "error") setErrorMsg(error || "Something went wrong");
+      if (newRecording) {
+        generationRef.current = generation;
+        setDuration(0);
+        setLevels(flatWaveform());
+        setQuietSeconds(0);
+        setStopping(false);
+        const started = Date.now();
+        if (durationIntervalRef.current) clearInterval(durationIntervalRef.current);
+        durationIntervalRef.current = setInterval(() => setDuration((Date.now() - started) / 1000), 1000);
+      }
+      if (state === "recording") setHandsFree(!!hands_free);
+      else if (durationIntervalRef.current) {
+        clearInterval(durationIntervalRef.current);
+        durationIntervalRef.current = null;
+      }
+      if (state === "done" || state === "quiet-stop") dismissTimerRef.current = setTimeout(dismiss, state === "done" ? 1100 : 2200);
+      if (state === "error") dismissTimerRef.current = setTimeout(dismiss, 6000);
+    };
+    const replayState = (event: Event) => receiveState((event as CustomEvent<CapsuleStatePayload>).detail);
+    window.addEventListener("capsule-state-replay", replayState);
+    const stateListener = listen<CapsuleStatePayload>("capsule-state", ({ payload }) => receiveState(payload));
+    // Register first, then read. A newer event wins over a delayed snapshot.
+    void stateListener.then(() => {
+      if (!disposed) return invoke<CapsuleStatePayload | null>("get_capsule_state");
+    }).then(payload => { if (payload) receiveState(payload); }).catch(error => {
+      if (!disposed) console.warn("Could not restore recording panel state:", error);
+    });
     const listeners = [
+      stateListener,
       listen<CorrectionFeedback>("correction-feedback", ({ payload }) => {
         if (modeRef.current === "idle") presentFeedback(payload);
         else pendingFeedbackRef.current.push(payload);
-      }),
-      listen<CapsuleStatePayload>("capsule-state", ({ payload }) => {
-        const { state, error, hands_free, generation } = payload;
-        // Late cleanup cannot dismiss a fresh acknowledgment. Once shown, an
-        // interrupted notice is finished; it never returns after dictation.
-        if (modeRef.current === "feedback") {
-          if (state === "idle") return;
-          feedbackRef.current = null;
-          feedbackDeadlineRef.current = null;
-          feedbackInteractionRef.current.focus = false;
-        }
-        if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-        if (state === "idle") { dismiss(); return; }
-        if (exitTimerRef.current !== null) {
-          clearTimeout(exitTimerRef.current);
-          exitTimerRef.current = null;
-        }
-        const newRecording = state === "recording" && (modeRef.current !== "recording" || generationRef.current !== generation);
-        modeRef.current = state;
-        setMode(state);
-        if (state === "recording" || state === "preparing" || state === "error" || state === "quiet-stop") setExpandedMode(state);
-        setDismissing(false);
-        if (state === "error") setErrorMsg(error || "Something went wrong");
-        if (newRecording) {
-          generationRef.current = generation;
-          setDuration(0);
-          setLevels(flatWaveform());
-          setQuietSeconds(0);
-          setStopping(false);
-          const started = Date.now();
-          if (durationIntervalRef.current) clearInterval(durationIntervalRef.current);
-          durationIntervalRef.current = setInterval(() => setDuration((Date.now() - started) / 1000), 1000);
-        }
-        if (state === "recording") setHandsFree(!!hands_free);
-        else if (durationIntervalRef.current) {
-          clearInterval(durationIntervalRef.current);
-          durationIntervalRef.current = null;
-        }
-        if (state === "done" || state === "quiet-stop") dismissTimerRef.current = setTimeout(dismiss, state === "done" ? 1100 : 2200);
-        if (state === "error") dismissTimerRef.current = setTimeout(dismiss, 6000);
       }),
       listen<number>("capsule-amplitude", ({ payload }) => {
         if (modeRef.current !== "recording") return;
@@ -179,6 +197,8 @@ export function CapsulePanel() {
       }),
     ];
     return () => {
+      disposed = true;
+      window.removeEventListener("capsule-state-replay", replayState);
       for (const listener of listeners) void listener.then(off => off());
       if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
       if (exitTimerRef.current !== null) clearTimeout(exitTimerRef.current);
