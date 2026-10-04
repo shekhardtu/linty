@@ -36,13 +36,20 @@ than ready until the linked components finish. Pressing the trigger opens the
 microphone immediately, then starts preparation in the background. The listening
 indicator, start sound, and duration follow actual microphone capture.
 
-Dictation presentation uses native window focus, visibility, and minimization
-rather than WebKit document focus. The pill appears while another app is active;
-Linty's focused dialog takes over when its visible window is active. Switching
+Dictation presentation reads application activation, native window focus,
+visibility, minimization and active Space in one AppKit snapshot, rather than
+WebKit document focus or separate asynchronous window queries. The pill appears
+while another app is active; Linty's focused dialog takes over when its visible
+window is active. Switching
 apps during capture or processing moves the feedback without restarting capture.
 The native panel retains a revisioned state snapshot and replays it when the
 webview resumes or reloads, so a missed event cannot leave the pill empty. Older
 state events and dismissal requests cannot replace a newer dictation's feedback.
+Focus-driven hides recheck that the main window still owns visible feedback when
+the request executes. They retain the active capsule snapshot. Each non-idle
+state also schedules native panel restoration, so an older focus hide cannot
+leave recording feedback hidden. Local logs include show/skip/hide decisions,
+state revisions and a webview render acknowledgment, without transcript content.
 Opening a running app through Spotlight or the Dock restores and focuses its
 main window, including when it was closed or minimized. Tray and second-instance
 opens use the same restoration path.

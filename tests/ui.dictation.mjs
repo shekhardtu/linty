@@ -27,6 +27,10 @@ try {
       if(command==='plugin:global-shortcut|register') for(const shortcut of args.shortcuts) window.__QA__.handlers[shortcut]=args.handler.onmessage;
       if(command==='plugin:global-shortcut|unregister') for(const shortcut of args.shortcuts) delete window.__QA__.handlers[shortcut];
       if(command==='emit_capsule_state') window.__QA__.capsule.push(args);
+      if(command==='hide_capsule' && args?.forMainWindow && window.__QA__.deferMainHide) {
+        window.__QA__.calls.push(command);
+        return new Promise(resolve=>{window.__QA__.finishMainHide=()=>resolve(original(command,args));});
+      }
       if(command==='history_save') window.__QA__.savedAudioGeneration=args.recordingGeneration;
       if(command==='start_dictation') {
         window.__QA__.calls.push(command);
@@ -253,12 +257,17 @@ try {
   await page.waitForFunction(()=>window.__QA__.capsule.at(-1)?.state==='recording');
   assert.equal(await page.getByRole('dialog',{name:'Focused dictation',exact:true}).count(),0,'Stale document focus cannot suppress the background pill');
   let hides=await count('hide_capsule');
-  await page.evaluate(()=>{window.__QA__.windowFocused=true;window.__QA__.emit('tauri://focus',true);});
+  await page.evaluate(()=>{window.__QA__.deferMainHide=true;window.__QA__.windowFocused=true;window.__QA__.emit('tauri://focus',true);});
   await page.getByRole('dialog',{name:'Focused dictation',exact:true}).waitFor();
   await page.waitForFunction(hides=>window.__QA__.calls.filter(c=>c==='hide_capsule').length>hides,hides);
   let shows=await count('show_capsule');
-  await page.evaluate(()=>{window.__QA__.windowFocused=false;window.__QA__.emit('tauri://blur',false);});
+  await page.waitForFunction(()=>!!window.__QA__.finishMainHide);
+  await page.evaluate(()=>{window.__QA__.windowFocused=false;window.__QA__.windowVisible=false;window.__QA__.emit('tauri://blur',false);});
   await page.waitForFunction(shows=>window.__QA__.calls.filter(c=>c==='show_capsule').length>shows,shows);
+  await page.waitForFunction(()=>window.__QA__.capsuleVisible===true);
+  await page.evaluate(()=>{window.__QA__.deferMainHide=false;window.__QA__.finishMainHide();});
+  assert.equal(await page.evaluate(()=>window.__QA__.capsuleVisible),true,'A late focus hide cannot make an active recording pill disappear while Linty is hidden');
+  await page.evaluate(()=>{window.__QA__.windowVisible=true;});
   assert.equal(await count('start_dictation'),starts+1,'Switching apps moves feedback without restarting the microphone');
   await store.evaluate(s=>s.getState().setStatus('transcribing'));
   await page.evaluate(()=>{window.__QA__.windowFocused=true;window.__QA__.emit('tauri://focus',true);});
@@ -268,15 +277,15 @@ try {
   await store.evaluate(s=>s.getState().setStatus('recording'));
   await single('Control+Option+Space'); await status('idle');
   await page.getByRole('button',{name:'Back now',exact:true}).click();
-  for(const nativeState of [{windowFocused:true,windowVisible:false},{windowFocused:true,windowMinimized:true}]) {
+  for(const nativeState of [{windowFocused:true,windowVisible:false},{windowFocused:true,windowMinimized:true},{windowFocused:true,appActive:false},{windowFocused:true,windowOnActiveSpace:false}]) {
     await page.clock.runFor(501);
-    await page.evaluate(nativeState=>{Object.assign(window.__QA__,{windowVisible:true,windowMinimized:false},nativeState);},nativeState);
+    await page.evaluate(nativeState=>{Object.assign(window.__QA__,{windowVisible:true,windowMinimized:false,appActive:true,windowOnActiveSpace:true},nativeState);},nativeState);
     await double('Control+Option+Space'); await status('recording');
     await page.waitForFunction(()=>window.__QA__.capsule.at(-1)?.state==='recording');
-    assert.equal(await page.getByRole('dialog',{name:'Focused dictation',exact:true}).count(),0,'A hidden or minimized Linty window uses the pill');
+    assert.equal(await page.getByRole('dialog',{name:'Focused dictation',exact:true}).count(),0,'A hidden, minimized, inactive or off-Space Linty window uses the pill');
     await single('Control+Option+Space'); await status('idle');
   }
-  await page.evaluate(()=>{delete window.__QA__.windowFocused;delete window.__QA__.windowVisible;delete window.__QA__.windowMinimized;});
+  await page.evaluate(()=>{delete window.__QA__.windowFocused;delete window.__QA__.windowVisible;delete window.__QA__.windowMinimized;delete window.__QA__.appActive;delete window.__QA__.windowOnActiveSpace;});
   // Focused dictation uses native input history, just like the pill.
   await page.evaluate(()=>{window.__QA__.hasAudio=false;window.__QA__.failPaste=false;delete window.__QA__.deliveryStatus;document.hasFocus=()=>true;});
   await page.getByRole('button',{name:'System Check',exact:true}).click();
@@ -353,6 +362,7 @@ try {
   });
   await recoveryPill.goto(`${url}/capsule.html`);
   await recoveryPill.locator('.capsule-recording').waitFor();
+  await recoveryPill.waitForFunction(()=>window.__QA__.calls.includes('capsule_state_rendered'));
   assert.equal(await recoveryPill.locator('.capsule-time').innerText(),'0:00','The current recording renders even when its initial event was missed');
   await recoveryPill.reload();
   await recoveryPill.locator('.capsule-recording').waitFor();

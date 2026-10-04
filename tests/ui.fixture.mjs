@@ -475,6 +475,13 @@ export const fixture = ({
       window.__QA__.calls.push(command);
       if (window.__QA__.failures[command])
         throw new Error(window.__QA__.failures[command]);
+      const dictationWindowActive = () => (window.__QA__.windowFocused ?? document.hasFocus())
+        && (window.__QA__.windowVisible ?? true) && !(window.__QA__.windowMinimized ?? false)
+        && (window.__QA__.appActive ?? true) && (window.__QA__.windowOnActiveSpace ?? true);
+      if (command === "is_dictation_window_active") return dictationWindowActive();
+      if (command === "show_capsule" && (args.feedback || !dictationWindowActive())) window.__QA__.capsuleVisible = true;
+      if (command === "hide_capsule" && (!args.forMainWindow || dictationWindowActive())) window.__QA__.capsuleVisible = false;
+      if (command === "emit_capsule_state" && args.state !== "idle" && !dictationWindowActive()) window.__QA__.capsuleVisible = true;
       if (command === "plugin:window|is_focused") return window.__QA__.windowFocused ?? document.hasFocus();
       if (command === "plugin:window|is_visible") return window.__QA__.windowVisible ?? true;
       if (command === "plugin:window|is_minimized") return window.__QA__.windowMinimized ?? false;

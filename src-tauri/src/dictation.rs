@@ -402,7 +402,7 @@ fn terminal(app: &tauri::AppHandle, session: &Session, result: &Result<Outcome, 
         let _ = app.run_on_main_thread(move || {
             if handle.state::<Coordinator>().is_current(generation) {
                 #[cfg(target_os = "macos")]
-                crate::capsule::hide_capsule(handle, None, None);
+                crate::capsule::hide_capsule(handle, None, None, None);
             }
         });
     });

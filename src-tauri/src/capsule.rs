@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, MutexGuard};
 use tauri::{AppHandle, Emitter, Manager};
-use tauri_nspanel::cocoa::appkit::{NSMainMenuWindowLevel, NSWindowCollectionBehavior};
+use tauri_nspanel::cocoa::appkit::{NSApp, NSMainMenuWindowLevel, NSWindowCollectionBehavior};
 use tauri_nspanel::cocoa::base::nil;
 use tauri_nspanel::cocoa::base::YES;
 use tauri_nspanel::cocoa::foundation::{NSPoint, NSRect, NSSize};
@@ -245,21 +245,69 @@ fn apply_panel_properties(panel: &tauri_nspanel::raw_nspanel::RawNSPanel) {
 
 // ── Show/Hide ──
 
+#[derive(Debug, Default)]
+struct MainWindowPresentation {
+    app_active: bool,
+    focused: bool,
+    visible: bool,
+    minimized: bool,
+    on_active_space: bool,
+}
+
+impl MainWindowPresentation {
+    fn active(&self) -> bool {
+        self.app_active && self.focused && self.visible && !self.minimized && self.on_active_space
+    }
+}
+
+// Read one AppKit snapshot on the main thread. A key window belongs to its
+// application; that alone does not establish that the application is active.
+fn main_window_presentation(app: &AppHandle) -> Result<MainWindowPresentation, String> {
+    let Some(main) = app.get_webview_window("main") else {
+        return Ok(MainWindowPresentation::default());
+    };
+    let window = main.ns_window().map_err(|error| error.to_string())?;
+    unsafe {
+        let window = window as tauri_nspanel::cocoa::base::id;
+        let app_active: bool = msg_send![NSApp(), isActive];
+        let focused: bool = msg_send![window, isKeyWindow];
+        let visible: bool = msg_send![window, isVisible];
+        let minimized: bool = msg_send![window, isMiniaturized];
+        let on_active_space: bool = msg_send![window, isOnActiveSpace];
+        Ok(MainWindowPresentation {
+            app_active,
+            focused,
+            visible,
+            minimized,
+            on_active_space,
+        })
+    }
+}
+
+#[tauri::command]
+pub fn is_dictation_window_active(app: AppHandle) -> Result<bool, String> {
+    main_window_presentation(&app).map(|state| state.active())
+}
+
+#[tauri::command]
+pub fn capsule_state_rendered(app: AppHandle, revision: u64, state: String) {
+    let current = app.state::<CapsulePresentation>().latest().clone();
+    if current.is_some_and(|current| current.revision == revision && current.state == state) {
+        log::info!("[capsule] Rendered state={state} revision={revision}");
+    }
+}
+
 #[tauri::command]
 #[allow(unexpected_cfgs)]
 pub fn show_capsule(app: AppHandle, feedback: Option<bool>) -> Result<(), String> {
     if !feedback.unwrap_or(false) {
-        if let Some(main) = app.get_webview_window("main") {
-            // Focus can change while a frontend show request is in flight.
-            // The native dialog owns presentation while Linty is active.
-            match main
-                .is_focused()
-                .and_then(|focused| Ok(focused && main.is_visible()? && !main.is_minimized()?))
-            {
-                Ok(true) => return Ok(()),
-                Ok(false) => {}
-                Err(error) => log::warn!("[capsule] Could not check main window focus: {error}"),
+        match main_window_presentation(&app) {
+            Ok(state) if state.active() => {
+                log::info!("[capsule] Show skipped: main window owns presentation {state:?}");
+                return Ok(());
             }
+            Ok(_) => {}
+            Err(error) => log::warn!("[capsule] Could not check main window focus: {error}"),
         }
     }
     let panel = app.get_webview_panel("capsule").map_err(|error| {
@@ -319,12 +367,33 @@ pub fn show_capsule(app: AppHandle, feedback: Option<bool>) -> Result<(), String
 
     // order_front_regardless avoids making the panel key (no focus steal)
     panel.order_front_regardless();
+    let visible: bool = unsafe { msg_send![&*panel, isVisible] };
+    log::info!(
+        "[capsule] Show requested: panel_visible={visible} feedback={}",
+        feedback.unwrap_or(false)
+    );
     SHOWING_FEEDBACK.store(feedback.unwrap_or(false), Ordering::SeqCst);
     Ok(())
 }
 
 #[tauri::command]
-pub fn hide_capsule(app: AppHandle, feedback: Option<bool>, revision: Option<u64>) {
+pub fn hide_capsule(
+    app: AppHandle,
+    feedback: Option<bool>,
+    revision: Option<u64>,
+    for_main_window: Option<bool>,
+) {
+    if for_main_window.unwrap_or(false) {
+        // A delayed focus-change IPC must not hide a pill after the main window
+        // was hidden or another app became active. Recheck at execution time.
+        match main_window_presentation(&app) {
+            Ok(state) if state.active() => {}
+            state => {
+                log::info!("[capsule] Late main-window hide rejected: {state:?}");
+                return;
+            }
+        }
+    }
     if SHOWING_FEEDBACK.load(Ordering::SeqCst) != feedback.unwrap_or(false) {
         return;
     }
@@ -338,8 +407,14 @@ pub fn hide_capsule(app: AppHandle, feedback: Option<bool>, revision: Option<u64
     let frame: NSRect = unsafe { msg_send![&*panel, frame] };
     save_position(&app, frame);
     panel.order_out(None);
+    log::info!(
+        "[capsule] Hidden: revision={revision:?} for_main_window={}",
+        for_main_window.unwrap_or(false)
+    );
     SHOWING_FEEDBACK.store(false, Ordering::SeqCst);
-    app.state::<CapsulePresentation>().clear();
+    if !for_main_window.unwrap_or(false) {
+        app.state::<CapsulePresentation>().clear();
+    }
 }
 
 #[cfg(test)]
@@ -439,6 +514,38 @@ mod presentation_tests {
         let next = presentation.update(state("recording", 2));
         assert!(next.revision > recording.revision + 1);
     }
+
+    #[test]
+    fn main_window_owns_feedback_only_when_it_is_actually_active_and_visible() {
+        let mut state = MainWindowPresentation {
+            app_active: true,
+            focused: true,
+            visible: true,
+            minimized: false,
+            on_active_space: true,
+        };
+        assert!(state.active());
+        state.visible = false;
+        assert!(
+            !state.active(),
+            "A hide queued before closing cannot hide the recording pill"
+        );
+        state.visible = true;
+        state.app_active = false;
+        assert!(
+            !state.active(),
+            "A key window in an inactive app cannot suppress the pill"
+        );
+        state.app_active = true;
+        state.on_active_space = false;
+        assert!(
+            !state.active(),
+            "A window on another Space cannot own visible feedback"
+        );
+        state.on_active_space = true;
+        state.minimized = true;
+        assert!(!state.active());
+    }
 }
 
 // ── Emit state ──
@@ -465,6 +572,26 @@ pub fn emit_capsule_state(
         generation,
         error,
     });
+    log::info!(
+        "[capsule] State={} revision={} generation={:?}",
+        payload.state,
+        payload.revision,
+        payload.generation
+    );
+    if payload.state != "idle" {
+        let handle = app.clone();
+        let revision = payload.revision;
+        // A state transition also restores native visibility. This does not
+        // depend on a separate frontend show IPC winning a focus/hide race.
+        let scheduled = app.run_on_main_thread(move || {
+            if handle.state::<CapsulePresentation>().is_current(revision) {
+                let _ = show_capsule(handle, None);
+            }
+        });
+        if let Err(error) = scheduled {
+            log::warn!("[capsule] Could not schedule panel visibility: {error}");
+        }
+    }
     if let Err(error) = app.emit_to("capsule", "capsule-state", &payload) {
         log::warn!("[capsule] Could not deliver panel state: {error}");
     }

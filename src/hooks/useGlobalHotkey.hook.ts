@@ -107,7 +107,7 @@ export function useGlobalHotkey(enabled = true) {
       if (!["preparing", "recording", "transcribing", "correcting", "pasting"].includes(state.status)) return;
       if (focused) {
         state.setRecordingFocusOpen(true);
-        void invoke("hide_capsule").catch(() => {});
+        void invoke("hide_capsule", { forMainWindow: true }).catch(() => {});
       } else {
         const session = currentDictation();
         void invoke("show_capsule").then(() => {

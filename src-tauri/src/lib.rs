@@ -1627,6 +1627,8 @@ pub fn run() {
             capsule::hide_capsule,
             capsule::emit_capsule_state,
             capsule::get_capsule_state,
+            capsule::is_dictation_window_active,
+            capsule::capsule_state_rendered,
             capsule::show_correction_feedback,
             capsule::play_capsule_sound,
         ])
