@@ -116,6 +116,7 @@ test('busy means recording or producing text', () => {
   for (const status of ['recording', 'transcribing', 'correcting', 'pasting']) assert.equal(isDictationBusy({ isRecording: false, status }), true, status);
   for (const status of ['idle', 'done', 'error']) assert.equal(isDictationBusy({ isRecording: false, status }), false, status);
   assert.equal(isDictationBusy({ isRecording: true, status: 'idle' }), true);
+  assert.equal(isDictationBusy({ isRecording: false, status: 'idle', pendingDictations: 1 }), true, 'Background delivery must finish before an update restarts Linty');
 });
 
 test('the default timers resolve (the browser-only invocation error is covered by yarn test:ui)', async () => {

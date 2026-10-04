@@ -10,7 +10,7 @@ export function currentDictation() { return active; }
 export function isRecoveringDictation() { return recovery !== null; }
 export function ownsDictation(session: DictationSession) { return session === active; }
 export function beginDictation() {
-  active.cancel();
+  // Replacing presentation does not cancel the native background delivery.
   clearTimeout(terminalTimer);
   active = new DictationSession();
   useAppStore.getState().resetTranscription();

@@ -1,4 +1,5 @@
-//! Native owner of one dictation. UI commands observe a session; they do not
+//! Native owners of dictations. Capture can overlap ordered background delivery.
+//! UI commands observe a session; they do not
 //! orchestrate inference, transformation, persistence or delivery.
 use crate::{history, reformat, text_validation, StopResult};
 use serde::{Deserialize, Serialize};
@@ -45,6 +46,7 @@ pub struct Outcome {
 enum Phase {
     Starting,
     Recording,
+    Stopping,
     Processing,
     Finished,
 }
@@ -55,6 +57,8 @@ struct Session {
     phase: Mutex<Phase>,
     cancelled: AtomicBool,
     changed: Notify,
+    processing_done: AtomicBool,
+    processing_changed: Notify,
     result: Mutex<Option<Result<Outcome, String>>>,
 }
 impl Session {
@@ -83,13 +87,44 @@ impl Session {
         }
     }
     fn finish(&self, result: Result<Outcome, String>) {
+        self.release_processing();
         *self.result.lock().unwrap() = Some(result);
         *self.phase.lock().unwrap() = Phase::Finished;
         self.changed.notify_waiters();
     }
+    fn release_processing(&self) {
+        self.processing_done.store(true, Ordering::SeqCst);
+        self.processing_changed.notify_waiters();
+    }
+    async fn wait_processing(&self) {
+        loop {
+            let notified = self.processing_changed.notified();
+            tokio::pin!(notified);
+            notified.as_mut().enable();
+            if self.processing_done.load(Ordering::SeqCst) {
+                return;
+            }
+            notified.await;
+        }
+    }
+    async fn outcome(&self) -> Result<Outcome, String> {
+        loop {
+            let notified = self.changed.notified();
+            tokio::pin!(notified);
+            notified.as_mut().enable();
+            if let Some(result) = self.result.lock().map_err(|e| e.to_string())?.clone() {
+                return result;
+            }
+            notified.await;
+        }
+    }
     fn stage(&self, app: &tauri::AppHandle, stage: &str) -> Result<(), String> {
         self.check()?;
         let generation = self.generation.load(Ordering::SeqCst);
+        // Background work must not replace the newer capture's pill or dialog.
+        if !app.state::<Coordinator>().is_current(generation) {
+            return Ok(());
+        }
         let _ = app.emit_to(
             "main",
             "dictation-stage",
@@ -102,7 +137,8 @@ impl Session {
 }
 #[derive(Default)]
 pub struct Coordinator {
-    current: Mutex<Option<Arc<Session>>>,
+    sessions: Mutex<Vec<Arc<Session>>>,
+    processing: Mutex<Option<Arc<Session>>>,
     next: AtomicU64,
 }
 impl Coordinator {
@@ -131,13 +167,30 @@ impl Coordinator {
                 );
             }
         }
-        let mut slot = self.current.lock().map_err(|e| e.to_string())?;
-        if slot
-            .as_ref()
-            .is_some_and(|s| *s.phase.lock().unwrap() != Phase::Finished)
-        {
-            return Err("A dictation is already active".into());
+        let mut sessions = self.sessions.lock().map_err(|e| e.to_string())?;
+        if sessions.iter().any(|s| {
+            matches!(
+                *s.phase.lock().unwrap(),
+                Phase::Starting | Phase::Recording | Phase::Stopping
+            )
+        }) {
+            return Err("A recording is already active".into());
         }
+        // Retain recent results for readers that attach after another capture.
+        // In-flight workers keep their sessions until completion; no audio is
+        // retained in completed sessions.
+        let mut finished = sessions
+            .iter()
+            .filter(|s| *s.phase.lock().unwrap() == Phase::Finished)
+            .count();
+        sessions.retain(|s| {
+            if finished > 32 && *s.phase.lock().unwrap() == Phase::Finished {
+                finished -= 1;
+                false
+            } else {
+                true
+            }
+        });
         let session = Arc::new(Session {
             id: self.next.fetch_add(1, Ordering::SeqCst) + 1,
             generation: AtomicU64::new(0),
@@ -145,26 +198,38 @@ impl Coordinator {
             phase: Mutex::new(Phase::Starting),
             cancelled: AtomicBool::new(false),
             changed: Notify::new(),
+            processing_done: AtomicBool::new(false),
+            processing_changed: Notify::new(),
             result: Mutex::new(None),
         });
-        *slot = Some(session.clone());
+        sessions.push(session.clone());
         Ok(session)
     }
     fn get(&self, generation: u64) -> Result<Arc<Session>, String> {
-        self.current
+        self.sessions
             .lock()
             .map_err(|e| e.to_string())?
-            .as_ref()
-            .filter(|s| s.generation.load(Ordering::SeqCst) == generation)
+            .iter()
+            .find(|s| s.generation.load(Ordering::SeqCst) == generation)
             .cloned()
             .ok_or_else(|| "This dictation is no longer active".into())
     }
+    pub(crate) fn is_current(&self, generation: u64) -> bool {
+        self.sessions
+            .lock()
+            .unwrap()
+            .last()
+            .is_some_and(|s| s.generation.load(Ordering::SeqCst) == generation)
+    }
+    fn enqueue(&self, session: Arc<Session>) -> Option<Arc<Session>> {
+        self.processing.lock().unwrap().replace(session)
+    }
     pub fn cancel(&self) {
-        if let Some(s) = self.current.lock().unwrap().as_ref() {
+        for s in self.sessions.lock().unwrap().iter() {
             s.cancelled.store(true, Ordering::SeqCst);
             // A recording has no processing worker to complete it.
-            let recording = *s.phase.lock().unwrap() == Phase::Recording;
-            if recording {
+            let phase = *s.phase.lock().unwrap();
+            if matches!(phase, Phase::Recording | Phase::Starting) {
                 s.finish(Err("Dictation cancelled".into()));
             }
             s.changed.notify_waiters();
@@ -231,7 +296,7 @@ pub async fn stop_dictation(
         if *phase != Phase::Recording {
             return Err("This dictation has already stopped".into());
         }
-        *phase = Phase::Processing;
+        *phase = Phase::Stopping;
     }
     let stopped = Instant::now();
     let result = session
@@ -244,6 +309,26 @@ pub async fn stop_dictation(
             return Err(e);
         }
     };
+    // Detach this capture before permitting the next one to clear recording
+    // state. Inference owns the allocation independently of the microphone.
+    let samples = std::mem::take(
+        &mut app
+            .state::<crate::state::AppState>()
+            .recording
+            .lock()
+            .map_err(|e| e.to_string())?
+            .samples,
+    );
+    let previous = if !discard && audio.sample_count > 0 {
+        app.state::<Coordinator>().enqueue(session.clone())
+    } else {
+        None
+    };
+    *session.phase.lock().unwrap() = Phase::Processing;
+    log::info!(
+        "[dictation] Capture {} stopped; background processing queued",
+        generation
+    );
     let audio_stop_ms = stopped.elapsed().as_secs_f64() * 1000.;
     if discard || audio.sample_count == 0 {
         let _ = history::history_discard_pending_audio(app.state(), generation);
@@ -255,11 +340,16 @@ pub async fn stop_dictation(
         // Dropping the UI request cannot stop or repeat this worker.
         tauri::async_runtime::spawn(async move {
             let result = process(
-                &NativeBackend { app: a.clone() },
+                &NativeBackend {
+                    app: a.clone(),
+                    samples,
+                    generation,
+                },
                 &session,
                 input,
                 stopped,
                 audio_stop_ms,
+                previous.as_deref(),
             )
             .await;
             let _ = history::history_discard_pending_audio(a.state(), generation);
@@ -272,15 +362,7 @@ pub async fn stop_dictation(
 #[tauri::command]
 pub async fn dictation_result(app: tauri::AppHandle, generation: u64) -> Result<Outcome, String> {
     let session = app.state::<Coordinator>().get(generation)?;
-    loop {
-        let notified = session.changed.notified();
-        tokio::pin!(notified);
-        notified.as_mut().enable();
-        if let Some(result) = session.result.lock().map_err(|e| e.to_string())?.clone() {
-            return result;
-        }
-        notified.await;
-    }
+    session.outcome().await
 }
 fn delivery_feedback(outcome: &Outcome) -> (&'static str, Option<String>) {
     match outcome
@@ -302,6 +384,9 @@ fn terminal(app: &tauri::AppHandle, session: &Session, result: &Result<Outcome, 
         return;
     }
     let generation = session.generation.load(Ordering::SeqCst);
+    if !app.state::<Coordinator>().is_current(generation) {
+        return;
+    }
     let (state, message) = match result {
         Ok(outcome) => delivery_feedback(outcome),
         Err(_) => ("error", Some("Dictation stopped · open Linty".into())),
@@ -315,9 +400,9 @@ fn terminal(app: &tauri::AppHandle, session: &Session, result: &Result<Outcome, 
         // NSPanel ordering must run on AppKit's main thread. Check ownership
         // there too, so a queued timer cannot hide a newer session's panel.
         let _ = app.run_on_main_thread(move || {
-            if handle.state::<Coordinator>().get(generation).is_ok() {
+            if handle.state::<Coordinator>().is_current(generation) {
                 #[cfg(target_os = "macos")]
-                crate::capsule::hide_capsule(handle, None, None);
+                crate::capsule::hide_capsule(handle, None, None, None);
             }
         });
     });
@@ -340,6 +425,29 @@ async fn process<B: Backend>(
     audio: StopResult,
     stopped: Instant,
     audio_stop_ms: f64,
+    previous: Option<&Session>,
+) -> Result<Outcome, String> {
+    // Shared inference stays serialized, but earlier clipboard verification
+    // does not hold up recognition of the next take.
+    if let Some(previous) = previous {
+        previous.wait_processing().await;
+    }
+    let result = process_text(backend, s, audio, stopped, audio_stop_ms, previous).await;
+    s.release_processing();
+    // Keep the delivery chain intact even if this take is empty or fails before
+    // paste. A third take must still wait for the first one to finish delivery.
+    if let Some(previous) = previous {
+        let _ = previous.outcome().await;
+    }
+    result
+}
+async fn process_text<B: Backend>(
+    backend: &B,
+    s: &Arc<Session>,
+    audio: StopResult,
+    stopped: Instant,
+    audio_stop_ms: f64,
+    previous: Option<&Session>,
 ) -> Result<Outcome, String> {
     let o = &s.options;
     let mut outcome = Outcome::default();
@@ -508,6 +616,10 @@ async fn process<B: Backend>(
         outcome.record = Some(record);
         return Ok(outcome);
     }
+    s.release_processing();
+    if let Some(previous) = previous {
+        let _ = previous.outcome().await;
+    }
     backend.stage(s, "pasting")?;
     let tick = Instant::now();
     let delivery_start_ms = millis(stopped);
@@ -550,16 +662,30 @@ mod tests {
     })).unwrap()
     }
     #[test]
-    fn only_one_active_session_and_old_generation_cannot_attach_to_new() {
+    fn capture_overlaps_processing_and_results_keep_their_generation() {
         let c = Coordinator::default();
         let first = c.reserve(options()).unwrap();
         first.generation.store(10, Ordering::SeqCst);
         assert!(c.reserve(options()).is_err());
-        first.finish(Ok(Outcome::default()));
+        *first.phase.lock().unwrap() = Phase::Stopping;
+        assert!(
+            c.reserve(options()).is_err(),
+            "The stream must drain before another capture"
+        );
+        *first.phase.lock().unwrap() = Phase::Processing;
         let second = c.reserve(options()).unwrap();
         second.generation.store(11, Ordering::SeqCst);
-        assert!(c.get(10).is_err());
+        assert_eq!(c.get(10).unwrap().id, first.id);
+        assert!(!c.is_current(10));
+        assert!(c.is_current(11));
         assert_eq!(c.get(11).unwrap().id, second.id);
+        first.finish(Ok(Outcome::default()));
+        assert_eq!(
+            c.get(10).unwrap().id,
+            first.id,
+            "Late readers receive the original result"
+        );
+        assert!(c.get(12).is_err());
         assert_eq!(first.options.language, "en");
     }
     #[test]
@@ -599,10 +725,12 @@ mod tests {
             .unwrap()
             .unwrap()
             .is_err());
+        let next = c.reserve(options()).unwrap();
         assert!(
-            c.reserve(options()).is_err(),
-            "Cancellation cannot release an in-flight delivery owner"
+            next.check().is_ok(),
+            "Capture does not wait on cancelled background work"
         );
+        c.cancel();
         s.finish(Err("cancelled".into()));
         assert!(c.reserve(options()).is_ok());
     }
@@ -626,6 +754,29 @@ mod tests {
         c.cancel();
         assert!(s.check().is_err());
         assert!(c.reserve(options()).is_ok());
+    }
+
+    #[tokio::test]
+    async fn processing_queue_preserves_order_while_capture_remains_available() {
+        let c = Coordinator::default();
+        let first = c.reserve(options()).unwrap();
+        *first.phase.lock().unwrap() = Phase::Processing;
+        assert!(c.enqueue(first.clone()).is_none());
+        let second = c.reserve(options()).unwrap();
+        *second.phase.lock().unwrap() = Phase::Processing;
+        let previous = c.enqueue(second.clone()).unwrap();
+        assert_eq!(previous.id, first.id);
+        let waiting = tokio::spawn(async move { previous.outcome().await });
+        tokio::task::yield_now().await;
+        assert!(
+            !waiting.is_finished(),
+            "Later delivery waits for earlier delivery"
+        );
+        let third = c.reserve(options()).unwrap();
+        assert!(third.check().is_ok());
+        first.finish(Ok(Outcome::default()));
+        assert!(waiting.await.unwrap().is_ok());
+        assert_eq!(c.enqueue(third).unwrap().id, second.id);
     }
 }
 

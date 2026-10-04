@@ -7,6 +7,11 @@
   return to idle; no transcription spinner is started for zero samples.
 - Recording becomes visible only after the microphone opens successfully. A quick
   key release waits for startup. The hotkey and System Check share startup state.
+- Starting another recording preserves earlier submitted takes. Microphone
+  commands serialize only stream opening/closing; native background processing
+  and ordered delivery continue independently. Older results cannot reset the
+  newer recording's presentation. Sleep and stream-error recovery cancel all
+  outstanding native sessions.
 - Microphone disconnection cancels the active attempt and resets capture. The
   native watchdog also detects eight seconds of missing audio callbacks (ordinary
   silence still produces callbacks). Next recording opens a fresh audio stream.

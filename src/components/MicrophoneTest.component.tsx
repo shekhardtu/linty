@@ -65,12 +65,13 @@ export function MicrophoneTest() {
   const handleToggle = useCallback(async () => {
     if (isRecording) {
       setStopping(true);
+      let audio: Awaited<ReturnType<typeof stopRecording>>;
       try {
-        const audio = await stopRecording();
-        if (audio.sample_count > 0) await processAudio(audio);
+        audio = await stopRecording();
       } finally {
         setStopping(false);
       }
+      if (audio.sample_count > 0) await processAudio(audio);
     } else {
       setFeedback(null);
       await startRecording();
@@ -96,7 +97,7 @@ export function MicrophoneTest() {
   const detail = isRecording ? "Speak naturally. Choose Stop & transcribe when you’re finished."
     : isProcessing ? "You can review your words here as soon as they’re ready."
     : feedback?.message ?? "Start a recording whenever you’re ready.";
-  const buttonLabel = isRecording ? "Stop & transcribe" : isProcessing ? "Working…" : feedback?.kind === "error" || feedback?.kind === "empty" ? "Try again" : transcripts.length ? "Record again" : "Start recording";
+  const buttonLabel = isRecording ? "Stop & transcribe" : isProcessing ? "Record again" : feedback?.kind === "error" || feedback?.kind === "empty" ? "Try again" : transcripts.length ? "Record again" : "Start recording";
   const illustrationState: VoiceIllustrationState = isRecording ? "recording" : isProcessing ? "processing" : feedback?.kind === "success" ? "complete" : feedback ? "attention" : "idle";
   const phaseLabel = isRecording ? "Listening" : isProcessing ? "Making words" : feedback?.kind === "success" ? "Captured" : feedback ? "Try again" : "Ready when you are";
 
@@ -126,9 +127,9 @@ export function MicrophoneTest() {
             className="standard-button primary-button microphone-test-toggle"
             onClick={() => { void handleToggle(); }}
             aria-label={buttonLabel}
-            disabled={isProcessing || stopping}
+            disabled={stopping}
           >
-            {isRecording ? <Square size={13} fill="currentColor" aria-hidden="true" /> : isProcessing ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Mic size={16} aria-hidden="true" />}
+            {isRecording ? <Square size={13} fill="currentColor" aria-hidden="true" /> : <Mic size={16} aria-hidden="true" />}
             {buttonLabel}
           </button>
         </div>

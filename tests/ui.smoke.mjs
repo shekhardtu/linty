@@ -522,7 +522,7 @@ try {
   await page.waitForFunction(() => Boolean(window.__QA__.finishMicStart));
   await page.evaluate(() => window.__QA__.emit('fnkey-released'));
   assert.equal(await page.evaluate(() => window.__QA__.calls.includes('stop_dictation')), false, 'Quick release waits for microphone startup');
-  await page.evaluate(() => window.__QA__.finishMicStart());
+  await page.evaluate(() => window.__QA__.finishMicStart(1));
   const recordingStore = await page.evaluateHandle(async () => (await import('/src/store/app.store.ts')).useAppStore);
   await page.waitForFunction(store => {
     const state = store.getState();

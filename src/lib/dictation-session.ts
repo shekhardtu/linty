@@ -1,5 +1,6 @@
 /** Bounds an operation without letting its late result resume an abandoned dictation. */
 export class DictationSession {
+  generation?: number;
   private controller = new AbortController();
   get cancelled() { return this.controller.signal.aborted; }
   cancel() { this.controller.abort(); }

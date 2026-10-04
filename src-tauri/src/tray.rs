@@ -316,12 +316,7 @@ fn select_microphone(app: &tauri::AppHandle, name: Option<String>) {
 
 fn open_app(app: &tauri::AppHandle, destination: &str) {
     let _ = app.emit_to("main", "tray-navigate", destination);
-    if let Some(window) = app.get_webview_window("main") {
-        super::set_activation_policy_regular();
-        let _ = window.unminimize();
-        let _ = window.show();
-        let _ = window.set_focus();
-    }
+    super::show_main_window(app);
 }
 
 fn copy_transcript(app: &tauri::AppHandle, id: String) {

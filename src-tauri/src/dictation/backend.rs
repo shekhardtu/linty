@@ -40,6 +40,8 @@ pub(super) trait Backend: Sync {
 }
 pub(super) struct NativeBackend {
     pub app: tauri::AppHandle,
+    pub samples: Arc<Vec<f32>>,
+    pub generation: u64,
 }
 impl Backend for NativeBackend {
     fn stage(&self, session: &Session, stage: &str) -> Result<(), String> {
@@ -54,6 +56,8 @@ impl Backend for NativeBackend {
         crate::transcribe_buffer(
             self.app.clone(),
             self.app.state(),
+            self.samples.clone(),
+            self.generation,
             prompt,
             language,
             options.auto_detect_languages.clone(),

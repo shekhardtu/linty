@@ -47,6 +47,7 @@ function StopCountdown({ seconds }: { seconds: number }) {
 export function CapsulePanel() {
   useCapsuleTheme();
   const [mode, setMode] = useState<CapsuleMode>("idle");
+  const [renderedRevision, setRenderedRevision] = useState<number | undefined>();
   // Keep the outgoing row mounted while it fades inside the contracting shell.
   const [expandedMode, setExpandedMode] = useState<CapsuleMode>("recording");
   const [errorMsg, setErrorMsg] = useState("");
@@ -133,6 +134,7 @@ export function CapsulePanel() {
       if (payload.revision !== undefined) {
         if (revisionRef.current !== undefined && payload.revision <= revisionRef.current) return;
         revisionRef.current = payload.revision;
+        setRenderedRevision(payload.revision);
       }
       const { state, error, hands_free, generation } = payload;
       // Late cleanup cannot dismiss a fresh acknowledgment. Once shown, an
@@ -205,6 +207,12 @@ export function CapsulePanel() {
       if (durationIntervalRef.current) clearInterval(durationIntervalRef.current);
     };
   }, [dismiss, scheduleFeedbackDismissal]);
+
+  useEffect(() => {
+    if (renderedRevision !== undefined && mode !== "idle" && !dismissing) {
+      void invoke("capsule_state_rendered", { revision: renderedRevision, state: mode }).catch(() => {});
+    }
+  }, [renderedRevision, mode, dismissing]);
 
   const isRecording = mode === "recording";
   const isDraggable = isRecording && handsFree;

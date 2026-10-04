@@ -27,21 +27,42 @@ try {
       if(command==='plugin:global-shortcut|register') for(const shortcut of args.shortcuts) window.__QA__.handlers[shortcut]=args.handler.onmessage;
       if(command==='plugin:global-shortcut|unregister') for(const shortcut of args.shortcuts) delete window.__QA__.handlers[shortcut];
       if(command==='emit_capsule_state') window.__QA__.capsule.push(args);
+      if(command==='hide_capsule' && args?.forMainWindow && window.__QA__.deferMainHide) {
+        window.__QA__.calls.push(command);
+        return new Promise(resolve=>{window.__QA__.finishMainHide=()=>resolve(original(command,args));});
+      }
       if(command==='history_save') window.__QA__.savedAudioGeneration=args.recordingGeneration;
       if(command==='start_dictation') {
         window.__QA__.calls.push(command);
         if(window.__QA__.delayStart) return new Promise(resolve=>{window.__QA__.resolveStart=()=>resolve(++window.__QA__.generation);});
         return Promise.resolve(++window.__QA__.generation);
       }
-      if(command==='stop_dictation' && window.__QA__.hasAudio) {window.__QA__.calls.push(command);return Promise.resolve({sample_count:32000,duration_secs:2,recording_generation:window.__QA__.generation});}
+      if(command==='stop_dictation') {
+        window.__QA__.calls.push(command);
+        window.__QA__.stoppedGenerations??=[];
+        window.__QA__.stoppedGenerations.push(args.generation);
+        const result={sample_count:window.__QA__.hasAudio?32000:0,duration_secs:window.__QA__.hasAudio?2:0,recording_generation:args.generation};
+        if(window.__QA__.delayStop) return new Promise(resolve=>{
+          window.__QA__.stops??={};
+          window.__QA__.stops[args.generation]=()=>resolve(result);
+        });
+        return Promise.resolve(result);
+      }
       if(command==='dictation_result') {
         window.__QA__.calls.push(command);
-        const failed=window.__QA__.failPaste;
-        const deliveryStatus=failed?'failed':window.__QA__.deliveryStatus??'verified';
-        const record={transcriptId:'native-'+args.generation,rawText:'Private words stay out of the pill.',finalText:'Private words stay out of the pill.',deliveryStatus,timestamp:Date.now(),durationSeconds:2,processingTimeMs:100,wordCount:8,engine:'local',modelName:'Fixture',corrected:false};
-        window.__QA__.capsule.push(failed?{state:'error',error:'Paste failed · copy from History'}:{state:deliveryStatus==='verified'?'done':'idle'});
-        window.__QA__.savedAudioGeneration=args.generation;
-        return original('history_save',{record,recordingGeneration:args.generation}).then(()=>({record,warnings:[],recognized:[],corrected:[]}));
+        const complete=()=>{
+          const failed=window.__QA__.failPaste;
+          const deliveryStatus=failed?'failed':window.__QA__.deliveryStatus??'verified';
+          const record={transcriptId:'native-'+args.generation,rawText:'Private words stay out of the pill.',finalText:'Private words stay out of the pill.',deliveryStatus,timestamp:Date.now(),durationSeconds:2,processingTimeMs:100,wordCount:8,engine:'local',modelName:'Fixture',corrected:false};
+          if(args.generation===window.__QA__.generation) window.__QA__.capsule.push(failed?{state:'error',error:'Paste failed · copy from History'}:{state:deliveryStatus==='verified'?'done':'idle'});
+          window.__QA__.savedAudioGeneration=args.generation;
+          return original('history_save',{record,recordingGeneration:args.generation}).then(()=>({record,warnings:[],recognized:[],corrected:[]}));
+        };
+        if(window.__QA__.delayResult) return new Promise(resolve=>{
+          window.__QA__.results??={};
+          window.__QA__.results[args.generation]=()=>resolve(complete());
+        });
+        return complete();
       }
       return original(command,args);
     };
@@ -74,11 +95,10 @@ try {
     assert.equal(await count('stop_dictation'),stops);
     await single(source); await status('idle');
     assert.equal(await count('stop_dictation'),stops+1);
-    await single(source);
-    await page.clock.runFor(100);
-    assert.equal(await count('start_dictation'),starts+1,`${trigger}: an extra tap cannot reopen an empty recording`);
-    assert.equal(await count('stop_dictation'),stops+1);
-    await page.clock.runFor(401);
+    await double(source); await status('recording');
+    assert.equal(await count('start_dictation'),starts+2,`${trigger}: a fresh press immediately opens the next recording`);
+    await single(source); await status('idle');
+    assert.equal(await count('stop_dictation'),stops+2);
   }
   // Alternate shortcut has the same gestures, and latching survives slow startup.
   await store.evaluate(s=>s.getState().setTriggerKey('fn')); await page.clock.runFor(10);
@@ -92,11 +112,10 @@ try {
   await single(alternate);
   await page.evaluate(()=>{window.__QA__.resolveStart();window.__QA__.delayStart=false;delete window.__QA__.resolveStart;});
   await status('idle');
-  await single('modifier');
-  await page.clock.runFor(100);
-  assert.equal(await count('start_dictation'),starts+1,'Stopping during startup and tapping again cannot reopen the microphone');
   assert.equal(await count('stop_dictation'),stops+1,'The pending microphone closes once it opens');
-  await page.clock.runFor(401);
+  await double('modifier'); await status('recording');
+  assert.equal(await count('start_dictation'),starts+2,'The next trigger starts without a stop guard');
+  await single('modifier'); await status('idle');
   await page.evaluate(()=>{window.__QA__.delayStart=true;});
   await double(alternate);
   await page.waitForFunction(()=>!!window.__QA__.resolveStart);
@@ -109,13 +128,14 @@ try {
   await page.evaluate(generation=>window.__QA__.emit('recording-quiet',{generation,quiet_seconds:0}),generation);
   assert.equal((await get()).quiet,0,'Input clears the warning');
   let inferences=await count('dictation_result');
+  const recoveries=await count('recover_recording');
   await page.evaluate(()=>{window.__QA__.capsule=[];});
   await page.evaluate(generation=>window.__QA__.emit('recording-auto-stopped',{generation,quiet_seconds:30,heard_input:false}),generation);
   await status('idle');
   await page.waitForFunction(()=>window.__QA__.capsule.at(-1)?.state==='quiet-stop');
   assert.equal(await page.evaluate(()=>window.__QA__.capsule.some(s=>s.state==='idle')),false,'Empty auto-stop never hides the pill between listening and its notice');
   assert.equal(await count('dictation_result'),inferences,'An empty auto-stop does not run inference');
-  assert.ok(await count('recover_recording')>0,'Empty audio is freed');
+  assert.equal(await count('recover_recording'),recoveries,'Discarding empty audio does not cancel unrelated background delivery');
   await page.evaluate(()=>{window.__QA__.hasAudio=true;});
   await double('modifier'); await status('recording');
   const newer=(await get()).generation;
@@ -142,11 +162,10 @@ try {
   await double('Control+Option+Space'); await status('recording');
   await single('Control+Option+Space'); await status('done');
   assert.equal(await count('dictation_result'),pastes+1,'One press wraps up and delivers the recording');
-  await single('Control+Option+Space');
-  await page.clock.runFor(100);
-  assert.equal(await count('start_dictation'),starts+1,'Even a fast successful result cannot turn an extra tap into a new recording');
-  assert.equal(await count('dictation_result'),pastes+1);
-  await page.clock.runFor(401);
+  await double('Control+Option+Space'); await status('recording');
+  assert.equal(await count('start_dictation'),starts+2,'Another trigger immediately starts the next take after delivery');
+  await single('Control+Option+Space'); await status('done');
+  assert.equal(await count('dictation_result'),pastes+2);
   await store.evaluate(s=>s.getState().toasts.forEach(toast=>s.getState().removeToast(toast.toastId)));
   await page.evaluate(()=>{window.__QA__.deliveryStatus='unverified';});
   await double('Control+Option+Space'); await status('recording');
@@ -166,6 +185,66 @@ try {
   assert.equal(await page.evaluate(()=>window.__QA__.capsule.at(-1).error),'Paste failed · copy from History');
   assert.ok(await store.evaluate(s=>s.getState().toasts.some(toast=>toast.type==='error' && toast.action?.label==='Copy text')),'A failed paste keeps its copy recovery action');
 
+  // A blocked background delivery never blocks or resets the next capture.
+  await page.clock.runFor(501);
+  await page.evaluate(()=>{window.__QA__.failPaste=false;window.__QA__.delayResult=true;});
+  await double('Control+Option+Space'); await status('recording');
+  const background=(await get()).generation;
+  await single('Control+Option+Space');
+  await page.waitForFunction(g=>!!window.__QA__.results?.[g],background);
+  await page.evaluate(g=>window.__QA__.emit('dictation-stage',{generation:g,stage:'pasting'}),background);
+  await status('pasting');
+  assert.equal(await store.evaluate(s=>s.getState().pendingDictations),1);
+  starts=await count('start_dictation');
+  await double('Control+Option+Space'); await status('recording');
+  const concurrent=(await get()).generation;
+  assert.equal(await count('start_dictation'),starts+1,'A trigger starts capture while the previous paste is pending');
+  await page.waitForFunction(()=>window.__QA__.capsule.at(-1)?.state==='recording');
+  await page.evaluate(g=>window.__QA__.emit('dictation-stage',{generation:g,stage:'correcting'}),background);
+  assert.equal(await store.evaluate(s=>s.getState().status),'recording','Older stages cannot overwrite the newer capture');
+  const beforeHides=await count('hide_capsule');
+  await page.evaluate(g=>window.__QA__.results[g](),background);
+  await page.waitForFunction(store=>store.getState().pendingDictations===0,store);
+  assert.equal((await get()).recording,true,'Background completion leaves the new microphone running');
+  assert.equal((await get()).generation,concurrent);
+  await page.clock.runFor(10000);
+  assert.equal(await count('hide_capsule'),beforeHides,'Background completion cannot schedule a hide for the current pill');
+  assert.equal(await store.evaluate(s=>s.getState().status),'recording');
+  await single('Control+Option+Space');
+  await page.waitForFunction(g=>!!window.__QA__.results?.[g],concurrent);
+  await page.evaluate(()=>{window.__QA__.hasAudio=false;window.__QA__.delayResult=false;});
+  await double('Control+Option+Space'); await status('recording');
+  await single('Control+Option+Space'); await status('idle');
+  assert.equal(await store.evaluate(s=>s.getState().pendingDictations),1,'An empty newer capture does not mark background delivery as idle for updates');
+  await page.evaluate(g=>window.__QA__.results[g](),concurrent);
+  await page.waitForFunction(store=>store.getState().pendingDictations===0,store);
+  assert.equal(await store.evaluate(s=>s.getState().status),'idle','A late delivery cannot reopen the newest empty capture');
+  assert.equal(await page.evaluate(()=>window.__QA__.savedAudioGeneration),concurrent,'Each background result retains its audio generation');
+
+  // A press during shutdown is accepted, including release before it opens.
+  await page.evaluate(()=>{window.__QA__.hasAudio=true;window.__QA__.delayStop=true;window.__QA__.delayResult=true;});
+  await double('Control+Option+Space'); await status('recording');
+  const closing=(await get()).generation;
+  await single('Control+Option+Space');
+  await page.waitForFunction(g=>!!window.__QA__.stops?.[g],closing);
+  starts=await count('start_dictation'); stops=await count('stop_dictation');
+  await double('Control+Option+Space');
+  assert.equal(await store.evaluate(s=>s.getState().status),'preparing','The new trigger is acknowledged during microphone shutdown');
+  assert.equal(await count('start_dictation'),starts,'The new stream waits only for the old stream to close');
+  await single('Control+Option+Space');
+  await page.evaluate(g=>{window.__QA__.delayStop=false;window.__QA__.stops[g]();},closing);
+  await page.waitForFunction(starts=>window.__QA__.calls.filter(c=>c==='start_dictation').length===starts+1,starts);
+  await page.waitForFunction(stops=>window.__QA__.calls.filter(c=>c==='stop_dictation').length===stops+1,stops);
+  const queued=await page.evaluate(()=>window.__QA__.generation);
+  assert.deepEqual(await page.evaluate(()=>window.__QA__.stoppedGenerations.slice(-2)),[closing,queued],'Both captures close exactly once with their own generation');
+  await page.waitForFunction(g=>!!window.__QA__.results?.[g],queued);
+  assert.equal((await get()).recording,false,'A queued take released during shutdown cannot leave the microphone open');
+  await page.evaluate(g=>window.__QA__.results[g](),closing);
+  await page.evaluate(g=>window.__QA__.results[g](),queued);
+  await status('done');
+  await page.waitForFunction(store=>store.getState().pendingDictations===0,store);
+  await page.evaluate(()=>{window.__QA__.delayResult=false;});
+
   await mkdir('artifacts/dictation-pill',{recursive:true});
   // WebKit document focus can remain true while the native window is inactive.
   await page.evaluate(()=>{
@@ -178,12 +257,17 @@ try {
   await page.waitForFunction(()=>window.__QA__.capsule.at(-1)?.state==='recording');
   assert.equal(await page.getByRole('dialog',{name:'Focused dictation',exact:true}).count(),0,'Stale document focus cannot suppress the background pill');
   let hides=await count('hide_capsule');
-  await page.evaluate(()=>{window.__QA__.windowFocused=true;window.__QA__.emit('tauri://focus',true);});
+  await page.evaluate(()=>{window.__QA__.deferMainHide=true;window.__QA__.windowFocused=true;window.__QA__.emit('tauri://focus',true);});
   await page.getByRole('dialog',{name:'Focused dictation',exact:true}).waitFor();
   await page.waitForFunction(hides=>window.__QA__.calls.filter(c=>c==='hide_capsule').length>hides,hides);
   let shows=await count('show_capsule');
-  await page.evaluate(()=>{window.__QA__.windowFocused=false;window.__QA__.emit('tauri://blur',false);});
+  await page.waitForFunction(()=>!!window.__QA__.finishMainHide);
+  await page.evaluate(()=>{window.__QA__.windowFocused=false;window.__QA__.windowVisible=false;window.__QA__.emit('tauri://blur',false);});
   await page.waitForFunction(shows=>window.__QA__.calls.filter(c=>c==='show_capsule').length>shows,shows);
+  await page.waitForFunction(()=>window.__QA__.capsuleVisible===true);
+  await page.evaluate(()=>{window.__QA__.deferMainHide=false;window.__QA__.finishMainHide();});
+  assert.equal(await page.evaluate(()=>window.__QA__.capsuleVisible),true,'A late focus hide cannot make an active recording pill disappear while Linty is hidden');
+  await page.evaluate(()=>{window.__QA__.windowVisible=true;});
   assert.equal(await count('start_dictation'),starts+1,'Switching apps moves feedback without restarting the microphone');
   await store.evaluate(s=>s.getState().setStatus('transcribing'));
   await page.evaluate(()=>{window.__QA__.windowFocused=true;window.__QA__.emit('tauri://focus',true);});
@@ -193,15 +277,15 @@ try {
   await store.evaluate(s=>s.getState().setStatus('recording'));
   await single('Control+Option+Space'); await status('idle');
   await page.getByRole('button',{name:'Back now',exact:true}).click();
-  for(const nativeState of [{windowFocused:true,windowVisible:false},{windowFocused:true,windowMinimized:true}]) {
+  for(const nativeState of [{windowFocused:true,windowVisible:false},{windowFocused:true,windowMinimized:true},{windowFocused:true,appActive:false},{windowFocused:true,windowOnActiveSpace:false}]) {
     await page.clock.runFor(501);
-    await page.evaluate(nativeState=>{Object.assign(window.__QA__,{windowVisible:true,windowMinimized:false},nativeState);},nativeState);
+    await page.evaluate(nativeState=>{Object.assign(window.__QA__,{windowVisible:true,windowMinimized:false,appActive:true,windowOnActiveSpace:true},nativeState);},nativeState);
     await double('Control+Option+Space'); await status('recording');
     await page.waitForFunction(()=>window.__QA__.capsule.at(-1)?.state==='recording');
-    assert.equal(await page.getByRole('dialog',{name:'Focused dictation',exact:true}).count(),0,'A hidden or minimized Linty window uses the pill');
+    assert.equal(await page.getByRole('dialog',{name:'Focused dictation',exact:true}).count(),0,'A hidden, minimized, inactive or off-Space Linty window uses the pill');
     await single('Control+Option+Space'); await status('idle');
   }
-  await page.evaluate(()=>{delete window.__QA__.windowFocused;delete window.__QA__.windowVisible;delete window.__QA__.windowMinimized;});
+  await page.evaluate(()=>{delete window.__QA__.windowFocused;delete window.__QA__.windowVisible;delete window.__QA__.windowMinimized;delete window.__QA__.appActive;delete window.__QA__.windowOnActiveSpace;});
   // Focused dictation uses native input history, just like the pill.
   await page.evaluate(()=>{window.__QA__.hasAudio=false;window.__QA__.failPaste=false;delete window.__QA__.deliveryStatus;document.hasFocus=()=>true;});
   await page.getByRole('button',{name:'System Check',exact:true}).click();
@@ -278,6 +362,7 @@ try {
   });
   await recoveryPill.goto(`${url}/capsule.html`);
   await recoveryPill.locator('.capsule-recording').waitFor();
+  await recoveryPill.waitForFunction(()=>window.__QA__.calls.includes('capsule_state_rendered'));
   assert.equal(await recoveryPill.locator('.capsule-time').innerText(),'0:00','The current recording renders even when its initial event was missed');
   await recoveryPill.reload();
   await recoveryPill.locator('.capsule-recording').waitFor();
@@ -497,5 +582,5 @@ try {
     await context.close();
   }
   assert.deepEqual(errors,[]);
-  console.log(`Dictation checks passed in ${engine.name()}: native focus, app switching, capsule reload/resume, configured triggers, silence recovery, stale events, paste outcomes, microphone waveform and cleanup, locked-only dragging, favicon, no transcript, centered morph, continuous processing, fast completion, interruption, reduced motion and accessibility.`);
+  console.log(`Dictation checks passed in ${engine.name()}: native focus, app switching, capsule reload/resume, configured triggers, overlapping capture and ordered background results, silence recovery, stale events, paste outcomes, microphone waveform and cleanup, locked-only dragging, favicon, no transcript, centered morph, continuous processing, fast completion, interruption, reduced motion and accessibility.`);
 } finally { await browser?.close(); server.kill(); }

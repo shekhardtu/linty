@@ -59,6 +59,7 @@ commands.allow = [
     "show_capsule",
     "hide_capsule",
     "emit_capsule_state",
+    "is_dictation_window_active",
     "show_correction_feedback",
     "play_capsule_sound",
 ]
@@ -66,4 +67,4 @@ commands.allow = [
 [[permission]]
 identifier = "capsule-commands"
 description = "Show and dismiss the recording overlay."
-commands.allow = ["show_capsule", "hide_capsule", "get_capsule_state", "get_theme"]
+commands.allow = ["show_capsule", "hide_capsule", "get_capsule_state", "capsule_state_rendered", "get_theme"]
