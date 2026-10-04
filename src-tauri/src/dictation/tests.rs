@@ -9,6 +9,10 @@ struct FakeBackend {
     events: Mutex<Vec<&'static str>>,
     cancel: Option<Arc<Session>>,
     fail_save: bool,
+    ready: Notify,
+    delivery_started: Notify,
+    delivery_gate: Option<Arc<Notify>>,
+    delivery_order: Option<Arc<Mutex<Vec<String>>>>,
 }
 impl FakeBackend {
     fn new(raw: &str, candidate: &str) -> Self {
@@ -20,6 +24,10 @@ impl FakeBackend {
             events: Mutex::new(vec![]),
             cancel: None,
             fail_save: false,
+            ready: Notify::new(),
+            delivery_started: Notify::new(),
+            delivery_gate: None,
+            delivery_order: None,
         }
     }
     fn note(&self, event: &'static str) {
@@ -69,6 +77,7 @@ impl Backend for FakeBackend {
     async fn update(&self, _: String, record: Value) -> Result<(), String> {
         self.note("update");
         *self.record.lock().unwrap() = Some(record);
+        self.ready.notify_one();
         Ok(())
     }
     async fn remove(&self, _: String) -> Result<(), String> {
@@ -79,6 +88,13 @@ impl Backend for FakeBackend {
     async fn deliver(&self, s: Arc<Session>, _: String, text: String) -> Result<Delivery, String> {
         s.check()?;
         self.note("deliver");
+        if let Some(order) = &self.delivery_order {
+            order.lock().unwrap().push(text.clone());
+        }
+        self.delivery_started.notify_one();
+        if let Some(gate) = &self.delivery_gate {
+            gate.notified().await;
+        }
         if !self.fail_save {
             let records = self.record.lock().unwrap();
             let record = records
@@ -117,8 +133,100 @@ async fn run(backend: &FakeBackend, s: &Arc<Session>) -> Result<Outcome, String>
         },
         Instant::now(),
         0.,
+        None,
     )
     .await
+}
+fn spawn_pipeline(
+    backend: Arc<FakeBackend>,
+    s: Arc<Session>,
+    previous: Option<Arc<Session>>,
+) -> tokio::task::JoinHandle<Result<Outcome, String>> {
+    tokio::spawn(async move {
+        let result = process(
+            backend.as_ref(),
+            &s,
+            StopResult {
+                sample_count: 16000,
+                duration_secs: 1.,
+                recording_generation: s.generation.load(Ordering::SeqCst),
+                application: None,
+            },
+            Instant::now(),
+            0.,
+            previous.as_deref(),
+        )
+        .await;
+        s.finish(result.clone());
+        result
+    })
+}
+#[tokio::test]
+async fn next_take_is_processed_during_paste_verification_and_delivered_in_order() {
+    let first = session();
+    let second = session();
+    let gate = Arc::new(Notify::new());
+    let order = Arc::new(Mutex::new(vec![]));
+    let mut a = FakeBackend::new("Please send the report", "Please send the report");
+    a.delivery_gate = Some(gate.clone());
+    a.delivery_order = Some(order.clone());
+    let a = Arc::new(a);
+    let mut b = FakeBackend::new("before Friday", "before Friday");
+    b.delivery_order = Some(order.clone());
+    let b = Arc::new(b);
+    let first_work = spawn_pipeline(a.clone(), first.clone(), None);
+    tokio::time::timeout(Duration::from_secs(1), a.delivery_started.notified())
+        .await
+        .unwrap();
+    let second_work = spawn_pipeline(b.clone(), second, Some(first));
+    tokio::time::timeout(Duration::from_secs(1), b.ready.notified())
+        .await
+        .unwrap();
+    assert!(b.events.lock().unwrap().contains(&"cleanup"));
+    assert!(!b.events.lock().unwrap().contains(&"deliver"));
+    assert!(!first_work.is_finished());
+    assert!(!second_work.is_finished());
+    gate.notify_one();
+    assert!(first_work.await.unwrap().is_ok());
+    assert!(second_work.await.unwrap().is_ok());
+    assert_eq!(
+        *order.lock().unwrap(),
+        vec!["Please send the report", "before Friday"]
+    );
+}
+#[tokio::test]
+async fn an_empty_or_failed_middle_take_cannot_allow_a_later_paste_to_overtake() {
+    for fail_save in [false, true] {
+        let first = session();
+        let middle = session();
+        let gate = Arc::new(Notify::new());
+        let order = Arc::new(Mutex::new(vec![]));
+        let mut a = FakeBackend::new("first", "first");
+        a.delivery_gate = Some(gate.clone());
+        a.delivery_order = Some(order.clone());
+        let a = Arc::new(a);
+        let first_work = spawn_pipeline(a.clone(), first.clone(), None);
+        tokio::time::timeout(Duration::from_secs(1), a.delivery_started.notified())
+            .await
+            .unwrap();
+        let mut b = FakeBackend::new(if fail_save { "middle" } else { "" }, "middle");
+        b.fail_save = fail_save;
+        let middle_work = spawn_pipeline(Arc::new(b), middle.clone(), Some(first));
+        let mut c = FakeBackend::new("last", "last");
+        c.delivery_order = Some(order.clone());
+        let c = Arc::new(c);
+        let last_work = spawn_pipeline(c.clone(), session(), Some(middle));
+        tokio::time::timeout(Duration::from_secs(1), c.ready.notified())
+            .await
+            .unwrap();
+        assert!(!middle_work.is_finished());
+        assert!(!c.events.lock().unwrap().contains(&"deliver"));
+        gate.notify_one();
+        assert!(first_work.await.unwrap().is_ok());
+        assert!(middle_work.await.unwrap().is_ok());
+        assert!(last_work.await.unwrap().is_ok());
+        assert_eq!(*order.lock().unwrap(), vec!["first", "last"]);
+    }
 }
 #[tokio::test]
 async fn non_english_skips_cleanup_and_preserves_delivery() {

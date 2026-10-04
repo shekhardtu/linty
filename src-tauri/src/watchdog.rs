@@ -155,7 +155,7 @@ async fn recover(app: &tauri::AppHandle, state: &AppState, reason: &str) {
     // 1. Send Stop command to audio thread
     if let Ok(tx_guard) = state.audio_tx.lock() {
         if let Some(tx) = tx_guard.as_ref() {
-            let _ = tx.send(AudioCommand::Stop);
+            let _ = tx.send(AudioCommand::Stop { reply: None });
         }
     }
 
@@ -171,7 +171,7 @@ async fn recover(app: &tauri::AppHandle, state: &AppState, reason: &str) {
     if let Ok(mut rec) = state.recording.lock() {
         rec.is_recording = false;
         rec.samples = Default::default();
-        rec.history_audio = None;
+        rec.history_audio.clear();
         rec.audio_consent = None;
     }
 

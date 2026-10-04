@@ -45,7 +45,7 @@ export const languagePreparation = {
 
 function dictationBusy() {
   const state = useAppStore.getState();
-  return state.isRecording || ["preparing", "recording", "transcribing", "correcting", "pasting"].includes(state.status);
+  return state.isRecording || state.pendingDictations > 0 || ["preparing", "recording", "transcribing", "correcting", "pasting"].includes(state.status);
 }
 
 /** Downloads may continue during dictation; activation waits for it to finish. */

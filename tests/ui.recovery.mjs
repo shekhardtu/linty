@@ -64,7 +64,7 @@ try {
   await press(); await page.waitForFunction(() => window.__QA__.deferred.start_dictation?.resolve);
   await clearCalls(); await release();
   assert.equal(await page.evaluate(() => window.__QA__.calls.includes('stop_dictation')), false);
-  await page.evaluate(() => { window.__QA__.deferred.start_dictation.resolve(); delete window.__QA__.deferred.start_dictation; });
+  await page.evaluate(() => { window.__QA__.deferred.start_dictation.resolve(1); delete window.__QA__.deferred.start_dictation; });
   await waitStatus('idle');
   assert.equal((await lastCapsule()).state, 'idle');
 
@@ -92,7 +92,7 @@ try {
   await press(); await page.waitForFunction(() => window.__QA__.deferred.start_dictation?.resolve);
   await page.clock.runFor(10001); await waitStatus('error'); await waitRecovery();
   assert.match((await lastCapsule()).error, /Microphone did not start/);
-  await page.evaluate(() => { window.__QA__.deferred.start_dictation.resolve(); delete window.__QA__.deferred.start_dictation; });
+  await page.evaluate(() => { window.__QA__.deferred.start_dictation.resolve(1); delete window.__QA__.deferred.start_dictation; });
   assert.equal((await state()).isRecording, false);
 
   await press(); await waitStatus('recording');

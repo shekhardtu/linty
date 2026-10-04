@@ -13,7 +13,8 @@ pub struct RecordingState {
     pub samples: Arc<Vec<f32>>,
     pub application: Option<crate::application::ApplicationIdentity>,
     pub audio_consent: Option<i64>,
-    pub history_audio: Option<crate::history_db::PendingAudio>,
+    /// Stopped captures awaiting History, including those behind another paste.
+    pub history_audio: HashMap<u64, crate::history_db::PendingAudio>,
 }
 
 impl RecordingState {
@@ -21,15 +22,9 @@ impl RecordingState {
         &mut self,
         generation: u64,
     ) -> Option<crate::history_db::PendingAudio> {
-        if self
-            .history_audio
-            .as_ref()
-            .is_some_and(|a| a.generation == generation)
-        {
-            self.history_audio.take()
-        } else {
-            None
-        }
+        self.history_audio
+            .remove(&generation)
+            .filter(|a| a.generation == generation)
     }
 }
 
@@ -40,11 +35,14 @@ mod audio_history_tests {
     #[test]
     fn stale_save_or_cleanup_cannot_consume_another_recording() {
         let mut rec = RecordingState {
-            history_audio: Some(crate::history_db::PendingAudio {
-                generation: 12,
-                consent_epoch: 3,
-                samples: Arc::new(vec![0.1, 0.2, 0.3]),
-            }),
+            history_audio: HashMap::from([(
+                12,
+                crate::history_db::PendingAudio {
+                    generation: 12,
+                    consent_epoch: 3,
+                    samples: Arc::new(vec![0.1, 0.2, 0.3]),
+                },
+            )]),
             ..Default::default()
         };
         assert!(rec.take_history_audio(11).is_none());
@@ -66,26 +64,63 @@ mod audio_history_tests {
         let pointer = samples.as_ptr();
         let mut rec = RecordingState {
             samples: Arc::clone(&samples),
-            history_audio: Some(crate::history_db::PendingAudio {
-                generation: 1,
-                consent_epoch: 1,
-                samples: Arc::clone(&samples),
-            }),
+            history_audio: HashMap::from([(
+                1,
+                crate::history_db::PendingAudio {
+                    generation: 1,
+                    consent_epoch: 1,
+                    samples: Arc::clone(&samples),
+                },
+            )]),
             ..Default::default()
         };
         drop(samples);
         let inference = std::mem::take(&mut rec.samples);
         assert_eq!(inference.as_ptr(), pointer);
-        assert_eq!(
-            rec.history_audio.as_ref().unwrap().samples.as_ptr(),
-            pointer
-        );
+        assert_eq!(rec.history_audio.get(&1).unwrap().samples.as_ptr(), pointer);
         drop(inference);
         drop(rec.take_history_audio(1));
         assert!(
             weak.upgrade().is_none(),
             "Completing/cancelling releases the shared capture"
         );
+    }
+
+    #[test]
+    fn overlapping_captures_keep_independent_inference_and_history_audio() {
+        let first = Arc::new(vec![0.1; 16000]);
+        let second = Arc::new(vec![0.2; 32000]);
+        let mut rec = RecordingState::default();
+        rec.samples = first.clone();
+        rec.history_audio.insert(
+            1,
+            crate::history_db::PendingAudio {
+                generation: 1,
+                consent_epoch: 2,
+                samples: first.clone(),
+            },
+        );
+        let inference = std::mem::take(&mut rec.samples);
+        rec.samples = second.clone();
+        rec.history_audio.insert(
+            2,
+            crate::history_db::PendingAudio {
+                generation: 2,
+                consent_epoch: 2,
+                samples: second.clone(),
+            },
+        );
+        assert!(Arc::ptr_eq(&inference, &first));
+        assert!(Arc::ptr_eq(
+            &rec.take_history_audio(1).unwrap().samples,
+            &first
+        ));
+        assert!(Arc::ptr_eq(&rec.samples, &second));
+        assert!(Arc::ptr_eq(
+            &rec.take_history_audio(2).unwrap().samples,
+            &second
+        ));
+        assert!(rec.history_audio.is_empty());
     }
 }
 
@@ -96,7 +131,9 @@ pub enum AudioCommand {
         generation: u64,
         reply: tokio::sync::oneshot::Sender<Result<(), String>>,
     },
-    Stop,
+    Stop {
+        reply: Option<tokio::sync::oneshot::Sender<()>>,
+    },
 }
 
 pub struct AppState {

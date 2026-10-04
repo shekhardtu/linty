@@ -281,7 +281,6 @@ async fn start_recording(
         }
         let selected = audio_input::snapshot(&app).selected;
         rec.samples = Default::default();
-        rec.history_audio = None;
         rec.audio_consent = audio_consent;
         rec.application = application;
         rec.is_recording = true;
@@ -356,11 +355,11 @@ async fn recover_recording(
     let mut rec = state.recording.lock().map_err(|e| e.to_string())?;
     state.audio_generation.fetch_add(1, Ordering::SeqCst);
     if let Some(tx) = state.audio_tx.lock().map_err(|e| e.to_string())?.take() {
-        let _ = tx.send(AudioCommand::Stop);
+        let _ = tx.send(AudioCommand::Stop { reply: None });
     }
     rec.is_recording = false;
     rec.samples = Default::default();
-    rec.history_audio = None;
+    rec.history_audio.clear();
     rec.audio_consent = None;
     rec.application = None;
     *state.audio_buffer.lock().map_err(|e| e.to_string())? = Vec::new();
@@ -380,16 +379,23 @@ async fn stop_recording(
         .local_model_last_used_at
         .store(now_epoch_ms(), Ordering::Relaxed);
 
+    let (reply, stopped) = tokio::sync::oneshot::channel();
     {
         let tx_guard = state.audio_tx.lock().map_err(|e| e.to_string())?;
         if let Some(tx) = tx_guard.as_ref() {
-            tx.send(AudioCommand::Stop).map_err(|e| e.to_string())?;
+            tx.send(AudioCommand::Stop { reply: Some(reply) })
+                .map_err(|e| e.to_string())?;
+        } else {
+            let _ = reply.send(());
         }
     }
 
-    // Let the audio thread drain in-flight callbacks — async so the main
-    // thread keeps servicing events (sync commands run on the main thread).
-    tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    // Stream disposal stops CoreAudio callbacks before we detach the buffer.
+    // Acknowledge that boundary instead of imposing a fixed delay on every take.
+    tokio::time::timeout(std::time::Duration::from_secs(3), stopped)
+        .await
+        .map_err(|_| "Microphone did not stop. Please try again.".to_string())?
+        .map_err(|_| "Audio shutdown was interrupted".to_string())?;
     let mut rec = state.recording.lock().map_err(|e| e.to_string())?;
     if state.audio_generation.load(Ordering::SeqCst) != generation {
         return Err("Recording was cancelled".into());
@@ -411,15 +417,16 @@ async fn stop_recording(
 
     rec.is_recording = false;
     let samples = Arc::new(samples);
-    rec.history_audio =
-        rec.audio_consent
-            .take()
-            .filter(|_| sample_count > 0)
-            .map(|consent_epoch| history_db::PendingAudio {
+    if let Some(consent_epoch) = rec.audio_consent.take().filter(|_| sample_count > 0) {
+        rec.history_audio.insert(
+            generation,
+            history_db::PendingAudio {
                 generation,
                 consent_epoch,
                 samples: Arc::clone(&samples),
-            });
+            },
+        );
+    }
     rec.samples = samples;
     let application = rec.application.take();
 
@@ -436,6 +443,8 @@ async fn stop_recording(
 async fn transcribe_buffer(
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
+    samples: Arc<Vec<f32>>,
+    generation: u64,
     prompt: Option<String>,
     language: Option<String>,
     auto_detect_languages: Vec<String>,
@@ -446,13 +455,12 @@ async fn transcribe_buffer(
     let _ = &vocabulary;
     #[cfg(feature = "local-stt")]
     {
-        let generation = state.audio_generation.load(Ordering::SeqCst);
         state
             .local_model_last_used_at
             .store(now_epoch_ms(), Ordering::Relaxed);
 
-        // Resolve the engine BEFORE taking samples — if the model can't be
-        // loaded, we fail early and leave samples intact for a retry.
+        // Samples belong to this stopped capture, independently of newer
+        // microphone generations. Cancellation is checked by its session.
         let engine = if let Some(filename) = filename {
             let _guard = state.local_model_load_lock.lock().await;
             let selected = state
@@ -476,19 +484,6 @@ async fn transcribe_buffer(
         } else {
             resolve_local_engine(&app, &state).await?
         };
-        if state.audio_generation.load(Ordering::SeqCst) != generation {
-            return Err("Transcription was cancelled".into());
-        }
-
-        // Take samples from recording state (zero-copy move)
-        let samples = {
-            let mut rec = state.recording.lock().map_err(|e| e.to_string())?;
-            if state.audio_generation.load(Ordering::SeqCst) != generation {
-                return Err("Transcription was cancelled".into());
-            }
-            std::mem::take(&mut rec.samples)
-        };
-
         log::debug!(
             "[cmd] transcribe_buffer: {} samples ({:.1}s)",
             samples.len(),
@@ -553,6 +548,8 @@ async fn transcribe_buffer(
             language,
             auto_detect_languages,
             filename,
+            samples,
+            generation,
         );
         Err("Local STT not available — rebuild with `local-stt` feature".into())
     }
@@ -756,7 +753,7 @@ fn reset_all_data(
     history.forget_audio_consent();
     {
         let mut rec = state.recording.lock().map_err(|e| e.to_string())?;
-        rec.history_audio = None;
+        rec.history_audio.clear();
         rec.audio_consent = None;
     }
     let data_dir = app
@@ -1220,6 +1217,27 @@ pub(crate) fn set_activation_policy_accessory() {
 #[cfg(not(target_os = "macos"))]
 pub(crate) fn set_activation_policy_accessory() {}
 
+/// Restore the dashboard for Spotlight, Dock, tray and second-instance opens.
+/// AppKit activation changes must run on its main thread.
+pub(crate) fn show_main_window(app: &tauri::AppHandle) {
+    let handle = app.clone();
+    let result = app.run_on_main_thread(move || {
+        set_activation_policy_regular();
+        if let Some(window) = handle.get_webview_window("main") {
+            let result = window
+                .unminimize()
+                .and_then(|_| window.show())
+                .and_then(|_| window.set_focus());
+            if let Err(error) = result {
+                log::warn!("[window] Could not restore main window: {error}");
+            }
+        }
+    });
+    if let Err(error) = result {
+        log::warn!("[window] Could not schedule main window restoration: {error}");
+    }
+}
+
 // ── macOS: System sleep/wake observer ──
 
 #[cfg(target_os = "macos")]
@@ -1322,7 +1340,7 @@ fn register_wake_observer(app: &tauri::AppHandle, app_state: &AppState) {
             if let Ok(mut rec) = state.recording.lock() {
                 rec.is_recording = false;
                 rec.samples = Default::default();
-                rec.history_audio = None;
+                rec.history_audio.clear();
                 rec.audio_consent = None;
             }
 
@@ -1412,11 +1430,7 @@ pub fn run() {
         // vector. Instead, surface the already-running instance.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             log::info!("[single-instance] Second launch blocked — focusing existing window");
-            set_activation_policy_regular();
-            if let Some(window) = app.get_webview_window("main") {
-                let _ = window.show();
-                let _ = window.set_focus();
-            }
+            show_main_window(app);
         }))
         // Local-only log file; registered before every plugin that logs.
         .plugin(logging::plugin())
@@ -1616,6 +1630,15 @@ pub fn run() {
             capsule::show_correction_feedback,
             capsule::play_capsule_sound,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running Linty");
+        .build(tauri::generate_context!())
+        .expect("error while building Linty")
+        .run(|app, event| {
+            #[cfg(target_os = "macos")]
+            if matches!(event, tauri::RunEvent::Reopen { .. }) {
+                log::info!("[window] macOS reopen requested — restoring main window");
+                show_main_window(app);
+            }
+            #[cfg(not(target_os = "macos"))]
+            let _ = (app, event);
+        });
 }

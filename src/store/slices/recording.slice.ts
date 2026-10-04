@@ -6,6 +6,9 @@ export interface RecordingSlice {
   handsFree: boolean;
   quietSeconds: number;
   recordingGeneration: number;
+  pendingDictations: number;
+  beginProcessing: () => void;
+  finishProcessing: () => void;
   setHandsFree: (handsFree: boolean) => void;
   setQuietSeconds: (quietSeconds: number) => void;
   setRecordingGeneration: (recordingGeneration: number) => void;
@@ -20,6 +23,9 @@ export const createRecordingSlice: StateCreator<RecordingSlice> = (set) => ({
   handsFree: false,
   quietSeconds: 0,
   recordingGeneration: 0,
+  pendingDictations: 0,
+  beginProcessing: () => set((state) => ({ pendingDictations: state.pendingDictations + 1 })),
+  finishProcessing: () => set((state) => ({ pendingDictations: Math.max(0, state.pendingDictations - 1) })),
   setHandsFree: (handsFree) => set({ handsFree }),
   setQuietSeconds: (quietSeconds) => set({ quietSeconds }),
   setRecordingGeneration: (recordingGeneration) => set({ recordingGeneration }),

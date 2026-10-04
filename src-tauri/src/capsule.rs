@@ -451,6 +451,9 @@ pub fn emit_capsule_state(
     generation: Option<u64>,
     error: Option<String>,
 ) {
+    if generation.is_some_and(|g| !app.state::<crate::dictation::Coordinator>().is_current(g)) {
+        return;
+    }
     if state == "idle" && SHOWING_FEEDBACK.load(Ordering::SeqCst) {
         return;
     }

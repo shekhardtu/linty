@@ -43,6 +43,9 @@ apps during capture or processing moves the feedback without restarting capture.
 The native panel retains a revisioned state snapshot and replays it when the
 webview resumes or reloads, so a missed event cannot leave the pill empty. Older
 state events and dismissal requests cannot replace a newer dictation's feedback.
+Opening a running app through Spotlight or the Dock restores and focuses its
+main window, including when it was closed or minimized. Tray and second-instance
+opens use the same restoration path.
 
 Releasing the trigger stops capture even when preparation is pending. Recorded
 samples stay in Rust while transcription waits for readiness, with a visible

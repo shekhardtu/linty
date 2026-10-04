@@ -7,6 +7,7 @@ import { refreshHistory } from "@/services/history.service";
 import { noteDictionaryUse } from "@/services/dictionary.service";
 import { currentDictation, ownsDictation, finishEmptyDictation, recoverDictation } from "@/services/dictation-recovery.service";
 import { transcriptionTimeoutMs } from "@/lib/dictation-session";
+import type { DictationSession } from "@/lib/dictation-session";
 import type { TranscriptRecord } from "@/types/transcript.types";
 import type { StopResult } from "./useRecording.hook";
 
@@ -37,27 +38,27 @@ export function useTranscription() {
     return () => { disposed = true; clearPendingTimers(); subscriptions.forEach(p => void p.then(unlisten => unlisten())); };
   }, [clearPendingTimers]);
 
-  const processAudio = useCallback(async (audio: StopResult) => {
-    clearPendingTimers();
-    const session = currentDictation();
+  const processAudio = useCallback(async (audio: StopResult, session: DictationSession = audio.session ?? currentDictation()) => {
+    if (ownsDictation(session)) clearPendingTimers();
     if (session.cancelled || !audio.sample_count || audio.recording_generation == null) return;
+    useAppStore.getState().beginProcessing();
     try {
       // This waits for the already-running session; repeated reads never repeat paste.
       const outcome = await session.run(() => invoke<Outcome>("dictation_result", { generation: audio.recording_generation }),
         transcriptionTimeoutMs(audio.duration_secs) + 450_000, "Dictation did not finish. Check History before retrying.");
-      if (!ownsDictation(session) || session.cancelled) return;
+      if (session.cancelled) return;
       const state = useAppStore.getState();
       for (const message of outcome.warnings) state.addToast({ type: "warning", message });
       await refreshHistory().catch(() => state.addToast({ type: "warning", message: "Could not refresh History. Your saved text is still available when it reloads." }));
-      if (!ownsDictation(session) || session.cancelled) return;
-      if (!outcome.record) { finishEmptyDictation(session); return; }
+      void noteDictionaryUse({ recognized: outcome.recognized, corrected: outcome.corrected }).catch(() => {});
       const record = outcome.record;
+      if (record?.deliveryStatus === "failed") state.addToast({ type: "error", message: "Paste failed. Copy your text to retry.", action: { label: "Copy text", onClick: () => { void copyTranscript(record); } } });
+      if (!ownsDictation(session) || session.cancelled) return;
+      if (!record) { finishEmptyDictation(session); return; }
       state.setRawTranscript(record.rawText);
       state.setCorrectedTranscript(record.reformattedText ?? "");
       state.setFinalText(record.finalText);
-      void noteDictionaryUse({ recognized: outcome.recognized, corrected: outcome.corrected }).catch(() => {});
       state.setStatus("done");
-      if (record.deliveryStatus === "failed") state.addToast({ type: "error", message: "Paste failed. Copy your text to retry.", action: { label: "Copy text", onClick: () => { void copyTranscript(record); } } });
       if (record.deliveryStatus === "verified") void invoke("play_capsule_sound", { sound: "success" }).catch(() => {});
       timers.current.push(setTimeout(() => {
         if (ownsDictation(session) && !session.cancelled) void invoke("hide_capsule").catch(() => {});
@@ -66,9 +67,15 @@ export function useTranscription() {
         if (ownsDictation(session) && !session.cancelled) useAppStore.getState().resetTranscription();
       }, 3000));
     } catch (error) {
-      if (!ownsDictation(session) || session.cancelled) return;
+      if (session.cancelled) return;
       await refreshHistory().catch(() => {});
+      if (!ownsDictation(session)) {
+        useAppStore.getState().addToast({ type: "error", message: error instanceof Error ? error.message : String(error) });
+        return;
+      }
       await recoverDictation(error instanceof Error ? error.message : String(error), session);
+    } finally {
+      useAppStore.getState().finishProcessing();
     }
   }, [clearPendingTimers]);
   return { status, rawTranscript, correctedTranscript, finalText, error, processAudio, resetTranscription, clearPendingTimers };

@@ -80,8 +80,8 @@ export function withMinimumVersion(
 /** Transcription states during which an update must not restart the app. */
 const BUSY_STATUSES = new Set(["preparing", "recording", "transcribing", "correcting", "pasting"]);
 
-export function isDictationBusy(state: { isRecording: boolean; status: string }): boolean {
-  return state.isRecording || BUSY_STATUSES.has(state.status);
+export function isDictationBusy(state: { isRecording: boolean; status: string; pendingDictations?: number }): boolean {
+  return state.isRecording || (state.pendingDictations ?? 0) > 0 || BUSY_STATUSES.has(state.status);
 }
 
 export interface IdleTimers {

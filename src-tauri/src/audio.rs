@@ -116,9 +116,12 @@ pub fn spawn_audio_thread(
                         }
                     }
                 }
-                AudioCommand::Stop => {
+                AudioCommand::Stop { reply } => {
                     active_stream.take();
                     let _ = app.emit("recording-stopped", ());
+                    if let Some(reply) = reply {
+                        let _ = reply.send(());
+                    }
                 }
             }
         }

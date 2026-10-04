@@ -10,8 +10,9 @@ import {
 } from "@tauri-apps/plugin-global-shortcut";
 import { isDictationWindowActive } from "@/services/dictation-presentation.service";
 import { currentDictation, ownsDictation, isRecoveringDictation, recoverDictation, finishEmptyDictation } from "@/services/dictation-recovery.service";
+import type { DictationSession } from "@/lib/dictation-session";
 import { DictationTrigger } from "@/lib/dictation-trigger";
-import { useRecording } from "./useRecording.hook";
+import { isStartingRecording, useRecording } from "./useRecording.hook";
 import { useTranscription } from "./useTranscription.hook";
 import { useAppStore } from "@/store/app.store";
 import { FALLBACK_TRIGGER_ACCELERATOR } from "@/store/slices/settings.slice";
@@ -40,11 +41,10 @@ export function useGlobalHotkey(enabled = true) {
   const isRecordingRef = useRef(false);
   const isRecording = useAppStore((s) => s.isRecording);
   useEffect(() => {
-    isRecordingRef.current = isRecording;
+    if (!isStartingRecording()) isRecordingRef.current = isRecording;
   }, [isRecording]);
 
-  // Synchronous lock — prevents concurrent release handling / duplicate pastes
-  const processingRef = useRef(false);
+  const stoppingSessionRef = useRef<DictationSession | null>(null);
   const gestureRef = useRef<DictationTrigger | null>(null);
 
   const showRecording = useCallback(() => {
@@ -55,7 +55,7 @@ export function useGlobalHotkey(enabled = true) {
   }, []);
 
   const handlePress = useCallback(async () => {
-    if (!enabledRef.current || isRecordingRef.current || processingRef.current || isRecoveringDictation()) {
+    if (!enabledRef.current || isRecordingRef.current || isRecoveringDictation()) {
       gestureRef.current?.reset();
       return;
     }
@@ -65,12 +65,14 @@ export function useGlobalHotkey(enabled = true) {
     // Cancel any stale hide/reset timers from a previous recording session
     clearPendingTimersRef.current();
 
+    let session: DictationSession | undefined;
     try {
       const focus = isDictationWindowActive();
       // Reserve startup before awaiting focus: a fast release must still wait
       // for this microphone and close it rather than start a second capture.
       const starting = startRecordingRef.current();
-      const session = currentDictation();
+      session = currentDictation();
+      const owner = session;
       const inFocus = await focus;
       if (!ownsDictation(session) || session.cancelled) return;
       if (inFocus) flushSync(() => useAppStore.getState().setRecordingFocusOpen(true));
@@ -78,16 +80,17 @@ export function useGlobalHotkey(enabled = true) {
       if (!ownsDictation(session)) return;
       if (!started) { isRecordingRef.current = false; gestureRef.current?.reset(); return; }
       // A quick release may already be stopping the stream. Never overwrite its state.
-      if (!await isDictationWindowActive() && isRecordingRef.current && !processingRef.current) {
+      if (!await isDictationWindowActive() && isRecordingRef.current && stoppingSessionRef.current !== session) {
         void invoke("show_capsule").then(() => {
-          if (ownsDictation(session) && !session.cancelled && isRecordingRef.current && !processingRef.current) return showRecording();
+          if (ownsDictation(owner) && !owner.cancelled && isRecordingRef.current && stoppingSessionRef.current !== owner) return showRecording();
         }).catch(() => {});
         void invoke("play_capsule_sound", { sound: "start" }).catch(() => {});
       }
     } catch (error) {
+      if (session && !ownsDictation(session)) return;
       isRecordingRef.current = false;
       gestureRef.current?.reset();
-      await recoverDictation(error instanceof Error ? error.message : String(error));
+      await recoverDictation(error instanceof Error ? error.message : String(error), session);
     }
   }, [showRecording]);
 
@@ -122,26 +125,28 @@ export function useGlobalHotkey(enabled = true) {
   }, []);
 
   const finishRecording = useCallback(async (discard = false) => {
-    if (!isRecordingRef.current || processingRef.current) return;
-    // Immediately lock to prevent any concurrent entry
-    processingRef.current = true;
+    if (!isRecordingRef.current) return;
+    const session = currentDictation();
+    stoppingSessionRef.current = session;
     isRecordingRef.current = false;
     gestureRef.current?.reset(true);
 
-    const session = currentDictation();
+    let audio: Awaited<ReturnType<typeof stopRecording>> | undefined;
     try {
       const result = await stopRecordingRef.current({ deferEmpty: discard });
       if (discard && !session.cancelled) {
-        await session.run(() => invoke("recover_recording"), 5000, "Could not release the empty recording. Please try again.");
+        // Native stop already releases this capture. Global recovery would
+        // cancel earlier dictations still being delivered in the background.
         finishEmptyDictation(session, "quiet-stop");
       } else if (result.sample_count > 0 && !session.cancelled) {
-        await processAudioRef.current(result);
+        audio = result;
       }
     } catch (error) {
       if (!session.cancelled) await recoverDictation(error instanceof Error ? error.message : String(error), session);
     } finally {
-      if (ownsDictation(session)) processingRef.current = false;
+      if (stoppingSessionRef.current === session) stoppingSessionRef.current = null;
     }
+    if (audio) await processAudioRef.current(audio, session);
   }, []);
 
   if (!gestureRef.current) gestureRef.current = new DictationTrigger({
@@ -190,7 +195,7 @@ export function useGlobalHotkey(enabled = true) {
     const recover = async (message: string) => {
       gestureRef.current?.reset();
       await recoverDictation(message);
-      processingRef.current = false;
+      stoppingSessionRef.current = null;
       isRecordingRef.current = false;
       resetRecording();
     };
@@ -199,7 +204,7 @@ export function useGlobalHotkey(enabled = true) {
       listen<string>("watchdog-recovery", ({ payload }) => { void recover(payload); }),
       listen("system-wake", () => {
         const state = useAppStore.getState();
-        if (isRecordingRef.current || processingRef.current || state.isRecording || ["preparing", "transcribing", "correcting", "pasting"].includes(state.status)) {
+        if (isRecordingRef.current || stoppingSessionRef.current || state.isRecording || state.pendingDictations > 0 || ["preparing", "transcribing", "correcting", "pasting"].includes(state.status)) {
           void recover("Dictation interrupted by sleep. Please try again.");
         }
         void invoke("force_reinit_fn_key_monitor").catch(() => {});

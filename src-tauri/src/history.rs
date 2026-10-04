@@ -232,7 +232,7 @@ pub async fn history_set_save_audio(app: tauri::AppHandle, enabled: bool) -> Res
                     .recording
                     .lock()
                     .map_err(|_| "Recording unavailable")?;
-                rec.history_audio = None;
+                rec.history_audio.clear();
                 rec.audio_consent = None;
             }
             Ok(())
@@ -276,7 +276,7 @@ pub async fn history_delete_audio(app: tauri::AppHandle, id: Option<String>) -> 
 fn discard_pending_audio(app: &tauri::AppHandle) {
     let state = app.state::<crate::state::AppState>();
     if let Ok(mut rec) = state.recording.lock() {
-        rec.history_audio = None;
+        rec.history_audio.clear();
         rec.audio_consent = None;
     };
 }
