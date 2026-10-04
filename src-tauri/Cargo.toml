@@ -1,6 +1,6 @@
 [package]
 name = "linty"
-version = "0.0.1"
+version = "0.0.8"
 description = "Privacy-first dictation for macOS with offline Whisper and Parakeet"
 authors = ["Hari Shekhar"]
 license = "MIT"
