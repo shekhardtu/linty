@@ -10,6 +10,12 @@ fn main() {
         matches!(target_arch.as_str(), "aarch64" | "x86_64"),
         "Linty supports Apple silicon and Intel Macs only"
     );
+    if env::var("PROFILE").as_deref() == Ok("release") {
+        // Trim debug/local symbols at link time, before Tauri signs either
+        // architecture. Keep global symbols and runtime metadata intact.
+        println!("cargo:rustc-link-arg=-Wl,-S");
+        println!("cargo:rustc-link-arg=-Wl,-x");
+    }
     // The Intel slice of a universal app must never link the ARM Swift archive.
     if env::var_os("CARGO_FEATURE_PARAKEET").is_some() && target_arch == "aarch64" {
         build_parakeet_bridge();
@@ -18,7 +24,7 @@ fn main() {
 }
 
 /// Compile the Swift bridge in `swift/` (FluidAudio + Parakeet) into a static
-/// library and tell rustc how to link it. Requires Xcode 16+ (Swift 6 toolchain)
+/// library and tell rustc how to link it. Requires Xcode 26+ (Swift 6.2 toolchain)
 /// and, on the first build, network access for SwiftPM to fetch FluidAudio.
 fn build_parakeet_bridge() {
     let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();

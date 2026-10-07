@@ -177,7 +177,7 @@ def markdown(reports):
              "|---|---|---|---:|---:|---:|---:|---:|---:|"]
     for report in sorted(reports, key=lambda row: (row["dataset_id"], row["engine"])):
         data, stats = report["dataset"], report["summary"]
-        label = "Parakeet TDT v3" if report["engine"] == "parakeet" else "Whisper Turbo Q5"
+        label = ("Parakeet Ultra" if report["settings"].get("model_id") == "parakeet-ultra" else "Parakeet TDT v3") if report["engine"] == "parakeet" else "Whisper Turbo Q5"
         coverage = "Full test split" if report["selection"]["scope"] == "full-test-split" else f"Sample of {report['selection']['available_cases']:,}"
         lines.append(f"| {data['name']} {data['config']} / {data['split']} | {coverage} | {label} | {stats['clips']:,} | "
                      f"{number(stats['wer'], 100, '%')} | {number(stats['cer'], 100, '%')} | {stats['failed_clips']} | "

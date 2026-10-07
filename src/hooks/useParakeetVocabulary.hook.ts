@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "@/store/app.store";
-
-const PARAKEET_ID = "parakeet-tdt-0.6b-v3";
+import { isParakeetModel } from "@/lib/languages.util";
 
 /**
  * Parakeet has no vocabulary prompt; it recognises dictionary words through a
@@ -21,7 +20,7 @@ export function useParakeetVocabulary() {
   const attemptedKey = useRef<string | null>(null);
 
   useEffect(() => {
-    const wanted = loadedModelFilename === PARAKEET_ID && dictionaryEnabled && hasWords;
+    const wanted = isParakeetModel(loadedModelFilename) && dictionaryEnabled && hasWords;
     const key = `${loadedModelFilename}|${dictionaryEnabled}|${hasWords}`;
     if (!wanted || status === "preparing" || attemptedKey.current === key) return;
     attemptedKey.current = key;

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { emit, listen } from "@tauri-apps/api/event";
 import { useAppStore } from "@/store/app.store";
 import { formatTriggerLabel } from "@/lib/trigger.util";
-import { TRANSCRIPTION_LANGUAGES, modelSupportsLanguage } from "@/lib/languages.util";
+import { TRANSCRIPTION_LANGUAGES, modelSupportsLanguage, isParakeetModel } from "@/lib/languages.util";
 import { dictationPreparation } from "@/services/dictation-preparation.service";
 
 export function useTraySync(
@@ -24,7 +24,7 @@ export function useTraySync(
     return () => { unlisten.then((off) => off()); };
   }, []);
   // The menu names the local engine that will actually run: the selection, else what is loaded.
-  const localEngine = (selectedModelFilename ?? loadedModelFilename) === "parakeet-tdt-0.6b-v3" ? "Parakeet" : "Whisper";
+  const localEngine = isParakeetModel(selectedModelFilename ?? loadedModelFilename) ? "Parakeet" : "Whisper";
   const transcripts = useAppStore((s) => s.transcripts);
   const recentTranscripts = useMemo(
     () =>

@@ -169,7 +169,7 @@ fn main() {
     };
 
     // ── Parakeet ──
-    let parakeet_dir = args.models_dir.join(transcribe::PARAKEET_V3_ID);
+    let parakeet_dir = args.models_dir.join(transcribe::PARAKEET_ULTRA_ID);
     if !linty_lib::parakeet::models_exist(&parakeet_dir) {
         println!(
             "parakeet : downloading bundle into {} ...",

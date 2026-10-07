@@ -261,11 +261,13 @@ try {
   assert.equal(overlay.pointerEvents, 'none', 'Tooltip does not interrupt pointer tracking');
   await screenshot('chart-tooltip-light');
   await page.mouse.move(0,0);
+  await page.getByRole('tooltip').waitFor({ state: 'hidden' });
   assert.equal(await page.getByRole('tooltip').count(), 0);
   await chart.getByRole('button').first().focus();
   await page.getByRole('tooltip').waitFor();
   assert.equal(await chart.getByRole('button').first().getAttribute('aria-describedby'), await page.getByRole('tooltip').getAttribute('id'));
   await page.keyboard.press('Escape');
+  await page.getByRole('tooltip').waitFor({ state: 'hidden' });
   assert.equal(await page.getByRole('tooltip').count(), 0);
   // The editorial reading column and its supporting activity stack stay distinct on desktop.
   assert.equal(await page.getByText('Processing details', {exact:true}).count(), 0);

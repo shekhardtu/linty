@@ -8,9 +8,17 @@ export function useModelAutoLoad() {
   useEffect(() => {
     if (!settingsLoaded) return;
     const state = useAppStore.getState();
-    void prepareLanguage(state.transcriptionLanguage, {
-      applyCleanupDefault: !state.onboardingComplete && !state.selectedModelFilename,
-    }).catch((error) => {
+    void (async () => {
+      await prepareLanguage(state.transcriptionLanguage, {
+        applyCleanupDefault: !state.onboardingComplete && !state.selectedModelFilename,
+        preferInstalledModel: state.onboardingComplete,
+      });
+      // A compatible installed model remains usable while Ultra downloads.
+      // Preserve a language change made while startup preparation was running.
+      if (useAppStore.getState().transcriptionLanguage === state.transcriptionLanguage) {
+        await prepareLanguage(state.transcriptionLanguage);
+      }
+    })().catch((error) => {
       useAppStore.getState().addToast({ type: "error", message: `Could not prepare dictation. Open Settings → Dictation to retry. ${String(error)}` });
     });
   }, [settingsLoaded]);

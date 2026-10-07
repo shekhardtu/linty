@@ -12,7 +12,7 @@ instruction, not a registered built-in slash command.
 
 ## Set up once
 
-Use an Apple Silicon Mac with full Xcode and Swift 6+, Rust with rustfmt, Node
+Use an Apple Silicon Mac with Xcode 26+ and Swift 6.2+, Rust with rustfmt, Node
 24+, Yarn Classic, GitHub CLI authenticated with write access to
 `shekhardtu/linty`, Python 3.12+, and Minisign. The default Python command is
 `python3.13`; set `LINTY_RELEASE_PYTHON` to another compatible executable if needed.

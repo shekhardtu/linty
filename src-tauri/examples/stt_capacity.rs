@@ -130,7 +130,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             )?)
         }
         _ => Engine::Parakeet(ParakeetEngine::load(
-            &models.join(transcribe::PARAKEET_V3_ID),
+            &models.join(transcribe::PARAKEET_ULTRA_ID),
         )?),
     };
     let load_seconds = load_start.elapsed().as_secs_f64();

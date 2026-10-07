@@ -7,7 +7,10 @@ pub const WHISPER_BYTES: u64 = 574_041_195;
 pub const WHISPER_SHA256: &str = "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2";
 
 pub fn validate_speech_id(id: &str) -> Result<(), String> {
-    if matches!(id, WHISPER_ID | crate::transcribe::PARAKEET_V3_ID) {
+    if matches!(
+        id,
+        WHISPER_ID | crate::transcribe::PARAKEET_V3_ID | crate::transcribe::PARAKEET_ULTRA_ID
+    ) {
         Ok(())
     } else {
         Err("Unknown speech model. Choose your dictation language in Settings → Dictation.".into())

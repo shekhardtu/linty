@@ -18,6 +18,13 @@ const versionPattern = /^\d+\.\d+\.\d+$/;
 const signingNames = ['APPLE_SIGNING_IDENTITY', 'APPLE_ID', 'APPLE_PASSWORD', 'APPLE_TEAM_ID',
   'TAURI_SIGNING_PRIVATE_KEY', 'TAURI_SIGNING_PRIVATE_KEY_PASSWORD'];
 
+export function requireSwiftVersion(output) {
+  const version = /Swift version (\d+)\.(\d+)/.exec(output);
+  if (!version || Number(version[1]) < 6 || Number(version[1]) === 6 && Number(version[2]) < 2) {
+    throw new Error('FluidAudio requires Swift 6.2+ (Xcode 26+) to disable its unused Rust text-normalization engine.');
+  }
+}
+
 export function releaseCheckReporter({ gh, sourceSha, warn = console.warn }) {
   if (!/^[a-f0-9]{40}$/.test(sourceSha)) throw new Error('Release checks require an exact source commit.');
   let passed = false;
@@ -230,7 +237,8 @@ async function main(options) {
   run('/usr/bin/arch', ['-x86_64', '/usr/bin/true']);
   const python = process.env.LINTY_RELEASE_PYTHON || 'python3.13';
   run(python, ['-c', 'import sys; assert sys.version_info >= (3, 12)']);
-  for (const [command, args] of [['yarn', ['--version']], ['cargo', ['--version']], ['swift', ['--version']],
+  requireSwiftVersion(run('swift', ['--version'], { capture: true }));
+  for (const [command, args] of [['yarn', ['--version']], ['cargo', ['--version']],
     ['xcodebuild', ['-version']], ['minisign', ['-v']]]) run(command, args, { capture: true });
   const missing = signingNames.filter(name => name === 'TAURI_SIGNING_PRIVATE_KEY_PASSWORD'
     ? !Object.hasOwn(process.env, name) : !process.env[name]);

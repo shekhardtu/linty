@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let manifest: Manifest = serde_json::from_slice(&fs::read(manifest_path)?)?;
     let models = Path::new(&args[1]);
     if prepare && args[0] == "parakeet" {
-        linty_lib::parakeet::download(&models.join(transcribe::PARAKEET_V3_ID), |fraction| {
+        linty_lib::parakeet::download(&models.join(transcribe::PARAKEET_ULTRA_ID), |fraction| {
             println!("PREPARE {:.3}", fraction);
         })?;
     }
@@ -73,7 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let parakeet = if args[0] == "parakeet" {
         Some(ParakeetEngine::load(
-            &models.join(transcribe::PARAKEET_V3_ID),
+            &models.join(transcribe::PARAKEET_ULTRA_ID),
         )?)
     } else {
         None

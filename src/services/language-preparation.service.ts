@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useAppStore } from "@/store/app.store";
-import { isSupportedLanguage, modelForLanguage } from "@/lib/languages.util";
+import { isSupportedLanguage, modelForLanguage, modelSupportsLanguage } from "@/lib/languages.util";
 import { saveSettingsChange } from "@/lib/settings-save-feedback";
 import { getSettingsStore } from "@/services/settings-store.service";
 import { downloadCleanupModel, downloadSpeechModel } from "@/services/model-download.service";
@@ -29,6 +29,7 @@ let snapshot = initial;
 const listeners = new Set<() => void>();
 let activation: Promise<unknown> = Promise.resolve();
 let request: { language: string; applyCleanupDefault: boolean; controller: AbortController; promise: Promise<void> } | null = null;
+let readyForDefaultModel = true;
 
 function publish(change: Partial<LanguagePreparation>) {
   snapshot = { ...snapshot, ...change };
@@ -62,10 +63,10 @@ async function waitUntilIdle(signal: AbortSignal) {
 
 /** All entry points share downloads and serialize activation. Only the latest
  * choice can commit a language/model pair; failures preserve the active pair. */
-export function prepareLanguage(language: string, { applyCleanupDefault = false } = {}): Promise<void> {
+export function prepareLanguage(language: string, { applyCleanupDefault = false, preferInstalledModel = false } = {}): Promise<void> {
   if (!isSupportedLanguage(language)) return Promise.reject(new Error("Choose a supported transcription language."));
   const cleanup = language === "en" && (applyCleanupDefault || useAppStore.getState().reformatEnabled);
-  if (!request && snapshot.status === "ready" && snapshot.language === language && useAppStore.getState().transcriptionLanguage === language && cleanup === useAppStore.getState().reformatEnabled &&
+  if (!request && (readyForDefaultModel || preferInstalledModel) && snapshot.status === "ready" && snapshot.language === language && useAppStore.getState().transcriptionLanguage === language && cleanup === useAppStore.getState().reformatEnabled &&
     (snapshot.model?.filename === useAppStore.getState().loadedModelFilename && dictationPreparation.getSnapshot() === "ready")) return Promise.resolve();
   if (request?.language === language && (!applyCleanupDefault || request.applyCleanupDefault)) return request.promise;
   request?.controller.abort();
@@ -83,7 +84,14 @@ export function prepareLanguage(language: string, { applyCleanupDefault = false 
         throw new Error(message);
       }
       if (!current()) return;
-      const model = modelForLanguage(language, await invoke<SpeechModel[]>("get_available_models"));
+      const catalog = await invoke<SpeechModel[]>("get_available_models");
+      const defaultModel = modelForLanguage(language, catalog);
+      // On upgrade, make an installed compatible engine ready first. A new
+      // default can download in the background without blocking dictation.
+      const installed = catalog.find((candidate) => candidate.filename === useAppStore.getState().selectedModelFilename);
+      const useInstalled = preferInstalledModel && installed && modelSupportsLanguage(installed.filename, language)
+          && await invoke<boolean>("check_model_exists", { filename: installed.filename });
+      const model = installed && useInstalled ? installed : defaultModel;
       if (!current()) return;
       if (!model) throw new Error("No compatible speech support is available in this build.");
       publish({ model });
@@ -212,7 +220,10 @@ export function prepareLanguage(language: string, { applyCleanupDefault = false 
               selectedModelFilename: model.filename, loadedModelFilename: model.filename, isLocalModelDownloaded: true,
             });
           });
-          if (current()) publish({ status: "ready", progress: 100 });
+          if (current()) {
+            readyForDefaultModel = model.filename === defaultModel?.filename;
+            publish({ status: "ready", progress: 100 });
+          }
         } finally {
           // A late load or failed save must not replace the confirmed engine.
           if (changedModel && useAppStore.getState().loadedModelFilename !== model.filename && previousModel) {
