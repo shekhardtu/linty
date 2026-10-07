@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicholasrice/tauri-schema/main/tauri.conf.json",
   "productName": "Linty",
-  "version": "0.0.1",
+  "version": "0.0.9",
   "identifier": "ai.linty.desktop",
   "build": {
     "beforeDevCommand": "yarn dev",
@@ -47,7 +47,7 @@
     "trayIcon": {
       "iconPath": "icons/tray-icon.png",
       "iconAsTemplate": true,
-      "tooltip": "Linty \u2014 Hold fn to record"
+      "tooltip": "Linty — Hold fn to record"
     },
     "security": {
       "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' ipc: http://ipc.localhost; object-src 'none'; base-uri 'none'; frame-src 'none'; form-action 'none'",
