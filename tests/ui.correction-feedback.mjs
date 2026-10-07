@@ -168,6 +168,7 @@ try {
     await pill.clock.runFor(6000);
     assert.equal(await pill.locator('.capsule-recording').count(), 1, 'The old feedback timer cannot hide a new recording');
     await send({ state: 'done' }); await pill.clock.runFor(1400);
+    await pill.locator('.capsule-pill').waitFor({ state: 'hidden' });
     assert.equal(await pill.locator('.capsule-pill').count(), 0, 'An acknowledgment that was already shown never resumes after dictation');
     await notify();
     await pill.locator('.capsule-feedback').waitFor();
