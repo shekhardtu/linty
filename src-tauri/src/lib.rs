@@ -30,6 +30,7 @@ mod pcm_wav;
 #[cfg(target_os = "macos")]
 mod permissions;
 pub mod reformat;
+mod startup;
 mod state;
 pub mod text_validation;
 pub mod transcribe;
@@ -1423,7 +1424,7 @@ fn register_wake_observer(app: &tauri::AppHandle, app_state: &AppState) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let mut app = tauri::Builder::default()
         // Must be the first plugin registered. A second launch (double-open,
         // updater relaunch overlapping the old process) would run its own
         // fn-key monitors and paste pipeline — an independent double-paste
@@ -1446,6 +1447,7 @@ pub fn run() {
         .manage(dictation::Coordinator::default())
         .manage(capsule::CapsulePresentation::default())
         .manage(audio_input::AudioInputState::default())
+        .manage(startup::StartupState::default())
         .manage(history::HistoryState::default())
         .manage(reformat::ReformatState::default())
         // macOS app menu bar (Linty + Edit)
@@ -1518,6 +1520,7 @@ pub fn run() {
             _ => {}
         })
         .setup(|app| {
+            let login_launch = startup::launched_at_login();
             // Version banner, crash marker path and panic hook, before
             // anything else in setup can fail or panic.
             logging::init(app.handle());
@@ -1530,11 +1533,13 @@ pub fn run() {
             audio_input::init(app.handle())?;
             // Tray icon (menu, language selector, status)
             tray::init_tray(app)?;
+            startup::initialize(app.handle());
 
-            if let Some(window) = app.get_webview_window("main") {
-                set_activation_policy_regular();
-                let _ = window.show();
-                let _ = window.center();
+            if login_launch {
+                set_activation_policy_accessory();
+                log::info!("[startup] Login launch — keeping the main window hidden");
+            } else {
+                show_main_window(app.handle());
             }
 
             // Remove deprecated model binaries (tiny, base)
@@ -1570,6 +1575,10 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            startup::get_startup_settings,
+            startup::set_launch_at_login,
+            startup::finish_startup_setup,
+            startup::open_login_items_settings,
             updater::check_for_update,
             dictation::start_dictation,
             dictation::stop_dictation,
@@ -1633,14 +1642,17 @@ pub fn run() {
             capsule::play_capsule_sound,
         ])
         .build(tauri::generate_context!())
-        .expect("error while building Linty")
-        .run(|app, event| {
-            #[cfg(target_os = "macos")]
-            if matches!(event, tauri::RunEvent::Reopen { .. }) {
-                log::info!("[window] macOS reopen requested — restoring main window");
-                show_main_window(app);
-            }
-            #[cfg(not(target_os = "macos"))]
-            let _ = (app, event);
-        });
+        .expect("error while building Linty");
+    // Tao activates its app before calling setup. Defer activation until setup
+    // can inspect the native login Apple event; ordinary opens restore Regular.
+    app.set_activation_policy(tauri::ActivationPolicy::Prohibited);
+    app.run(|app, event| {
+        #[cfg(target_os = "macos")]
+        if matches!(event, tauri::RunEvent::Reopen { .. }) {
+            log::info!("[window] macOS reopen requested — restoring main window");
+            show_main_window(app);
+        }
+        #[cfg(not(target_os = "macos"))]
+        let _ = (app, event);
+    });
 }

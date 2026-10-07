@@ -3,6 +3,10 @@
 identifier = "main-commands"
 description = "Manage dictation, models, and local history from the main window."
 commands.allow = [
+    "get_startup_settings",
+    "set_launch_at_login",
+    "finish_startup_setup",
+    "open_login_items_settings",
     "check_for_update",
     "start_dictation",
     "stop_dictation",

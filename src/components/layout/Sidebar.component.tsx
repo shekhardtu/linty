@@ -4,8 +4,10 @@ import { useAppStore } from "@/store/app.store";
 import {
   NAVIGATION_ITEMS,
   SETTINGS_SECTIONS,
+  SETTING_SEARCH_ITEMS,
   type AppView,
   type SettingsSection,
+  type SettingTarget,
 } from "@/config/navigation.config";
 import {
   BrandMark,
@@ -19,6 +21,7 @@ interface SearchItem {
   keywords: string;
   view: AppView;
   section?: SettingsSection;
+  target?: SettingTarget;
   icon: React.ReactNode;
 }
 
@@ -37,6 +40,9 @@ const SEARCH_ITEMS: SearchItem[] = [
     view: "settings" as const,
     section: id,
     icon: <Icon size={14} />,
+  })),
+  ...SETTING_SEARCH_ITEMS.map(({ label, keywords, section, target, icon: Icon }) => ({
+    label, keywords, section, target, category: "Settings", view: "settings" as const, icon: <Icon size={14} />,
   })),
 ];
 
@@ -70,7 +76,7 @@ function SidebarSearch() {
         ?.scrollIntoView({ block: "nearest" });
   }, [activeIndex, isOpen]);
   const select = (item: SearchItem) => {
-    if (item.section) useAppStore.getState().setSettingsSection(item.section);
+    if (item.section) useAppStore.getState().setSettingsSection(item.section, item.target);
     else useAppStore.getState().setCurrentView(item.view);
     setQuery("");
     setIsOpen(false);

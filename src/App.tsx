@@ -37,6 +37,7 @@ import { SystemCheckPage } from "@/pages/SystemCheck.page";
 import { ShortcutsPage } from "@/pages/Shortcuts.page";
 import { AboutPage } from "@/pages/About.page";
 import { OnboardingPage } from "@/pages/Onboarding.page";
+import { finishStartupSetup } from "@/services/startup.service";
 
 export default function App() {
   const currentView = useAppStore((s) => s.currentView);
@@ -93,7 +94,15 @@ export default function App() {
   useTraySync(saveTranscriptionLanguage, !showingSetup);
   const { checkForUpdate } = useUpdater();
 
-  const handleOnboardingComplete = useCallback(async () => {
+  const handleOnboardingComplete = useCallback(async (launchAtLogin: boolean) => {
+    // Login-item registration must not block dictation setup. The native service
+    // preserves the actual status and an actionable error for General settings.
+    try {
+      const startup = await finishStartupSetup(launchAtLogin);
+      if (startup.error) useAppStore.getState().addToast({ type: "error", message: startup.error });
+    } catch {
+      useAppStore.getState().addToast({ type: "error", message: "Could not configure launch at login. Check General settings." });
+    }
     await saveOnboardingComplete(true);
     setPermissionState("ready");
   }, [saveOnboardingComplete]);

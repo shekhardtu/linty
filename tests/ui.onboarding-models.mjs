@@ -230,10 +230,12 @@ try {
   await finishDownload(page, PARAKEET);
   await waitLanguage(page, 'en');
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), true);
+  assert.equal(await page.getByRole('switch', { name: 'Launch at login', exact: true }).getAttribute('aria-checked'), 'true', 'Fresh setup defaults to launch at login');
   await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
   await checkSetupDictation(page);
   assert.equal(await page.locator('.microphone-test').count(), 0, 'Closing the dialog removes the only recorder');
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].onboardingComplete), true);
+  assert.deepEqual(await page.evaluate(() => window.__QA__.startupChoices), [true]);
   await page.waitForFunction(() => window.__QA__.emittedEvents.some(e => e.event === 'tray-state-changed' && e.payload.setupComplete && e.payload.localReady));
   await page.evaluate(() => window.__QA__.emit('fnkey-pressed'));
   await page.waitForFunction(() => window.__QA__.calls.includes('start_dictation'));
@@ -405,9 +407,29 @@ try {
   assert.equal(await page.evaluate(() => Boolean(window.__QA__.stores[1].onboardingComplete)), false);
   await page.evaluate(() => { window.__QA__.accessibility = true; });
   await reachDone(page);
+  await page.getByRole('switch', { name: 'Launch at login', exact: true }).click();
+  assert.equal(await page.getByRole('switch', { name: 'Launch at login', exact: true }).getAttribute('aria-checked'), 'false');
   await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
   await checkSetupDictation(page);
   await page.getByRole('navigation', { name: 'Main navigation' }).waitFor();
+  assert.deepEqual(await page.evaluate(() => window.__QA__.startupChoices), [false], 'Setup preserves an explicit startup opt-out');
+  await page.close();
+
+  // A failed setup save can be retried with a changed startup preference.
+  page = await open({ fresh: true, existing: [PARAKEET] });
+  await reachLanguage(page);
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await reachDone(page);
+  await page.getByRole('button', { name: 'Try dictation', exact: true }).waitFor({ state: 'visible' });
+  await page.waitForFunction(() => !document.querySelector('.primary-button:disabled'));
+  await page.evaluate(() => { window.__QA__.failures['plugin:store|save'] = 'Synthetic setup save failure'; });
+  await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
+  await page.getByRole('alert').getByText('Could not finish setup. Please try again.', { exact: true }).waitFor();
+  await page.getByRole('switch', { name: 'Launch at login', exact: true }).click();
+  await page.evaluate(() => { delete window.__QA__.failures['plugin:store|save']; });
+  await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
+  await checkSetupDictation(page);
+  assert.deepEqual(await page.evaluate(() => window.__QA__.startupChoices), [true, false], 'A setup retry honors a changed startup choice');
   await page.close();
 
   // Only a boolean completion flag skips first-run setup.
@@ -531,7 +553,7 @@ try {
   // Auto-detect uses. Failed saves keep the active list and captured options.
   page = await open({ returning: true, language: 'auto', languages: ['en', 'hi'], existing: [WHISPER, PARAKEET] });
   await waitLanguage(page, 'auto');
-  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Settings', exact: true }).click();
+  await openLanguageSettings(page);
   await page.getByRole('button', { name: 'Remove Hindi', exact: true }).waitFor();
   assert.equal(await page.getByRole('combobox', { name: 'Text cleanup', exact: true }).count(), 0, 'Auto-detect only shows the language shortlist');
   assert.equal(await page.getByRole('button', { name: 'Save languages', exact: true }).count(), 0);
@@ -562,7 +584,7 @@ try {
   await page.screenshot({ path: `artifacts/language/${engine.name()}-dictation-languages.png` });
   await page.getByRole('button', { name: 'Try dictation', exact: true }).click();
   await page.getByRole('dialog', { name: 'Focused dictation', exact: true }).waitFor();
-  assert.deepEqual(await page.evaluate(async () => { const s = (await import('/src/store/app.store.ts')).useAppStore.getState(); return [s.currentView, s.settingsSection]; }), ['settings', 'general']);
+  assert.deepEqual(await page.evaluate(async () => { const s = (await import('/src/store/app.store.ts')).useAppStore.getState(); return [s.currentView, s.settingsSection]; }), ['settings', 'dictation']);
   await page.getByRole('button', { name: 'Back to Dictation', exact: true }).click();
   await page.getByRole('heading', { name: 'Dictation', exact: true }).waitFor();
   await chooseLanguage(page, 'Hindi'); await waitLanguage(page, 'hi');

@@ -37,7 +37,7 @@ export function StatusBar() {
         <span>{saveLabel}</span>
       </div> : undefined}</VersionIndicator>
       <div className="status-engine-region" role="status" aria-atomic="true">
-        <button className={`status-engine is-${engineState}`} onClick={() => setSettingsSection("general")}
+        <button className={`status-engine is-${engineState}`} onClick={() => setSettingsSection("dictation")}
           aria-label={`${engine}: ${activity}. Configure dictation language`} title={`${engine}: ${detail}`}>
           <span className="status-engine-indicator" aria-hidden="true">
             <Cpu size={13} className={engineState === "ready" ? "is-active" : ""} />

@@ -39,7 +39,7 @@ try {
     while (!(await page.getByRole('dialog').count()) && !(await page.locator(':popover-open').count()) && await page.getByRole('button', {name:'Dismiss notification',exact:true}).count()) await page.getByRole('button', {name:'Dismiss notification',exact:true}).first().click();
     return page.screenshot({ path: `${output}/${name}.png`, animations: 'disabled' });
   };
-  const settingLabels = { general:'Dictation', audio:'Audio', appearance:'Appearance', privacy:'Privacy & storage' };
+  const settingLabels = { general:'General', dictation:'Dictation', audio:'Audio', appearance:'Appearance', privacy:'Privacy & storage' };
   const openSettingsSection = async (screen, name) => {
     const showSidebar = screen.getByRole('button', {name:'Show sidebar',exact:true});
     if (await showSidebar.count()) await showSidebar.click();
@@ -88,6 +88,46 @@ try {
   await shortDetails.getByText('~1m', { exact: true }).waitFor();
   await short.close();
   await audit('overview-light'); await screenshot('overview-light');
+  // Startup preferences are ordinary settings, and search lands on the switch.
+  const startupToggle = page.getByRole('switch', { name: 'Launch at login', exact: true });
+  await page.evaluate(() => { window.__QA__.failures.get_startup_settings = 'Synthetic status-read failure'; });
+  await page.getByRole('combobox', { name: 'Search Linty' }).fill('startup');
+  await page.keyboard.press('Enter');
+  await page.getByRole('alert').getByText('Could not check launch at login. Try again.', { exact: true }).waitFor();
+  assert.equal(await startupToggle.isDisabled(), true);
+  await page.evaluate(() => { delete window.__QA__.failures.get_startup_settings; });
+  await page.getByRole('button', { name: 'Try again', exact: true }).click();
+  await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Launch at login');
+  for (const query of ['startup', 'start automatically', 'open at login', 'autostart', 'boot', 'Launch at login']) {
+    await page.getByRole('combobox', { name: 'Search Linty' }).fill(query);
+    await page.getByRole('option', { name: /Launch at login/ }).waitFor();
+    await page.keyboard.press('Enter');
+    await startupToggle.waitFor();
+    await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Launch at login');
+    assert.equal(await startupToggle.getAttribute('aria-checked'), 'true');
+  }
+  await audit('startup-light'); await screenshot('startup-light');
+  await startupToggle.click();
+  await page.waitForFunction(() => window.__QA__.startup.status === 'disabled');
+  assert.equal(await startupToggle.getAttribute('aria-checked'), 'false');
+  await page.evaluate(() => { window.__QA__.failures.set_launch_at_login = 'Could not register Linty.'; });
+  await startupToggle.click();
+  await page.getByRole('alert').getByText('Could not register Linty.', { exact: true }).waitFor();
+  assert.equal(await startupToggle.getAttribute('aria-checked'), 'false', 'A failed registration cannot falsely enable the toggle');
+  await page.evaluate(() => {
+    delete window.__QA__.failures.set_launch_at_login;
+    window.__QA__.startup.status = 'requiresApproval';
+    window.dispatchEvent(new Event('focus'));
+  });
+  await page.getByRole('button', { name: 'Open Login Items', exact: true }).waitFor();
+  assert.equal(await startupToggle.getAttribute('aria-checked'), 'false', 'Pending macOS approval is not enabled');
+  await page.getByRole('button', { name: 'Open Login Items', exact: true }).click();
+  assert.ok(await page.evaluate(() => window.__QA__.calls.includes('open_login_items_settings')));
+  await page.getByRole('button', { name: 'Turn off launch at login', exact: true }).click();
+  await page.getByRole('button', { name: 'Open Login Items', exact: true }).waitFor({ state: 'hidden' });
+  await startupToggle.click();
+  await page.waitForFunction(() => window.__QA__.startup.status === 'enabled');
+  await page.getByRole('button', { name: 'Overview', exact: true }).click();
   // The typing assumption is supplementary: available on hover/focus and editable from its info icon.
   const estimateInfo = page.getByRole('button',{name:'How time saved is estimated',exact:true});
   assert.equal(await page.getByText('Compared with typing at 40 wpm',{exact:true}).count(),0);
@@ -96,6 +136,7 @@ try {
   await page.getByRole('tooltip').filter({hasText:'Compared with typing at 40 wpm'}).waitFor();
   assert.deepEqual(await page.locator('.payoff-summary').boundingBox(),payoffBox,'Hover explanation never changes summary geometry');
   await page.mouse.move(0,0);
+  await page.keyboard.press('Tab');
   await estimateInfo.focus();
   await page.getByRole('tooltip').waitFor();
   await page.keyboard.press('Escape');
@@ -334,7 +375,7 @@ try {
   await page.keyboard.press('Meta+k');
   await page.getByRole('combobox', {name:'Search Linty'}).fill('language');
   await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
-  await page.locator('.settings-general').waitFor();
+  await page.locator('.settings-dictation').waitFor();
   assert.equal(await page.locator('.window-toolbar [role=combobox]').count(), 0, 'Settings navigation lives in the sidebar');
   await chooseOption(page,'Transcription language','Spanish');
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].transcriptionLanguage), 'es');
@@ -366,7 +407,7 @@ try {
       await page.keyboard.press('ArrowLeft');
       assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
     }
-    for (const section of ['general', 'audio', 'appearance', 'privacy']) {
+    for (const section of ['dictation', 'audio', 'appearance', 'privacy']) {
       await openSettingsSection(page,settingLabels[section]);
       await audit(`${section}-${theme}`);
       if (section === 'audio') {
@@ -403,7 +444,7 @@ try {
         await page.getByRole('heading', { name: 'System microphone', exact: true }).waitFor();
         await screenshot(`audio-${theme}`);
       }
-      if (section === 'general') {
+      if (section === 'dictation') {
         const advanced = page.locator('.dictation-advanced');
         assert.equal(await advanced.evaluate(el => el.open), false, 'Advanced controls are collapsed by default');
         await advanced.locator('summary').click();
@@ -453,7 +494,7 @@ try {
         }
       }
 
-      if (section === 'privacy' || section === 'appearance' || section === 'general') await screenshot(`${section}-${theme}`);
+      if (section === 'privacy' || section === 'appearance' || section === 'dictation') await screenshot(`${section}-${theme}`);
       if (section === 'privacy') {
         const processing = page.locator('details', {has:page.getByText('Processing details', {exact:true})});
         assert.equal(await processing.evaluate(el => el.open), false);
@@ -603,11 +644,11 @@ try {
   await checkOverviewRanges(page);
   await page.keyboard.press('Meta+,');
   await page.setViewportSize({ width:640, height:480 });
-  for (const section of ['general','audio','appearance','privacy']) {
+  for (const section of ['general','dictation','audio','appearance','privacy']) {
     await openSettingsSection(page,settingLabels[section]);
     const overflow = await page.locator('.preferences-scroll').evaluate(el => el.scrollWidth > el.clientWidth + 1);
     assert.equal(overflow, false, `${section}: horizontal overflow at 640 × 480`);
-    if (section === 'general') {
+    if (section === 'dictation') {
       const trigger=page.getByRole('combobox',{name:'Transcription language',exact:true});
       await trigger.click();
       assert.equal(await page.getByRole('combobox', {name:'Search languages',exact:true}).evaluate(el=>el===document.activeElement),true,'Opening the language picker focuses search on macOS');

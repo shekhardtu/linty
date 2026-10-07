@@ -21,6 +21,8 @@ import { LanguagePicker } from "@/components/shared/LanguagePicker.component";
 import { AUTO_LANGUAGE, languageLabel, validAutoDetectLanguages } from "@/lib/languages.util";
 import { LanguageReadiness } from "@/components/settings/LanguageReadiness.component";
 import { languagePreparation } from "@/services/language-preparation.service";
+import { Toggle } from "@/components/shared/Toggle.component";
+import { useStartupSettings } from "@/hooks/useStartupSettings.hook";
 
 type Step = "welcome" | "language" | "microphone" | "accessibility" | "trigger" | "done";
 
@@ -34,7 +36,7 @@ const STEP_LABELS: Record<Step, string> = {
 };
 
 interface OnboardingPageProps {
-  onComplete: () => void | Promise<void>;
+  onComplete: (launchAtLogin: boolean) => void | Promise<void>;
   initialStep?: "welcome" | "microphone" | "accessibility";
 }
 
@@ -49,7 +51,7 @@ export function OnboardingPage({ onComplete, initialStep = "welcome" }: Onboardi
   }, [step]);
   const progressSteps: Step[] = ["welcome", "language", "microphone", "accessibility", "trigger", "done"];
 
-  const completeSetup = async () => {
+  const completeSetup = async (launchAtLogin: boolean) => {
     // Permissions can change while downloads finish or the customer chooses a
     // shortcut. Return to the missing permission instead of completing setup.
     const [microphone, accessibility] = await Promise.all([
@@ -59,7 +61,7 @@ export function OnboardingPage({ onComplete, initialStep = "welcome" }: Onboardi
       setStep(microphone !== "authorized" ? "microphone" : "accessibility");
       return false;
     }
-    await onComplete();
+    await onComplete(launchAtLogin);
     return true;
   };
 
@@ -476,7 +478,7 @@ function TriggerStep({ onNext }: { onNext: () => void }) {
 
 /* ── Done Step ── */
 
-function DoneStep({ onComplete, onChangeLanguage }: { onComplete: () => Promise<boolean>; onChangeLanguage: () => void }) {
+function DoneStep({ onComplete, onChangeLanguage }: { onComplete: (launchAtLogin: boolean) => Promise<boolean>; onChangeLanguage: () => void }) {
   const { triggerKey, transcriptionLanguage } = useAppStore();
   const preparation = useSyncExternalStore(languagePreparation.subscribe, languagePreparation.getSnapshot);
   const triggerLabel = formatTriggerLabel(triggerKey);
@@ -484,12 +486,15 @@ function DoneStep({ onComplete, onChangeLanguage }: { onComplete: () => Promise<
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const savingRef = useRef(false);
+  const { settings: startup } = useStartupSettings();
+  const [startupDraft, setStartupDraft] = useState<boolean | null>(null);
+  const launchAtLogin = startupDraft ?? (startup?.initialized ? startup.status === "enabled" : true);
   const finish = async () => {
     if (!ready || savingRef.current) return;
     savingRef.current = true;
     setSaving(true); setError("");
     try {
-      if (await onComplete()) useAppStore.getState().setRecordingFocusOpen(true);
+      if (await onComplete(launchAtLogin)) useAppStore.getState().setRecordingFocusOpen(true);
     } catch {
       setError("Could not finish setup. Please try again.");
     } finally {
@@ -513,6 +518,11 @@ function DoneStep({ onComplete, onChangeLanguage }: { onComplete: () => Promise<
       {languageLabel(transcriptionLanguage)} · {triggerLabel}
     </p> : <div className="w-full mb-5"><LanguageReadiness /></div>}
     <FnKeyConflictWarning className="mb-6 max-w-[400px]" />
+    {!useAppStore.getState().onboardingComplete && <div className="w-full max-w-[400px] mb-5 text-left">
+      <Toggle label="Launch at login" enabled={launchAtLogin} onChange={setStartupDraft}
+        disabled={saving || !startup || startup.status === "unavailable"}
+        description="Keep Linty ready when you sign in. Change this later in General settings." />
+    </div>}
     {error && <p role="alert" className="text-error text-[13px] mb-3">{error}</p>}
     <button disabled={!ready || saving} onClick={() => { void finish(); }} className="standard-button primary-button">
       {saving ? "Saving…" : "Try dictation"}{saving ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}

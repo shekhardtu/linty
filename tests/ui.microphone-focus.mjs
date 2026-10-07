@@ -91,11 +91,11 @@ try {
   }
   await store.evaluate(s => s.getState().setTheme('dark'));
   await navigate('settings');
-  await store.evaluate(s => s.getState().setSettingsSection('general'));
+  await store.evaluate(s => s.getState().setSettingsSection('dictation'));
   await page.getByRole('combobox', { name: 'Transcription language', exact: true }).waitFor();
   assert.equal(await page.getByText('Ready for offline dictation', { exact: true }).count(), 0, 'Settings omit the redundant ready status');
   // Explicit test buttons open the shared dialog over their current settings section.
-  for (const [section, label, origin] of [['general', 'Try dictation', 'Dictation'], ['audio', 'Test your microphone', 'Audio']]) {
+  for (const [section, label, origin] of [['dictation', 'Try dictation', 'Dictation'], ['audio', 'Test your microphone', 'Audio']]) {
     await store.evaluate((s, section) => s.getState().setSettingsSection(section), section);
     const button = page.getByRole('button', { name: label, exact: true });
     await button.click();
