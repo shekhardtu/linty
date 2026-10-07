@@ -5,7 +5,8 @@ import { chromium, webkit } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { fixture } from './ui.fixture.mjs';
 
-const PARAKEET = 'parakeet-tdt-0.6b-v3';
+const PARAKEET = 'parakeet-ultra';
+const LEGACY_PARAKEET = 'parakeet-tdt-0.6b-v3';
 const WHISPER = 'ggml-large-v3-turbo-q5_0.bin';
 const engine = process.env.UI_BROWSER === 'webkit' ? webkit : chromium;
 const port = process.env.UI_PORT ?? '1456';
@@ -444,6 +445,38 @@ try {
   assert.deepEqual(await page.evaluate(() => window.__QA__.triggers), ['fn']);
   assert.equal(await page.evaluate(() => window.__QA__.stores[1].reformatEnabled), false);
   assert.equal(await page.evaluate(() => window.__QA__.cleanupDownloads), 0);
+  await page.close();
+
+  // An existing v3 model stays usable while Ultra downloads and waits for
+  // active dictation before replacing the confirmed engine.
+  page = await open({ returning: true, existing: [LEGACY_PARAKEET], saved: { selectedModelFilename: LEGACY_PARAKEET, reformatEnabled: false } });
+  await waitDownload(page, PARAKEET);
+  assert.deepEqual(await page.evaluate(() => window.__QA__.loads), [LEGACY_PARAKEET]);
+  assert.equal(await page.evaluate(async () => (await import('/src/store/app.store.ts')).useAppStore.getState().loadedModelFilename), LEGACY_PARAKEET);
+  await page.evaluate(() => window.__QA__.emit('fnkey-pressed'));
+  await page.waitForFunction(() => window.__QA__.calls.includes('start_dictation'));
+  assert.equal(await page.evaluate(() => window.__QA__.dictationOptions.filename), LEGACY_PARAKEET);
+  await finishDownload(page, PARAKEET);
+  await page.waitForFunction(async () => (await import('/src/services/language-preparation.service.ts')).languagePreparation.getSnapshot().status === 'waiting');
+  assert.equal(await page.evaluate(() => window.__QA__.loads.includes('parakeet-ultra')), false);
+  await page.waitForTimeout(400); // Hold, rather than the quick-tap hands-free gesture.
+  await page.evaluate(() => window.__QA__.emit('fnkey-released'));
+  await page.waitForFunction(async model => {
+    const state = (await import('/src/store/app.store.ts')).useAppStore.getState();
+    return state.selectedModelFilename === model && (await import('/src/services/language-preparation.service.ts')).languagePreparation.getSnapshot().status === 'ready';
+  }, PARAKEET);
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].selectedModelFilename), PARAKEET);
+  await page.close();
+
+  page = await open({ returning: true, existing: [LEGACY_PARAKEET], saved: { selectedModelFilename: LEGACY_PARAKEET, reformatEnabled: false } });
+  await waitDownload(page, PARAKEET);
+  await page.evaluate(name => window.__QA__.pendingDownloads[name].reject(new Error('Synthetic Ultra download failure')), PARAKEET);
+  await page.waitForFunction(async () => (await import('/src/services/language-preparation.service.ts')).languagePreparation.getSnapshot().status === 'error');
+  assert.equal(await page.evaluate(() => window.__QA__.stores[1].selectedModelFilename), LEGACY_PARAKEET);
+  await page.evaluate(() => window.__QA__.emit('fnkey-pressed'));
+  await page.waitForFunction(() => window.__QA__.calls.includes('start_dictation'));
+  assert.equal(await page.evaluate(() => window.__QA__.dictationOptions.filename), LEGACY_PARAKEET, 'Failed migration preserves working dictation');
+  await page.evaluate(() => window.__QA__.emit('fnkey-released'));
   await page.close();
 
   // Defaults prepare during onboarding on either supported speech backend.

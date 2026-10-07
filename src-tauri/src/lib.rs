@@ -883,17 +883,6 @@ fn get_theme(app: tauri::AppHandle) -> Result<String, String> {
 }
 
 #[tauri::command]
-fn get_models_dir(app: tauri::AppHandle) -> Result<String, String> {
-    let data_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| format!("No app data dir: {}", e))?;
-    let models_dir = data_dir.join("models");
-    std::fs::create_dir_all(&models_dir).map_err(|e| e.to_string())?;
-    Ok(models_dir.to_string_lossy().to_string())
-}
-
-#[tauri::command]
 fn check_model_exists(app: tauri::AppHandle, filename: String) -> Result<bool, String> {
     let model_path = model_store::speech_path(&models_dir(&app)?, &filename)?;
     if transcribe::is_parakeet_model(&filename) {
@@ -953,22 +942,6 @@ async fn download_model_file(app: tauri::AppHandle, filename: String) -> Result<
 
     transcribe::download_model(&app, &dest).await?;
     Ok(dest.to_string_lossy().to_string())
-}
-
-#[tauri::command(async)]
-fn delete_model_file(app: tauri::AppHandle, filename: String) -> Result<(), String> {
-    let model_path = model_store::speech_path(&models_dir(&app)?, &filename)?;
-    if model_path.is_dir() {
-        // Parakeet bundles are directories of .mlmodelc packages.
-        std::fs::remove_dir_all(&model_path)
-            .map_err(|e| format!("Failed to delete {}: {}", filename, e))?;
-        log::info!("[cmd] Deleted model bundle: {}", filename);
-    } else if model_path.exists() {
-        std::fs::remove_file(&model_path)
-            .map_err(|e| format!("Failed to delete {}: {}", filename, e))?;
-        log::info!("[cmd] Deleted model: {}", filename);
-    }
-    Ok(())
 }
 
 /// Remove model binaries that are no longer offered in the catalog
@@ -1622,10 +1595,8 @@ pub fn run() {
             get_app_icons,
             get_available_models,
             get_theme,
-            get_models_dir,
             check_model_exists,
             download_model_file,
-            delete_model_file,
             is_local_stt_available,
             set_model_idle_unload_minutes,
             load_local_model,

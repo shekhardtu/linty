@@ -44,7 +44,7 @@ try {
   await page.getByRole('button',{name:'On-device: Preparing. Configure dictation language'}).waitFor();
   await press();await status('recording');
   const captured=await page.evaluate(()=>window.__QA__.options);
-  await store.evaluate(s=>s.getState().setLoadedModelFilename('parakeet-tdt-0.6b-v3'));
+  await store.evaluate(s=>s.getState().setLoadedModelFilename('parakeet-ultra'));
   assert.deepEqual(await page.evaluate(()=>window.__QA__.options),captured,'Recording settings are sent once, before subsequent UI edits');
   await release();await status('preparing');
   await page.waitForFunction(()=>!!window.__QA__.finishNative);
@@ -80,6 +80,7 @@ try {
   assert.equal(await page.evaluate(()=>window.__QA__.clipboard),'the budget is one lakh fifty thousand rupees');
   // Cleanup opt-in waits for preparation, rolls back failure, and can be retried.
   await page.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name:'Settings',exact:true}).click();
+  await page.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name:'Dictation',exact:true}).click();
   await page.evaluate(()=>{window.__QA__.warm=false;});
   const choose=async label=>{await page.getByRole('combobox',{name:'Text cleanup',exact:true}).click();await page.getByRole('option',{name:label,exact:true}).click();};
   await choose('Clean up on this Mac');

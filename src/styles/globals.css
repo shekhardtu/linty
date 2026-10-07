@@ -62,27 +62,7 @@ label {
 
 /* ── Animations ── */
 
-@keyframes pulse-ring {
-  0% {
-    transform: scale(1);
-    opacity: 0.4;
-  }
-  100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
 
-@keyframes pulse-ring-slow {
-  0% {
-    transform: scale(1);
-    opacity: 0.2;
-  }
-  100% {
-    transform: scale(2.5);
-    opacity: 0;
-  }
-}
 
 @keyframes breathe {
   0%,
@@ -102,16 +82,6 @@ label {
   }
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
 
 @keyframes slide-up {
   from {
@@ -197,12 +167,6 @@ label {
   }
 }
 
-.animate-pulse-ring {
-  animation: pulse-ring 1.4s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-}
-.animate-pulse-ring-slow {
-  animation: pulse-ring-slow 2s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-}
 .animate-breathe {
   animation: breathe 2.4s ease-in-out infinite;
 }
@@ -218,9 +182,6 @@ label {
     opacity: 1;
     transform: scale(1);
   }
-}
-.animate-fade-in {
-  animation: surface-appear var(--motion-control) var(--ease-out) backwards;
 }
 .animate-scale-in {
   animation: scale-in 200ms ease-out forwards;
@@ -261,13 +222,10 @@ label {
 
 /* ── Reduce motion ── */
 @media (prefers-reduced-motion: reduce) {
-  .animate-pulse-ring,
-  .animate-pulse-ring-slow,
   .animate-breathe,
   .animate-spin-slow {
     animation: none;
   }
-  .animate-fade-in,
   .animate-slide-up,
   .animate-slide-down,
   .animate-page-enter,

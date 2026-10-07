@@ -3,7 +3,9 @@
 export const AUTO_LANGUAGE = "auto";
 export const DEFAULT_TRANSCRIPTION_LANGUAGE = "en";
 export const MAX_AUTO_DETECT_LANGUAGES = 3;
-export const PARAKEET_MODEL = "parakeet-tdt-0.6b-v3";
+export const PARAKEET_MODEL = "parakeet-ultra";
+export const LEGACY_PARAKEET_MODEL = "parakeet-tdt-0.6b-v3";
+export const isParakeetModel = (filename: string | null) => filename === PARAKEET_MODEL || filename === LEGACY_PARAKEET_MODEL;
 export const WHISPER_MODEL = "ggml-large-v3-turbo-q5_0.bin";
 
 export const PARAKEET_LANGUAGES = new Set([
@@ -142,14 +144,14 @@ export function nativeLanguageLabel(code: string): string {
 }
 
 export function modelSupportsLanguage(filename: string | null, language: string): boolean {
-  return isSupportedLanguage(language) && (filename === WHISPER_MODEL || filename === PARAKEET_MODEL && PARAKEET_LANGUAGES.has(language));
+  return isSupportedLanguage(language) && (filename === WHISPER_MODEL || isParakeetModel(filename) && PARAKEET_LANGUAGES.has(language));
 }
 
 /** The native catalog already accounts for hardware and build capabilities. */
 export function modelForLanguage<T extends { filename: string }>(language: string, catalog: readonly T[]): T | undefined {
   if (!isSupportedLanguage(language)) return undefined;
   if (PARAKEET_LANGUAGES.has(language)) {
-    const parakeet = catalog.find((model) => model.filename === PARAKEET_MODEL);
+    const parakeet = catalog.find((model) => model.filename === PARAKEET_MODEL) ?? catalog.find((model) => model.filename === LEGACY_PARAKEET_MODEL);
     if (parakeet) return parakeet;
   }
   return catalog.find((model) => model.filename === WHISPER_MODEL);

@@ -4,6 +4,11 @@ import XCTest
 @testable import LintyParakeet
 
 final class SpeechPresenceTests: XCTestCase {
+    func testModelVersionRecognizesUpgradeAndLegacyAndRejectsUnknownDirectories() throws {
+        XCTAssertEqual(String(describing: try parakeetModelVersion(for: URL(fileURLWithPath: "/models/parakeet-ultra"))), "ultra")
+        XCTAssertEqual(String(describing: try parakeetModelVersion(for: URL(fileURLWithPath: "/models/parakeet-tdt-0.6b-v3"))), "v3")
+        XCTAssertThrowsError(try parakeetModelVersion(for: URL(fileURLWithPath: "/models/not-a-speech-model")))
+    }
     func testUnavailableDetectorPreservesRecording() async throws {
         let slot = SpeechPresenceSlot()
         let speechAllowed = try await slot.hasSpeech(Array(repeating: 0.001, count: 16000))

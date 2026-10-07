@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { AUTO_LANGUAGE, TRANSCRIPTION_LANGUAGES, PARAKEET_LANGUAGES, PARAKEET_MODEL, WHISPER_MODEL, isSupportedLanguage, languageLabel, nativeLanguageLabel, modelForLanguage, modelSupportsLanguage, normalizeAutoDetectLanguages, validAutoDetectLanguages } from "../src/lib/languages.util.ts";
+import { AUTO_LANGUAGE, TRANSCRIPTION_LANGUAGES, PARAKEET_LANGUAGES, PARAKEET_MODEL, LEGACY_PARAKEET_MODEL, isParakeetModel, WHISPER_MODEL, isSupportedLanguage, languageLabel, nativeLanguageLabel, modelForLanguage, modelSupportsLanguage, normalizeAutoDetectLanguages, validAutoDetectLanguages } from "../src/lib/languages.util.ts";
 
 const catalog = [{ filename: PARAKEET_MODEL }, { filename: WHISPER_MODEL }];
 test("frequent languages require one to three supported, distinct choices", () => {
@@ -46,4 +46,14 @@ test("a stale local model cannot serve an incompatible language during preparati
   assert.equal(modelSupportsLanguage(PARAKEET_MODEL, "fr"), true);
   assert.equal(modelSupportsLanguage(WHISPER_MODEL, "hi"), true);
   assert.equal(modelSupportsLanguage(null, "en"), false);
+});
+
+test("Ultra is preferred while installed v3 remains compatible during migration", () => {
+  const legacy = { filename: LEGACY_PARAKEET_MODEL };
+  assert.equal(modelForLanguage("en", [legacy, ...catalog]), catalog[0]);
+  assert.equal(modelForLanguage("fr", [legacy]), legacy);
+  assert.equal(modelSupportsLanguage(LEGACY_PARAKEET_MODEL, "en"), true);
+  assert.equal(modelSupportsLanguage(LEGACY_PARAKEET_MODEL, "hi"), false);
+  for (const name of [PARAKEET_MODEL, LEGACY_PARAKEET_MODEL]) assert.equal(isParakeetModel(name), true);
+  for (const name of [WHISPER_MODEL, null, "unknown"]) assert.equal(isParakeetModel(name), false);
 });

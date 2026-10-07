@@ -1,0 +1,2042 @@
+{
+  "schema_version": 1,
+  "dataset_id": "librispeech-test-other",
+  "dataset": {
+    "name": "LibriSpeech",
+    "config": "en",
+    "split": "test-other",
+    "version": "SLR12",
+    "license": "CC-BY-4.0",
+    "homepage": "https://www.openslr.org/12"
+  },
+  "language": "en",
+  "sources": [
+    {
+      "url": "https://www.openslr.org/resources/12/test-other.tar.gz",
+      "sha256": "d09c181bba5cf717b3dee7d4d592af11a3ee3a09e08ae025c5506f6ebe961c29",
+      "upstream_md5": "fb5a50374b501bb3bac4815ee91d3135"
+    }
+  ],
+  "selection": {
+    "method": "sha256(seed:id) ascending",
+    "seed": 20261008,
+    "limit": 200,
+    "available_cases": 2939,
+    "selected_cases": 200,
+    "scope": "deterministic-sample"
+  },
+  "conversion": {
+    "sample_rate": 16000,
+    "channels": 1,
+    "format": "PCM_16 WAV",
+    "channel_mix": "arithmetic mean",
+    "resampling": "scipy.signal.resample_poly defaults",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "soundfile": "0.14.0"
+    }
+  },
+  "cases": [
+    {
+      "id": "7902-96595-0015",
+      "reference": "EH I SAY WHERE'S YOUR MASTER",
+      "source_audio": "LibriSpeech/test-other/7902/96595/7902-96595-0015.flac",
+      "speaker": "7902",
+      "wav": "audio/e2ba50a989e93fbfe3cd27c8d31b964d99d4e6a7fa6fa4cce751faa7d84180fa.wav",
+      "audio_seconds": 2.72,
+      "source_audio_sha256": "8b05f7a5304709e7fa514dacd6e0da10d5b155ba3dca5d68cf71db3e69513a6c",
+      "audio_sha256": "eb34660dd3992598372a73da2ac69a5be6b62a160838c96700dae15f37726cad"
+    },
+    {
+      "id": "8461-278226-0008",
+      "reference": "PHILIP JOCELYN WAS EXAMINING SOME PICTURES ON THE OTHER SIDE OF THE ROOM WHEN HIS WIFE MADE THIS DISCOVERY",
+      "source_audio": "LibriSpeech/test-other/8461/278226/8461-278226-0008.flac",
+      "speaker": "8461",
+      "wav": "audio/44205e999882dc258251eaba605be68a37d1347bf89799f346efdaa952c07132.wav",
+      "audio_seconds": 6.545,
+      "source_audio_sha256": "b358cee689784e31be112014de42f4077b8499491d95b1a609ee1e3d6a2aec36",
+      "audio_sha256": "3b46c81e5d8f842cc580b7fc4d41b870acd789acc68dbcef10b01beed290ee4a"
+    },
+    {
+      "id": "3528-168669-0113",
+      "reference": "IF YOU WERE EVER TO HAVE ANY OTHER JOBS OF THIS SORT MY BROTHER IS THE STRONG MAN FOR YOU A PERFECT TURK",
+      "source_audio": "LibriSpeech/test-other/3528/168669/3528-168669-0113.flac",
+      "speaker": "3528",
+      "wav": "audio/a7aeb5166c97f84a6d2638baa28001b4de268db6639d142973da9ee3522bc683.wav",
+      "audio_seconds": 6.56,
+      "source_audio_sha256": "09130f6bfcd8bee5e8857fa7d5bced302087a57065a38686ee82d3815c55641f",
+      "audio_sha256": "0507965f717aee363c04480fbc64d2a6da868dbe7a0739f31929a0f0c21de24d"
+    },
+    {
+      "id": "3764-168670-0057",
+      "reference": "THAT IS SETTLED FATHER FAUCHELEVENT ALL WILL GO WELL",
+      "source_audio": "LibriSpeech/test-other/3764/168670/3764-168670-0057.flac",
+      "speaker": "3764",
+      "wav": "audio/9aa0b3ccd6ce479acdca6fc5fc5588cd4997ffc81797dee59335453a5cbc8f13.wav",
+      "audio_seconds": 3.88,
+      "source_audio_sha256": "80861aa3e85785848eb50c21bda224fd155ea07510575924d25e7228a451750d",
+      "audio_sha256": "b65cfc47aa8d7838da78ba7f1ec989de5bffc77441dad2ba52f3eceead230184"
+    },
+    {
+      "id": "4350-9170-0027",
+      "reference": "AND THIS ABNORMAL ORDER OF THINGS IS MAINTAINED BY THE ARMY",
+      "source_audio": "LibriSpeech/test-other/4350/9170/4350-9170-0027.flac",
+      "speaker": "4350",
+      "wav": "audio/cae14f81eacabb5c8a8d8a8eb6f6ff128986f9fa1ea8db4c25b18f6ffe7f0bd4.wav",
+      "audio_seconds": 3.045,
+      "source_audio_sha256": "231b7b5f4924dfb391eefbe2b39d77e27eaea6b6cf0eeb95d482b13f259471d5",
+      "audio_sha256": "df941b5460565c862d08e7ec0d0516090940dc528b36f22006300fb256c9ab56"
+    },
+    {
+      "id": "3331-159605-0038",
+      "reference": "DON'T YOU THINK HE MEANS TO",
+      "source_audio": "LibriSpeech/test-other/3331/159605/3331-159605-0038.flac",
+      "speaker": "3331",
+      "wav": "audio/9dec8700f5227dd07757cedf63dc5ce9d826aac5fd087189638701322aa52e77.wav",
+      "audio_seconds": 2.065,
+      "source_audio_sha256": "7bc48868409198a631d6e92fb3bad89688c3f6029288c89457182d90fbb6b2c5",
+      "audio_sha256": "97c68354b49f0dc3d421b2e1f89a607e1866c72716e56383c6164c9e6d0ae53c"
+    },
+    {
+      "id": "3080-5040-0012",
+      "reference": "I TOLD YOU IN MY LAST THAT MY SUFFOLK JOURNEY WAS LAID ASIDE AND THAT INTO KENT HASTENED",
+      "source_audio": "LibriSpeech/test-other/3080/5040/3080-5040-0012.flac",
+      "speaker": "3080",
+      "wav": "audio/df027cd18b77f57e17fbc4a77cbf3299b7faf0969ec86f50c20f46d11d44587b.wav",
+      "audio_seconds": 7.02,
+      "source_audio_sha256": "66afbc63ea452a5ec2c8d04974c5cc229299eed996e0b5b5a3b2a4047208dc5a",
+      "audio_sha256": "306b880a33d8f9fe8b32b139b34a1828f38d07be3dcfdc3881187499caa7bae4"
+    },
+    {
+      "id": "5442-41169-0014",
+      "reference": "THAT IT MAY BE BUT STILL IT OUGHT TO BE TREATED A LITTLE MORE RESPECTFULLY",
+      "source_audio": "LibriSpeech/test-other/5442/41169/5442-41169-0014.flac",
+      "speaker": "5442",
+      "wav": "audio/b8c580ec7d013d6d3d35391ee3aa7f28aab3c76a71696250c3a84b458f52a9fc.wav",
+      "audio_seconds": 5.87,
+      "source_audio_sha256": "62edb058d3ed83fbfe81a08b364eedfbda0968a47fdbea6f9e2cd5a7ca1ed829",
+      "audio_sha256": "bf1e76dc418f5a5064959e78df8521ac75b315cb488e39c06f43bdca0dbf6020"
+    },
+    {
+      "id": "3005-163391-0011",
+      "reference": "YOU SEE HE WAS PRETTY OLD AND GEORGE'S G'YIRLS WAS TOO YOUNG TO BE MUCH COMPANY FOR HIM EXCEPT MARY JANE THE RED HEADED ONE AND SO HE WAS KINDER LONESOME AFTER GEORGE AND HIS WIFE DIED AND DIDN'T SEEM TO CARE MUCH TO LIVE",
+      "source_audio": "LibriSpeech/test-other/3005/163391/3005-163391-0011.flac",
+      "speaker": "3005",
+      "wav": "audio/5f320b1ad5b91e4b2d3699122a67f08fddf1263345ad66253726d7dbd4ec90cb.wav",
+      "audio_seconds": 14.56,
+      "source_audio_sha256": "619d11b7cfd8afbe8a071cecd389ab98fc86e81e30194367aab53ce38d50342d",
+      "audio_sha256": "3fa77fbde6153a18dfe83187467ba3e5dfd0790b2b443b602fd0fe8d88500e04"
+    },
+    {
+      "id": "4294-9934-0007",
+      "reference": "HE FEARED AFTER HAVING TAKEN SO MANY STEPS WHICH HAD BROUGHT HIM NEARER TO HIS FATHER TO NOW TAKE A STEP WHICH SHOULD ESTRANGE HIM FROM THAT FATHER",
+      "source_audio": "LibriSpeech/test-other/4294/9934/4294-9934-0007.flac",
+      "speaker": "4294",
+      "wav": "audio/bc33aaa5fa3b872e8d8a6a3ec79e45fb9e2ad8df8dd8afb53f276f984ba9b440.wav",
+      "audio_seconds": 8.705,
+      "source_audio_sha256": "941cbc688c46bd3cabfa08a17fb0ddc5b059c0d63567514093e871cb74df5cac",
+      "audio_sha256": "18ca06757e15479d9c7a645e6dcdf2cd4d76a5694f359aeadca3a69a12e036e3"
+    },
+    {
+      "id": "4852-28319-0011",
+      "reference": "HE THOUGHT NOT WITHOUT A FEELING OF PRIDE AND COMMENCED EXPERIMENTING WITH HIS TAIL AND FINS WITH SUCH ENTHUSIASM AND DELIGHT THAT SOME LITTLE TIME ELAPSED BEFORE MISTER WICKER'S VOICE BOOMED CLOSE BY",
+      "source_audio": "LibriSpeech/test-other/4852/28319/4852-28319-0011.flac",
+      "speaker": "4852",
+      "wav": "audio/be8a1e9d55fb1e9f0b4afb6bd24ce4d7d706ea116ea09bdc15fd63b475396254.wav",
+      "audio_seconds": 11.695,
+      "source_audio_sha256": "7af9c27512be556d4f86e11d9d9a067ccb6acb8c9a314937640df9a115183ccb",
+      "audio_sha256": "e8f23c37611a740ec746f833acb7d30f21720c7a00b12688e9202fac2e2f656d"
+    },
+    {
+      "id": "5442-41169-0012",
+      "reference": "AND THEN TO TELL THE TRUTH THERE'S ONE'S OWN INTERESTS",
+      "source_audio": "LibriSpeech/test-other/5442/41169/5442-41169-0012.flac",
+      "speaker": "5442",
+      "wav": "audio/08f8bb70c209612ff1637b4d12a9193c4264573760e5d66138c3d262cae5d4bb.wav",
+      "audio_seconds": 3.6,
+      "source_audio_sha256": "30aac93198e90843c4cf712f694606f371a300593d5de52cb545d02d166b914c",
+      "audio_sha256": "5b789aa4ae427e786550c1df8d55c75558a34bff5a562e6ec96d88322600bbb6"
+    },
+    {
+      "id": "3005-163391-0007",
+      "reference": "THE YOUNG CHAP WAS MIGHTY THANKFUL SAID IT WAS TOUGH WORK TOTING HIS BAGGAGE SUCH WEATHER",
+      "source_audio": "LibriSpeech/test-other/3005/163391/3005-163391-0007.flac",
+      "speaker": "3005",
+      "wav": "audio/8773fc61c6198d59b76308272e7709b978f49174ed539ccced33f1af6fdbdae0.wav",
+      "audio_seconds": 5.55,
+      "source_audio_sha256": "ce3a35bb7a3f8b9469be49692e658cf7b1274a765b16db95563f2cc7a8833d87",
+      "audio_sha256": "a8c76b55f025aaca9bff66f0eddac8e391de03d9e631b7a7821edc3459d05fbd"
+    },
+    {
+      "id": "7105-2330-0007",
+      "reference": "THE FOREMAN DELIVERED HIS MESSAGE",
+      "source_audio": "LibriSpeech/test-other/7105/2330/7105-2330-0007.flac",
+      "speaker": "7105",
+      "wav": "audio/db89da0781412d5e5201cfd90df4d21bf45a21adce7d9800774200c44f928ab5.wav",
+      "audio_seconds": 3.36,
+      "source_audio_sha256": "c1c4a51706629f9a2ead3a013be15e071da423502de2996dd4ac95fa04f139ca",
+      "audio_sha256": "84ec4b68e9e6c2f0b0570453e9c933eb06e7a209facb9675016b844dcad4bc76"
+    },
+    {
+      "id": "4294-14317-0016",
+      "reference": "AMONG ARTISTS CERTAIN ENRAGED SCULPTORS LAUGHED AT ME AND CALLED ME THE NEW SCULPTOR",
+      "source_audio": "LibriSpeech/test-other/4294/14317/4294-14317-0016.flac",
+      "speaker": "4294",
+      "wav": "audio/e279acfca74948609915a1386d858dbc75a9dec3690506ba671b058c97ec01ea.wav",
+      "audio_seconds": 6.265,
+      "source_audio_sha256": "4afc66b541ab22e2206b81accdb751ad13359cf6cf7dbdbf23d86a6ece7e6d66",
+      "audio_sha256": "fb01a94c43052127543eb535cc080f1e7c2f556934751c90f388e8c45b88ec8e"
+    },
+    {
+      "id": "2414-159411-0022",
+      "reference": "THE BRAHMAN TOLD HIS STORY AND SAID TO HIM UNCLE JACKAL UNCLE JACKAL SAY WHAT IS YOUR JUDGMENT",
+      "source_audio": "LibriSpeech/test-other/2414/159411/2414-159411-0022.flac",
+      "speaker": "2414",
+      "wav": "audio/6dd3932da60f483a64d6eeefcc3f54e2ceb740d121db9813f83d62250776bf62.wav",
+      "audio_seconds": 9.77,
+      "source_audio_sha256": "bfe16ac29d748c6ce399c79dd4bfe7d261f62ac73dbdf74f89c221b2d210c80a",
+      "audio_sha256": "a6512fd75517d8830889d3ff27f8b6a55890c16bc7135b7896a445f952d71ff4"
+    },
+    {
+      "id": "2609-156975-0025",
+      "reference": "THE STORY OF MOSES IS IN MANY WAYS CLOSELY PARALLEL TO THAT OF SINUHIT",
+      "source_audio": "LibriSpeech/test-other/2609/156975/2609-156975-0025.flac",
+      "speaker": "2609",
+      "wav": "audio/5380329b4cf22ff332a5e7e1a988f0d90ae366c8aaafd4b007d46a479d4d29a7.wav",
+      "audio_seconds": 5.79,
+      "source_audio_sha256": "5de9e39cd711fd541c5babc9b56764b581c800f019c245432cf16589dd05d66f",
+      "audio_sha256": "bcc43fc3e724a77998ef2352569be355824f35fe479e71f6c973a72637fa1df0"
+    },
+    {
+      "id": "1688-142285-0021",
+      "reference": "MARGARET WAS COLLECTING HER MOTHER'S WORKING MATERIALS AND PREPARING TO GO TO BED",
+      "source_audio": "LibriSpeech/test-other/1688/142285/1688-142285-0021.flac",
+      "speaker": "1688",
+      "wav": "audio/21ed258c1f53468cd41c35a1a5605e0ba392d3597b28b762d1459eb528443fa7.wav",
+      "audio_seconds": 5.21,
+      "source_audio_sha256": "7d3d97236a92c0f9fafa0ce992dbdb9c6b28c8d023feb3b75afdcdc55be26ae1",
+      "audio_sha256": "7a3f7c616db0eb6005e102cf2a3423b3baa345b604a8a82429f1384ad636831b"
+    },
+    {
+      "id": "2609-169640-0000",
+      "reference": "PROAS IN THAT QUARTER WERE USUALLY DISTRUSTED BY SHIPS IT IS TRUE BUT THE SEA IS FULL OF THEM AND FAR MORE ARE INNOCENT THAN ARE GUILTY OF ANY ACTS OF VIOLENCE",
+      "source_audio": "LibriSpeech/test-other/2609/169640/2609-169640-0000.flac",
+      "speaker": "2609",
+      "wav": "audio/ec2fbd6ac824d7fdfb5da6db8eb485c82c2ee590dea794e3db7e76415f1bab4f.wav",
+      "audio_seconds": 12.075,
+      "source_audio_sha256": "37b73f15120a416b46c4bbb9a9ba95c9eb4dc23e165f911d49ae6e7b0d61dd44",
+      "audio_sha256": "37fb26150f75f18c046e4476601508a6b59daf0345057478bde209d15bdd7cb5"
+    },
+    {
+      "id": "4852-28330-0004",
+      "reference": "THE MIRABELLE WAS NEARING TAHITI",
+      "source_audio": "LibriSpeech/test-other/4852/28330/4852-28330-0004.flac",
+      "speaker": "4852",
+      "wav": "audio/829f4cde21bd2d175e4032f338e18999ca3c91fb53872e46f9cc5c5cac45864d.wav",
+      "audio_seconds": 2.23,
+      "source_audio_sha256": "80a25cdb83899c1223d8dbfb97e77716379153b6f132f9d3902dfba4557cfcd2",
+      "audio_sha256": "de5c9a13694bcc796c291e8aee28d38fadece1de46aed6b9e8b9f7c2aade5217"
+    },
+    {
+      "id": "2609-156975-0019",
+      "reference": "THE WILDERNESS TO THE EAST OF EGYPT HAD FOR CENTURIES BEEN THE PLACE OF REFUGE FOR EGYPTIAN FUGITIVES",
+      "source_audio": "LibriSpeech/test-other/2609/156975/2609-156975-0019.flac",
+      "speaker": "2609",
+      "wav": "audio/ea5ff845cbc579d12d529eb6ca92210e95e28838dd98dd9fe260a8eae42dba78.wav",
+      "audio_seconds": 7.67,
+      "source_audio_sha256": "4917ffcdc1e78a08defbacaba8e4c0738c0a56f37da845233bf4c3029aee6a44",
+      "audio_sha256": "22e84bd9a655e4ac3e2e01b81f5626230e7dce1275f0e59151aa4a1ea0a9587e"
+    },
+    {
+      "id": "3764-168670-0049",
+      "reference": "THE OVER PRUDENT CATS AS THEY ARE AND BECAUSE THEY ARE CATS SOMETIMES INCUR MORE DANGER THAN THE AUDACIOUS",
+      "source_audio": "LibriSpeech/test-other/3764/168670/3764-168670-0049.flac",
+      "speaker": "3764",
+      "wav": "audio/fb8883ee32ecaca9535f4f34e3184c07bb28b7c39a7c42cfcd38e686d53bec15.wav",
+      "audio_seconds": 8.29,
+      "source_audio_sha256": "7900314974c383c5e9066b2de8e6325abcbb480f58f63d73d5de1cfa5b40bf01",
+      "audio_sha256": "dc970ef4d15bf036b03191c92154a0c56f8b1eeb3c460d3d254bae124962acd0"
+    },
+    {
+      "id": "4198-12259-0020",
+      "reference": "GIVE ME A SYNONYMON FOR A GAMMON OF BACON",
+      "source_audio": "LibriSpeech/test-other/4198/12259/4198-12259-0020.flac",
+      "speaker": "4198",
+      "wav": "audio/1a8227819d3e6c6d8c4c193a56c00d9e9636587ba4af0291a7214f5d3d1b1dfa.wav",
+      "audio_seconds": 3.37,
+      "source_audio_sha256": "5defeb42c106e0308b06fc330fa9b19ff22fb903a5145c3682e0a6a68e01a56b",
+      "audio_sha256": "5608c6cef1ed3fcc7de513e49b730614c7447f3e9b6535f0839309c88752f107"
+    },
+    {
+      "id": "8188-269290-0027",
+      "reference": "REFUSES TO COME SHE CRIED",
+      "source_audio": "LibriSpeech/test-other/8188/269290/8188-269290-0027.flac",
+      "speaker": "8188",
+      "wav": "audio/44e28493ec8ab3b4c66fb006b2152306d14ed5a461dab4d7c23670f694b58cb4.wav",
+      "audio_seconds": 2.495,
+      "source_audio_sha256": "36f793f7a93530e5f91322bfbefa32ee05b02818778105e399df6d11d74716e4",
+      "audio_sha256": "e0bd22c9bba743b2aefba4137c52dca23c506ebc5cbc71cdb4adab6a4643018b"
+    },
+    {
+      "id": "7018-75789-0007",
+      "reference": "WHEN THEY SAW I UNDERSTOOD THEM NOT AND MADE THEM NO ANSWER ONE OF THEM CAME FORWARD AND SAID TO ME IN ARABIC PEACE BE WITH THEE O MY BROTHER",
+      "source_audio": "LibriSpeech/test-other/7018/75789/7018-75789-0007.flac",
+      "speaker": "7018",
+      "wav": "audio/2c56e1c660df6f0ecd8ca11713bb4b4fda5ae979ce62e1edf49998ce0e13357e.wav",
+      "audio_seconds": 9.215,
+      "source_audio_sha256": "0f4c47165ba261f15e611d18a6bd4f7079c05022948fc1f9fe433fe532710422",
+      "audio_sha256": "c2964247e11fe77cd7c316093ff9182655c27b321e3b7379d8f6dd04b2458b24"
+    },
+    {
+      "id": "8188-269288-0048",
+      "reference": "SHE GOT INTO BED AS SHE SPOKE AND WRAPPED THE CLOTHES TIGHTLY ROUND HER",
+      "source_audio": "LibriSpeech/test-other/8188/269288/8188-269288-0048.flac",
+      "speaker": "8188",
+      "wav": "audio/dc7400115d4650ef6a79b3f7a6bb1af65faedb53723074e686c1fef0c9f60cd8.wav",
+      "audio_seconds": 4.97,
+      "source_audio_sha256": "b9161a91d13609cc8a8d095613b276ac7e6de61e52c1ce527105070920953767",
+      "audio_sha256": "30841720e699ba6190c88cdaccc606e919d013215579d3a6e5eb12d78fc1f9b8"
+    },
+    {
+      "id": "3997-182399-0019",
+      "reference": "A LITTLE SIGH OF SATISFACTION WENT AROUND THE CIRCLE OF LISTENERS",
+      "source_audio": "LibriSpeech/test-other/3997/182399/3997-182399-0019.flac",
+      "speaker": "3997",
+      "wav": "audio/674db3367c4079d3d270df1eefc19a15a13a22313535e2868187ffc0ec2ee210.wav",
+      "audio_seconds": 5.11,
+      "source_audio_sha256": "d21c9ccb841f28f4eed1cc65d933bee2c0d520933b21cbeb8e92e64806b0d941",
+      "audio_sha256": "11241fd7d672b252b88d59ce0811d4c5caa13b8d306af5b687f672185dcfadc1"
+    },
+    {
+      "id": "3764-168670-0036",
+      "reference": "COULD YOU HIDE ME IN THAT ROOM TO NIGHT WHEN EVERY ONE IS ASLEEP",
+      "source_audio": "LibriSpeech/test-other/3764/168670/3764-168670-0036.flac",
+      "speaker": "3764",
+      "wav": "audio/628a9f0af692ae372f36b215a1cdb8b24ed085f22ffe9c22febdb958f2ef4ad0.wav",
+      "audio_seconds": 4.34,
+      "source_audio_sha256": "86bdfe3202cad659374d93cd1ca39f79f357e2aab9bcb889ce08981dcf9de416",
+      "audio_sha256": "55eb31c3514fbf6b56da1b8dc20afb541e9286edf2008f4e2b978f2560093671"
+    },
+    {
+      "id": "3538-163622-0009",
+      "reference": "SO THERE HE SAT WITH HIS HEAD ON HER LAP TAKING HIS EASE THE LIVELONG DAY",
+      "source_audio": "LibriSpeech/test-other/3538/163622/3538-163622-0009.flac",
+      "speaker": "3538",
+      "wav": "audio/0f14715224ddbebccc69727c08b8084d886f3f0b4d25e77516d3cdc5b2ea5156.wav",
+      "audio_seconds": 4.35,
+      "source_audio_sha256": "2a59e6c8faf058bac7a9aa3e227a8c208affdd12ff0a6c5fb54a5799c734bb20",
+      "audio_sha256": "02d4a40f89a5fbb703fa31737d4dde567346e01edc28e62e14e91b275e5817b9"
+    },
+    {
+      "id": "2414-128291-0019",
+      "reference": "THEY ALSO ABSTAIN FROM ALL HEAVY THOUGHTS WHICH INFLATE THE HEART",
+      "source_audio": "LibriSpeech/test-other/2414/128291/2414-128291-0019.flac",
+      "speaker": "2414",
+      "wav": "audio/9f02ce0454c9fd920ee7bdfa484a8237f81fe6f720f21a47a6a6466d24853728.wav",
+      "audio_seconds": 6.205,
+      "source_audio_sha256": "ee916f300c6079016ecd1b98e28261489b3d8b601e7c0ffbbcb9079b9cb815dd",
+      "audio_sha256": "3525bd6046090bf88ed5d990f8f2682f1c77678d89d71993f174170b5bd0a089"
+    },
+    {
+      "id": "1998-29455-0033",
+      "reference": "SEE THAT BLOKE JUST NOW SAID MISTER BEALE YUSS SAID DICKIE",
+      "source_audio": "LibriSpeech/test-other/1998/29455/1998-29455-0033.flac",
+      "speaker": "1998",
+      "wav": "audio/b3bbd85ef4c6be5e0346be7782569c943356e70a4f588deca7b20069d5333e02.wav",
+      "audio_seconds": 4.475,
+      "source_audio_sha256": "91f39c87436b2d870fbc972d1816453166d3e92d395ded2231e61ae7c6b4bc9b",
+      "audio_sha256": "5342f443a94515069b08f7318e7d9c124f7222f4cc3194801a5563929fb42c1b"
+    },
+    {
+      "id": "4198-12259-0034",
+      "reference": "APPETITE COMES WITH EATING SAYS ANGESTON BUT THE THIRST GOES AWAY WITH DRINKING",
+      "source_audio": "LibriSpeech/test-other/4198/12259/4198-12259-0034.flac",
+      "speaker": "4198",
+      "wav": "audio/c35c8794a4d43b39eff693a9eaeb3174ac47d7dec5bff6915a42936bb4f0c269.wav",
+      "audio_seconds": 6.325,
+      "source_audio_sha256": "410dd271b62269c82a54d2fe1e0570fb74e0345fd109095c01cb026f5f4a2bef",
+      "audio_sha256": "fede7ef60c14310f086edd7f659a740a53baf013b33a1b6d917de6e62cd11cc2"
+    },
+    {
+      "id": "367-293981-0007",
+      "reference": "IF THEY DON'T LET THEMSELVES BE SEEN THEY LET THEMSELVES BE FELT SAID SANCHO IF NOT LET MY SHOULDERS SPEAK TO THE POINT",
+      "source_audio": "LibriSpeech/test-other/367/293981/367-293981-0007.flac",
+      "speaker": "367",
+      "wav": "audio/1f3633cff0178e97439545dd3fe3931214214f37d2faabc8ed2339d888427624.wav",
+      "audio_seconds": 6.37,
+      "source_audio_sha256": "504314f7ff823f50b9f06a36a39c8b91bf8196407af3f78843575f48192822d3",
+      "audio_sha256": "26f4168fdf081f6c4bd79c8d43d07f3a08e0bbad941463e5fa05f363886e30c8"
+    },
+    {
+      "id": "5442-41169-0018",
+      "reference": "OH WELL ONE DOES IT WHAT WOULD YOU HAVE",
+      "source_audio": "LibriSpeech/test-other/5442/41169/5442-41169-0018.flac",
+      "speaker": "5442",
+      "wav": "audio/b91b4f52b7597b1cc9d6945cf88e0e961586e62cecefedf0bfd6a43b29a0bf57.wav",
+      "audio_seconds": 3.945,
+      "source_audio_sha256": "3f1f3fb4c42c9761481b89dcc6898673bde5690f1de2c88738807d69471625d2",
+      "audio_sha256": "659d6cb89b77898cd31da3a1d821c4508e3b9d62988d71c25b8659626459f4bb"
+    },
+    {
+      "id": "4852-28330-0024",
+      "reference": "HE KNEW NOW THAT HIS ABSENCE FOR AS LONG AS HE HAD TO BE AWAY WOULD BE COVERED UP AND SATISFACTORILY ACCOUNTED FOR",
+      "source_audio": "LibriSpeech/test-other/4852/28330/4852-28330-0024.flac",
+      "speaker": "4852",
+      "wav": "audio/3aa692a0736e895a1c8ce3268b6f7432a3da5c13a6fd08f31ef57414fa07367e.wav",
+      "audio_seconds": 6.595,
+      "source_audio_sha256": "58fbf1ee1203a40b4a5263248992534bea275fb5228ef0166042885bf197529c",
+      "audio_sha256": "bc524ff681205ae48f59fb65d18862e44ba2ce985addde18e5635eeb14de8a4b"
+    },
+    {
+      "id": "3331-159605-0012",
+      "reference": "LATELY THIS HAD CHANGED ESPECIALLY TOWARDS POLLY AND IT FLATTERED HER MORE THAN SHE WOULD CONFESS EVEN TO HERSELF",
+      "source_audio": "LibriSpeech/test-other/3331/159605/3331-159605-0012.flac",
+      "speaker": "3331",
+      "wav": "audio/92a0cf2c1b0055e8845a7b56bca8774637e26ddc5bd29d7e920f60e17571f017.wav",
+      "audio_seconds": 7.42,
+      "source_audio_sha256": "5b083b954de6a4c879fa36c67eef202e360cfae6eb85a8b0c02f9a66058d838e",
+      "audio_sha256": "3587111c56308ba3dde0fd9e06ca32c5c4c991dea3ff25517876316a34cdf88f"
+    },
+    {
+      "id": "3005-163390-0027",
+      "reference": "HE WAS OFTEN MOANING AND MOURNING THAT WAY NIGHTS WHEN HE JUDGED I WAS ASLEEP AND SAYING PO LITTLE LIZABETH",
+      "source_audio": "LibriSpeech/test-other/3005/163390/3005-163390-0027.flac",
+      "speaker": "3005",
+      "wav": "audio/c4c40429b568260f41bf6a03bd541ad0c1650af8e7890234a7643f16e95343cc.wav",
+      "audio_seconds": 7.865,
+      "source_audio_sha256": "c19f85a619f23940c3df42c7035ac6958ce5d52d20679d0efcb12d52ca400529",
+      "audio_sha256": "d0020a1c1b017cf22c4a8c6245ade6df04c7e3710402d92f5548ea25838b5dee"
+    },
+    {
+      "id": "3331-159605-0008",
+      "reference": "NOW AS POLLY WAS BY NO MEANS A PERFECT CREATURE I AM FREE TO CONFESS THAT THE OLD TEMPTATION ASSAILED HER MORE THAN ONCE THAT WEEK FOR WHEN THE FIRST EXCITEMENT OF THE DODGING REFORM HAD SUBSIDED SHE MISSED THE PLEASANT LITTLE INTERVIEWS THAT USED TO PUT A CERTAIN FLAVOR OF ROMANCE INTO HER DULL HARD WORKING DAYS",
+      "source_audio": "LibriSpeech/test-other/3331/159605/3331-159605-0008.flac",
+      "speaker": "3331",
+      "wav": "audio/1d1f424abf7c3f798f35707f2cda96b39ff07dc48bf74f278734a8cd5ea8ef46.wav",
+      "audio_seconds": 21.53,
+      "source_audio_sha256": "694faad9849ea0485d5b3f40598d2715ea6b05ba9a27181daff074e3a106c415",
+      "audio_sha256": "dd0ae0d6e863e59bbc682718352cb0352386b35b902d8abc45498bd209399b1e"
+    },
+    {
+      "id": "8280-266249-0061",
+      "reference": "AND HOW WONDERFULLY HE HAS ANSWERED OUR PETITIONS",
+      "source_audio": "LibriSpeech/test-other/8280/266249/8280-266249-0061.flac",
+      "speaker": "8280",
+      "wav": "audio/6d0f36e7d84a0675063d254893ee4b77848203bf5188afad10474d934cf2940e.wav",
+      "audio_seconds": 3.115,
+      "source_audio_sha256": "8150b901c3e81998f8cdc87e3809986ef8e07a93f8e5fbb8b260bdcfdf08a969",
+      "audio_sha256": "aa9e2c652ceaaf0d65b670fbad864476c6d67ba353c54a5df3248ddff45f876a"
+    },
+    {
+      "id": "3997-180297-0004",
+      "reference": "MY DEAR PRUDENCE I ANSWERED YOU DO NOT KNOW WHAT YOU ARE SAYING",
+      "source_audio": "LibriSpeech/test-other/3997/180297/3997-180297-0004.flac",
+      "speaker": "3997",
+      "wav": "audio/25dba7abdd407edfdac5877185289b8d809a76132c11a57322e498450966c75e.wav",
+      "audio_seconds": 5.01,
+      "source_audio_sha256": "b94a9ea576bdccd22dc6c339f903bf64c86697944a87c97d01073326a950b0f6",
+      "audio_sha256": "c7404d36655c06bdd7b88909003b79792c214cc42355fe3a7b357a3bd69c3e5b"
+    },
+    {
+      "id": "367-293981-0016",
+      "reference": "THEN THIS IS AN INN SAID DON QUIXOTE",
+      "source_audio": "LibriSpeech/test-other/367/293981/367-293981-0016.flac",
+      "speaker": "367",
+      "wav": "audio/c762ee7036a531f9a650845d94e45a01fe339c351042fa4759a2720e7aa0648c.wav",
+      "audio_seconds": 3.11,
+      "source_audio_sha256": "b8a424fd0ea9465feb127c371dd65776115fc6d5a4735fa5fdd00996c36c8e75",
+      "audio_sha256": "f833d1dfefb873f873ef793f17aff4b77ee019394cf6f549043b7adf35a41b73"
+    },
+    {
+      "id": "6938-70848-0014",
+      "reference": "FEARFUL TUMULT CRIES DOWN WITH THE BOLSHEVIKI",
+      "source_audio": "LibriSpeech/test-other/6938/70848/6938-70848-0014.flac",
+      "speaker": "6938",
+      "wav": "audio/50ed837e1de5a61c3fce377eb0aa2e3131860afe296241819ad5b0e31c18e162.wav",
+      "audio_seconds": 3.79,
+      "source_audio_sha256": "0c3e9ca0b42d6926ce51b88c216b94723b1e052d3acdac082ef24001beb9efc9",
+      "audio_sha256": "c03d96ad5db70d77df505d08b1594aba157e074416d0b9679ba5881a0e49c270"
+    },
+    {
+      "id": "367-293981-0019",
+      "reference": "HE SAW HIM RISING AND FALLING IN THE AIR WITH SUCH GRACE AND NIMBLENESS THAT HAD HIS RAGE ALLOWED HIM IT IS MY BELIEF HE WOULD HAVE LAUGHED",
+      "source_audio": "LibriSpeech/test-other/367/293981/367-293981-0019.flac",
+      "speaker": "367",
+      "wav": "audio/5226aee0f1f1d01cf3ddf6f5d330f1b5c248383a839693a695e2fabc9e81c8a5.wav",
+      "audio_seconds": 7.09,
+      "source_audio_sha256": "fd4c95c317a143fcdff692b5aa0e95cc9aa5d54473113b5a9edbcefa8229408d",
+      "audio_sha256": "5b41b48687062eac0172dc971d555bd7fa869f3ec96923d0d59fc5ef9e4f0566"
+    },
+    {
+      "id": "3005-163399-0006",
+      "reference": "AND I THINK HE DIED AFTERWARDS HE WAS A BAPTIST",
+      "source_audio": "LibriSpeech/test-other/3005/163399/3005-163399-0006.flac",
+      "speaker": "3005",
+      "wav": "audio/4a796c6931542ccef337a7b1a4b85e5d3fa693c11695e143b3a9cdce7c30b94b.wav",
+      "audio_seconds": 3.52,
+      "source_audio_sha256": "02d8dae84a0b76ba999892649b09cd1ebbd44fa53de82d9ebcd0bbedf2703804",
+      "audio_sha256": "871242f218f9301bb31849fa0bcfadcfc35ceb344d470dc3a6d8ce398b44e9d2"
+    },
+    {
+      "id": "3528-168669-0123",
+      "reference": "THE EMPTY COFFIN REMAINS THIS PRODUCED A PAUSE",
+      "source_audio": "LibriSpeech/test-other/3528/168669/3528-168669-0123.flac",
+      "speaker": "3528",
+      "wav": "audio/aa6421d5ea9d2290d186c39f619c1d838d003f6b3d6c0336463d87e79f294b16.wav",
+      "audio_seconds": 3.71,
+      "source_audio_sha256": "f7d8a842164f129bb4d5051030886d2e3cdd7c51eddb5ad40c462b451b1d8e15",
+      "audio_sha256": "0640dfb1ee10be1f05b18e2c64dfa973d0d16989f63d5b5feedf14c1468049aa"
+    },
+    {
+      "id": "6432-63723-0054",
+      "reference": "IT'S IT'S AN ODD COIN AN OLD ROMAN ONE THAT MISSUS DARCY HAD IN HER PRIVATE COLLECTION KEPT IN THE JEWELRY STORE SAFE WAS THE WHISPERED ANSWER",
+      "source_audio": "LibriSpeech/test-other/6432/63723/6432-63723-0054.flac",
+      "speaker": "6432",
+      "wav": "audio/3359cd2756a64f5eac25869ee94c1c55eabd2440c8436700f63587744d65e278.wav",
+      "audio_seconds": 10.01,
+      "source_audio_sha256": "85e70031b522b4c826a6168643398d9d6464d59e8e16a8f1b336c95547b9432a",
+      "audio_sha256": "0831b46eed2f62dc4ec391f5f00da71f06668ce89507b76c6f96b0d8c691c86a"
+    },
+    {
+      "id": "6070-86744-0013",
+      "reference": "WELL SINCE WE MUST PART SAID THE COUNT HOLDING OUT A HAND TO EACH OF THE YOUNG MEN ALLOW ME TO WISH YOU BOTH A SAFE AND PLEASANT JOURNEY",
+      "source_audio": "LibriSpeech/test-other/6070/86744/6070-86744-0013.flac",
+      "speaker": "6070",
+      "wav": "audio/18733d38338f24c84f0eb4e5a2a0b079ca5b8d705f0f9dd9a9b7ded02e4c7fe6.wav",
+      "audio_seconds": 8.68,
+      "source_audio_sha256": "0884dc22391ff49d722e2cc0c73a7c29a3cc1af97fa95432a5b0d5ba8d15888e",
+      "audio_sha256": "d610fb7b0cfaacdc291f4eb682484ebde2250d23d7bc56f01279e809a5418dd7"
+    },
+    {
+      "id": "6432-63723-0048",
+      "reference": "I BEG YOUR PARDON HE SAID IN THE CULTURED TONES HE KNEW SO WELL HOW TO USE YET OF WHICH HE MADE SO LITTLE USE OF LATE",
+      "source_audio": "LibriSpeech/test-other/6432/63723/6432-63723-0048.flac",
+      "speaker": "6432",
+      "wav": "audio/625110426e706bac3e50ff021612549c1d2ccff2d4a0beebbea0b333da60cf51.wav",
+      "audio_seconds": 7.79,
+      "source_audio_sha256": "4b84fd5d06c9fda63426dd5da45d1b4f8e3ccfa5c1cfe3cf91558f632d1af17b",
+      "audio_sha256": "96f4e6c254bdb3f88328bf6e6d6744fe5d46225d02970d9b5420e085663dc7d9"
+    },
+    {
+      "id": "6432-63723-0002",
+      "reference": "THE REASON SHE ASKED NO ALIMONY INQUIRED KENNETH",
+      "source_audio": "LibriSpeech/test-other/6432/63723/6432-63723-0002.flac",
+      "speaker": "6432",
+      "wav": "audio/04a69f61b98cfe51fa6e46ff10103533228c9c3469182855ab252ed97f59b1e3.wav",
+      "audio_seconds": 3.69,
+      "source_audio_sha256": "ef142ba2111473f31f7967d15effff4669bc9c20eb6ded44e0316899c9f8ee01",
+      "audio_sha256": "9e5d372f30a27705f6d45c87dfec27a4d12217d19fe2d16002b683c717c09b5e"
+    },
+    {
+      "id": "5484-24318-0027",
+      "reference": "SO ARCHIAS INTENDED TO LEAVE THE CITY ON ONE OF HIS OWN SHIPS THAT VERY DAY",
+      "source_audio": "LibriSpeech/test-other/5484/24318/5484-24318-0027.flac",
+      "speaker": "5484",
+      "wav": "audio/27d31ac4fd60461d7b403198ac6c097fc23bd6731f1760c9de66f1e1b2ed60cb.wav",
+      "audio_seconds": 4.825,
+      "source_audio_sha256": "821e18dc1ffa93c68be4a45251ebe24faff3fd0308beeb7f24428bebd623af4d",
+      "audio_sha256": "fdbac7a2a1ad9e833cfa9cd8d9f9cdc6762de802496b50ea74fd2f3cef8a61d4"
+    },
+    {
+      "id": "8461-258277-0012",
+      "reference": "ANSWERED HASAN I KNOW WHERE HE IS AND OPENING THE DOOR OF THE CLOSET SHOWED HIM THE SWEETMEAT SELLER WITHIN DRUGGED AND SENSELESS",
+      "source_audio": "LibriSpeech/test-other/8461/258277/8461-258277-0012.flac",
+      "speaker": "8461",
+      "wav": "audio/1ea3af02e5f652fd163d8fd42bbed34ec6ff4e7aa567270813994ef099042ee6.wav",
+      "audio_seconds": 8.805,
+      "source_audio_sha256": "1bd5d3b694d1810ac2f2f4e1acbe221f058d18fa81bf1cb209d2a5639c06ccee",
+      "audio_sha256": "3cd02b8c144eb9861a280cbeb3faead9008bca32eb2169e1867891df61553870"
+    },
+    {
+      "id": "4294-35475-0000",
+      "reference": "BUT THE MIDDLE SON WAS LITTLE AND LORN HE WAS NEITHER DARK NOR FAIR HE WAS NEITHER HANDSOME NOR STRONG",
+      "source_audio": "LibriSpeech/test-other/4294/35475/4294-35475-0000.flac",
+      "speaker": "4294",
+      "wav": "audio/9d6ec194df58291f64cf6dbf0801c6b880b188c3c0ec65f32437b5a52926c4ad.wav",
+      "audio_seconds": 6.62,
+      "source_audio_sha256": "16f48280c418156e3ae49a60e69bf95aeb26b90d7aa68b76ebd751a8ec04f643",
+      "audio_sha256": "eeacd0e1e79dd541eb1295d6242c21feb67af4c7f122670e5f804d742fe0ab5a"
+    },
+    {
+      "id": "4852-28311-0009",
+      "reference": "HE WOULD HAVE LIKED TO GET THE JOB FOR JAKEY WHO NEEDED IT BUT SOMEHOW THE TASK OF FACING MISTER WICKER ESPECIALLY NOW THAT THE LIGHT WAS GOING AND DUSK EDGING INTO THE STREETS WAS NOT WHAT CHRIS HAD INTENDED FOR ENDING THE AFTERNOON",
+      "source_audio": "LibriSpeech/test-other/4852/28311/4852-28311-0009.flac",
+      "speaker": "4852",
+      "wav": "audio/d838067af46355601ee29c2419c6f39e77d7d2d38258bb18f54a36170edbb3d4.wav",
+      "audio_seconds": 12.01,
+      "source_audio_sha256": "ab4aa292494f437e1feb6dde649ef3a511fdb744d59ea3f56a37399b73b5e816",
+      "audio_sha256": "0fbcf1085cd60fefc0335f07b3d59b8fc2de61e503c53fd4dfa23f456715dda5"
+    },
+    {
+      "id": "5764-299665-0019",
+      "reference": "CAN WE SAY THAT HIS MERCY ENDURETH FOREVER",
+      "source_audio": "LibriSpeech/test-other/5764/299665/5764-299665-0019.flac",
+      "speaker": "5764",
+      "wav": "audio/ce4fcc00154bae243fa4fe8e7c3aeea1d63c1856d277b4ba7682679581d62302.wav",
+      "audio_seconds": 5.125,
+      "source_audio_sha256": "4d70f6524947403cf5ac4ea208521686509e6c6c466afe4cf86cc0b91c679d62",
+      "audio_sha256": "e443fbf3aee1a8d466c6d3d984cd8111c78de2ab81f338358efac42ded378e28"
+    },
+    {
+      "id": "6432-63723-0004",
+      "reference": "HOWEVER DON'T THINK I'M NOT INTERESTED IN YOUR CASE I'VE FISHED ENOUGH FOR TO DAY",
+      "source_audio": "LibriSpeech/test-other/6432/63723/6432-63723-0004.flac",
+      "speaker": "6432",
+      "wav": "audio/08eb1ea5cd65a182eaf8a06cd2937fd888bec02625def89d799143b1b86a838f.wav",
+      "audio_seconds": 5.415,
+      "source_audio_sha256": "d75ebe0062a566c1aecda525da0418d2014e51b71c923b6b8f4f0c1c47d6489c",
+      "audio_sha256": "d89a13f23c61139ad88df899a298000254d3c53299363fdd05047eafa62a926d"
+    },
+    {
+      "id": "3997-180294-0025",
+      "reference": "ONLY ONE REMAINED EMPTY THE STAGE BOX",
+      "source_audio": "LibriSpeech/test-other/3997/180294/3997-180294-0025.flac",
+      "speaker": "3997",
+      "wav": "audio/b230336515147ac774b78dcca177c879e5aba0bd2ebaff356fadb728c98b73ed.wav",
+      "audio_seconds": 3.465,
+      "source_audio_sha256": "a65ea0c13478a96cec56fd9f175828785e9db6b7dd8c9acda1f84747bdfeac39",
+      "audio_sha256": "d5e97cff66515c8c8e6bff5bd3bc9a7a2068205209e468f338806ffede2d1d66"
+    },
+    {
+      "id": "3764-168671-0020",
+      "reference": "THE PERMISSION FOR INTERMENT MUST BE EXHIBITED",
+      "source_audio": "LibriSpeech/test-other/3764/168671/3764-168671-0020.flac",
+      "speaker": "3764",
+      "wav": "audio/a97cdddd5ff38f42579ffce10a14056e255cdbc94fbdafd8b23e8b101c3023de.wav",
+      "audio_seconds": 3.14,
+      "source_audio_sha256": "c466657d8f1ddd2e69e367f594c6bccd5ea74d5b3fd06becaf6be8b2c4051226",
+      "audio_sha256": "04fb52dbbfc3266fd0a2f11c4e2a941f7d4da08ce8e6b63d5cfff75b2da5d405"
+    },
+    {
+      "id": "7902-96592-0029",
+      "reference": "HE DIVIDED THE PAINT AND PRODUCED A FEW SQUEAKS AND GRATING SOUNDS AS HE REALISED THAT THE ATTEMPT WAS MADNESS",
+      "source_audio": "LibriSpeech/test-other/7902/96592/7902-96592-0029.flac",
+      "speaker": "7902",
+      "wav": "audio/dcf35324f764894b2358e7fc73bd06fa211af96c4af25294d6e7915a03714417.wav",
+      "audio_seconds": 5.37,
+      "source_audio_sha256": "6b94f3cf200de1e8aea7936769b3e8de707c680cb0a9fbb898cf763afa6e31ff",
+      "audio_sha256": "dd04f5de0f39bfef59565839c8ac583edc2806742bb7b42fd8d707d1dd2ccd51"
+    },
+    {
+      "id": "8188-269288-0001",
+      "reference": "LESLIE DETERMINED TO TRY FOR HONORS IN ENGLISH LANGUAGE AND LITERATURE",
+      "source_audio": "LibriSpeech/test-other/8188/269288/8188-269288-0001.flac",
+      "speaker": "8188",
+      "wav": "audio/60102f2243fab831cf19031c58715aacffcdecc681d9528be411a43408e67def.wav",
+      "audio_seconds": 4.575,
+      "source_audio_sha256": "23906778a144558a1062ad5c0a17e04f10f453fa5faa06108cc25925f1212ed0",
+      "audio_sha256": "c61475c61b10e869c820d49a2292470f33083ee2e46d64db281b1129308deb81"
+    },
+    {
+      "id": "3764-168670-0003",
+      "reference": "YOU WILL WAIT FOR ME AT A LADY'S HOUSE I SHALL COME TO FETCH YOU",
+      "source_audio": "LibriSpeech/test-other/3764/168670/3764-168670-0003.flac",
+      "speaker": "3764",
+      "wav": "audio/f701a85890db5441561f8f679709bd3a6c4c2156050c8b72debce27841662ae1.wav",
+      "audio_seconds": 4.485,
+      "source_audio_sha256": "ff2d138d76861cf8341b3226b0c5e5e8f3d12f067feee97c6b0dc11de1341347",
+      "audio_sha256": "aa31e4f9d973ab0fbc8c542009bed65b4362afd15e6c779f923b52978ce54f14"
+    },
+    {
+      "id": "1688-142285-0056",
+      "reference": "BESSY TOOK A LONG AND FEVERISH DRAUGHT AND THEN FELL BACK AND SHUT HER EYES",
+      "source_audio": "LibriSpeech/test-other/1688/142285/1688-142285-0056.flac",
+      "speaker": "1688",
+      "wav": "audio/7d063603f67e39f60b199221d27db8b18c1dc655153c5aa1017fd51e186021e3.wav",
+      "audio_seconds": 6.79,
+      "source_audio_sha256": "b44dd9f31b329b10011b27127257b5ba28ec4c0851eefa9bf24089aa84ea0d7c",
+      "audio_sha256": "4d8d3a82b620a57746d45810f2eec212d37a486688eb68f5050763b1c06b5b64"
+    },
+    {
+      "id": "7975-280057-0020",
+      "reference": "WHEN I WAS TAKEN PRISONER I EXPECTED TO BE SHOT WITHOUT CEREMONY",
+      "source_audio": "LibriSpeech/test-other/7975/280057/7975-280057-0020.flac",
+      "speaker": "7975",
+      "wav": "audio/2e1ca3c86840ded6a750996a4c7120e272871022b94c1b52bda0ab71633eea3e.wav",
+      "audio_seconds": 3.525,
+      "source_audio_sha256": "9aa05c111cea3eb05dc65b09810c53b6ce816d4478af5fad1ab2ded071493813",
+      "audio_sha256": "9dd2380a1c80d85ee4892f349257b7a5569ecb3a8759d5ff56989948bb9f37d3"
+    },
+    {
+      "id": "7975-280076-0005",
+      "reference": "IT WAS CHARGED THAT ARTHUR MC COY OR A C MC COY AND MYSELF HAD BEEN PARTICIPANTS IN THE GAD'S HILL AFFAIR AND THE TWO STAGE ROBBERIES",
+      "source_audio": "LibriSpeech/test-other/7975/280076/7975-280076-0005.flac",
+      "speaker": "7975",
+      "wav": "audio/d70ebbf4f6cf4785bcc6b385904dc56727b0e1bccfbd87a8968cf40d82a5dd9f.wav",
+      "audio_seconds": 7.98,
+      "source_audio_sha256": "b3fba045aaa3ff4026d028d8ac03a026de4aaf9b1a2017c93ef71cfd7c36ef96",
+      "audio_sha256": "d586974ed460ea1a57c7c6c6ea7fad1f327f504b2e1569b22ae2176ccbd25530"
+    },
+    {
+      "id": "8131-117016-0042",
+      "reference": "BUT THE CAPTAIN STIRRED FINALLY SIGHING",
+      "source_audio": "LibriSpeech/test-other/8131/117016/8131-117016-0042.flac",
+      "speaker": "8131",
+      "wav": "audio/c24cc6c2395183588bec6d4dc05115ea1696b61fc4a678c1cd7cb1bb73b8c555.wav",
+      "audio_seconds": 3.685,
+      "source_audio_sha256": "da030f64118313a076feb4e0db51f8e4f04de8ac54753d5ff28fca520536bdd3",
+      "audio_sha256": "f1b1bf83236de4e11506ebcbff6b8f10df54015ce464841382017982c7192e5f"
+    },
+    {
+      "id": "5484-24318-0000",
+      "reference": "NOT A SOUND IF YOU VALUE YOUR LIVES",
+      "source_audio": "LibriSpeech/test-other/5484/24318/5484-24318-0000.flac",
+      "speaker": "5484",
+      "wav": "audio/0137301d731159d7d447e844e30b1392c3b520d97c22d92819d89fcbc83e29d1.wav",
+      "audio_seconds": 2.6399375,
+      "source_audio_sha256": "f1c8eb3c237e9b80ee171daddcebd819f2d04fe4686b83ff1b486842445e6f73",
+      "audio_sha256": "4b5b115edc57194efdc9b2dc8082850c2c83327ac6000339fdeb962ff60b3728"
+    },
+    {
+      "id": "6432-63723-0008",
+      "reference": "YOU DON'T MEAN THAT LARCH STRUCK HER THAT THERE WAS PHYSICAL ABUSE DO YOU ASKED THE COLONEL THAT'S WHAT HE DID",
+      "source_audio": "LibriSpeech/test-other/6432/63723/6432-63723-0008.flac",
+      "speaker": "6432",
+      "wav": "audio/9ea833536aa81c8f87fa228b268ab99d69b2edcd95c54d9711d2fa86dde19435.wav",
+      "audio_seconds": 7.42,
+      "source_audio_sha256": "f4868590f612e288dbe63e4de81d571783bf1b0a674c7fddb69f5b8d1c15bd27",
+      "audio_sha256": "51755bc52463209d0867593f86a53947d1de3142cdfd1bea11692b33022a1519"
+    },
+    {
+      "id": "1688-142285-0057",
+      "reference": "MARGARET BENT OVER AND SAID BESSY DON'T BE IMPATIENT WITH YOUR LIFE WHATEVER IT IS OR MAY HAVE BEEN",
+      "source_audio": "LibriSpeech/test-other/1688/142285/1688-142285-0057.flac",
+      "speaker": "1688",
+      "wav": "audio/ce7038ca0ad83c098f205d9c0e58e121464c14851794e7eff51f4e61de4f0160.wav",
+      "audio_seconds": 8.885,
+      "source_audio_sha256": "750f36fa6578704fb7b90a2d5a8a0f2bbf8b88e02159f880dc9d79b9f77b0a9f",
+      "audio_sha256": "c8c70c0c0df8e9d958192cb049edb904a6d6406d1e8ceb5740c74805a993d1cb"
+    },
+    {
+      "id": "5484-24318-0006",
+      "reference": "WHATEVER MIGHT AWAIT HIM HE DESIRED NO BETTER FATE",
+      "source_audio": "LibriSpeech/test-other/5484/24318/5484-24318-0006.flac",
+      "speaker": "5484",
+      "wav": "audio/92a8a483f0d092e252468dab5b05f6e44b32b7deda37a843591fc7fbeffee812.wav",
+      "audio_seconds": 3.37,
+      "source_audio_sha256": "6e053cb40aa5d0e30f2add4b7723777687be32b011eaef881aa896501b35da05",
+      "audio_sha256": "3334c7a26726c95b008ae0d70219eb34838b70b1f7c4f052e48824f9f9315244"
+    },
+    {
+      "id": "8461-278226-0013",
+      "reference": "BUT THERE ARE SOME OTHERS WHO SAY THAT HIS MEMORY HAS NOT ALTOGETHER FAILED AND THAT HE IS STILL ENOUGH HARSHLY CRITICAL TOWARDS THE WORKS OF OTHERS",
+      "source_audio": "LibriSpeech/test-other/8461/278226/8461-278226-0013.flac",
+      "speaker": "8461",
+      "wav": "audio/098424fb87be8a51c99399ff284f4d06aaaac379e282431482af99debb4b33ff.wav",
+      "audio_seconds": 8.58,
+      "source_audio_sha256": "69beb170624840416d613677ffed772095353ba664dad67724486d3a4dbe8146",
+      "audio_sha256": "7b05d979ac44ceab9f98fc2ed87f6a308783304905918c6ba6ed7f4c7890f6e4"
+    },
+    {
+      "id": "3080-5040-0030",
+      "reference": "YOU MUST GIVE ME LEAVE TO ENTERTAIN YOU THUS WITH DISCOURSES OF THE FAMILY FOR I CAN TELL YOU NOTHING ELSE FROM HENCE",
+      "source_audio": "LibriSpeech/test-other/3080/5040/3080-5040-0030.flac",
+      "speaker": "3080",
+      "wav": "audio/31b3f393355353bdbe3b4236c191b31bb4541f5a0c882745ddbf314496905a77.wav",
+      "audio_seconds": 7.245,
+      "source_audio_sha256": "3a65b51a963064a804a170d517d590180235647c79600eaeafcd817b1525eb54",
+      "audio_sha256": "38cc8e3c8c94df5d424cd337cc446d9d970ede108f8ad8e34c343a17e057428d"
+    },
+    {
+      "id": "7902-96592-0044",
+      "reference": "I SAY YOU DO LOOK A RUM UN JUST LIKE A BIG MONKEY IN A SHOW",
+      "source_audio": "LibriSpeech/test-other/7902/96592/7902-96592-0044.flac",
+      "speaker": "7902",
+      "wav": "audio/86b52c85aef96eff75a5a492847dc6c0562598764b2c9d31d0e8def5f5b37b98.wav",
+      "audio_seconds": 3.97,
+      "source_audio_sha256": "d75defadc8527596fb3e06845216738a96edd85a0304d29d4399751b78ea8fbe",
+      "audio_sha256": "d3028534c68e3cdeb1a0eb1bcbf0f0d9340e4c04fe9f5b56565e430f0b172ef1"
+    },
+    {
+      "id": "533-131562-0005",
+      "reference": "THAT AND ALL REPLIED THE MASTER AND THE THINGS WERE CLEARED AWAY",
+      "source_audio": "LibriSpeech/test-other/533/131562/533-131562-0005.flac",
+      "speaker": "533",
+      "wav": "audio/ffbb350a5e2ec52a113f0ab2163396aed97e9b905d5c33a1da94a1dc30ca1f30.wav",
+      "audio_seconds": 5.58,
+      "source_audio_sha256": "bfa3fdf698ee4459e871d3bdb1302175362be8bbf785e2e8995a62f6bc802cbf",
+      "audio_sha256": "d0efded38668b73c8a875c8320feaf57a62b7b1204b7f3b831804eb32979c95a"
+    },
+    {
+      "id": "3528-168656-0000",
+      "reference": "SHE HAD EVEN BEEN IN SOCIETY BEFORE THE REVOLUTION",
+      "source_audio": "LibriSpeech/test-other/3528/168656/3528-168656-0000.flac",
+      "speaker": "3528",
+      "wav": "audio/5cc8375a85d75b93cf031cfd22330987cc8c77f2ed2efd5ee5885c4949823c29.wav",
+      "audio_seconds": 3.385,
+      "source_audio_sha256": "d16413fbfceedaabf37e5081a81a0d635ab470164efcb5774d61fb10131e4278",
+      "audio_sha256": "e9f9b0159fc5336c50fcee48538a26b2d168c6932948e8fe7970c39e2034dc02"
+    },
+    {
+      "id": "7975-280085-0006",
+      "reference": "THE WHISTLE ON THE OIL MILL BLEW AND WE FEARED THAT IT WAS A SIGNAL THAT HAD BEEN AGREED UPON TO ALARM THE TOWN IN CASE WE WERE OBSERVED BUT WE WERE NOT MOLESTED",
+      "source_audio": "LibriSpeech/test-other/7975/280085/7975-280085-0006.flac",
+      "speaker": "7975",
+      "wav": "audio/f2f0209ec0d1ddd3a9a6ccc6c2526fb8bfaff4016c81843726ec0f5f30c5b5ef.wav",
+      "audio_seconds": 8.4,
+      "source_audio_sha256": "0855aea1064f6206e164ead471aae3ab6a30989fbe7161c0e05c36610d7b22f1",
+      "audio_sha256": "c6f42c008fbd801976f22c9fab184a87858d4c1c0a72bafc2ea6175f2471b8bd"
+    },
+    {
+      "id": "4198-12259-0041",
+      "reference": "I SHOULD SAY MASTER PAST",
+      "source_audio": "LibriSpeech/test-other/4198/12259/4198-12259-0041.flac",
+      "speaker": "4198",
+      "wav": "audio/7e476da85a25207994817722e4cb0c19b1a0c38905d169df9efffa26c1ffcd42.wav",
+      "audio_seconds": 3.04,
+      "source_audio_sha256": "cac6c8b27cee19126f58e48763974e4404347b8f8af9c6d1a86425cd667c9d33",
+      "audio_sha256": "2612b1586a226a4e73bbd45bc4d1898b4ff9670dd838f50244bf8eddfd5af50d"
+    },
+    {
+      "id": "7018-75788-0009",
+      "reference": "WHEN IT WAS THE FIVE HUNDRED AND FIFTY NINTH NIGHT",
+      "source_audio": "LibriSpeech/test-other/7018/75788/7018-75788-0009.flac",
+      "speaker": "7018",
+      "wav": "audio/82d0c09a9eb455f553b54c7f54ac0cf273d23fac480c1a75ae14078fb8a31e9a.wav",
+      "audio_seconds": 3.405,
+      "source_audio_sha256": "1a5338fa723cbd516a71268fbc46c3dda3dc07a78d3ae988f84f730d8eba6d8e",
+      "audio_sha256": "ba5d4f695d76a9d4f2d6594d5a8638d38917a957b1659483e39c5f4a7fe1dc9c"
+    },
+    {
+      "id": "3997-180297-0030",
+      "reference": "ONE HAS TO BUT HE WANTS MORE THAN THAT WHAT THEN",
+      "source_audio": "LibriSpeech/test-other/3997/180297/3997-180297-0030.flac",
+      "speaker": "3997",
+      "wav": "audio/66f5c4d680d62bc293c41a0661f2daa7c13769fc2785987d79642e4ee95830f0.wav",
+      "audio_seconds": 4.75,
+      "source_audio_sha256": "b57e7442bd7f2cdfe1b4a52bfc109d91b08b4ccf44d52caba8344366bed0de94",
+      "audio_sha256": "98866e354160824d4a430acd7d933335b7c7bef164bb55161481dd6c52272928"
+    },
+    {
+      "id": "533-131562-0006",
+      "reference": "MISTER HUNTINGDON THEN WENT UP STAIRS",
+      "source_audio": "LibriSpeech/test-other/533/131562/533-131562-0006.flac",
+      "speaker": "533",
+      "wav": "audio/6005035fa7cc3602b59bb3710fc412d2db6e8d81726a723e7525a894bd21a9e5.wav",
+      "audio_seconds": 3.145,
+      "source_audio_sha256": "49f85d706a528639a850556a5ee43358d3bc8e5adfb81a242a6e907633a68f0e",
+      "audio_sha256": "c93fdefb8cd09fc96ee94cde58c5a92ea82ca6e1b361445cd89921725de197fa"
+    },
+    {
+      "id": "8280-266249-0045",
+      "reference": "THE GERMAN RELEASED HIS PRISONER AND THE LATTER SLUNK AWAY WITH MUTTERED THREATS AND IMPRECATIONS UPON THE HEAD OF HIS TORMENTOR",
+      "source_audio": "LibriSpeech/test-other/8280/266249/8280-266249-0045.flac",
+      "speaker": "8280",
+      "wav": "audio/0b3cf27f1e385d7b2e59215eb1fae6e643f1cb2440624b67ea6df43af7d26cae.wav",
+      "audio_seconds": 7.925,
+      "source_audio_sha256": "f837ce2412cb9fca19f1c93900eae9d6098190b2a1eac3c506f4e217d811711d",
+      "audio_sha256": "cf324d2299fbbda7522df45de094d4a2d1c50dcd7ff245431df90f45f2faab75"
+    },
+    {
+      "id": "7902-96592-0050",
+      "reference": "TO HIS ASTONISHMENT THE BOY DID NOT FLINCH BUT THRUST HIS OWN ARMS THROUGH PLACING THEM ABOUT THE MIDDY'S WAIST CLENCHING HIS HANDS BEHIND AND UTTERING A SHARP WHISTLE",
+      "source_audio": "LibriSpeech/test-other/7902/96592/7902-96592-0050.flac",
+      "speaker": "7902",
+      "wav": "audio/bcbb53116f3d1f68116ab4e745468ca7d62c854cbb6e68efc2854a4a8ff84c30.wav",
+      "audio_seconds": 7.665,
+      "source_audio_sha256": "41a868b8a8dc918c0d347f75d2dab38fe3ccd3c9bf77ee041193b29183b5fc2e",
+      "audio_sha256": "e8b812f0c8077db1471cb48aeecee7f9ae61021feac908e15b8c16d1a467a384"
+    },
+    {
+      "id": "367-130732-0002",
+      "reference": "THIS QUESTION AND ANSWER MIGHT WELL GO INTO THE PRIMER OF INFORMATION FOR THOSE WHO COME TO SAN FRANCISCO FROM THE EAST FOR WHAT IS CALLED A LOBSTER IN SAN FRANCISCO IS NOT A LOBSTER AT ALL BUT A CRAYFISH",
+      "source_audio": "LibriSpeech/test-other/367/130732/367-130732-0002.flac",
+      "speaker": "367",
+      "wav": "audio/8a898ff45540a5d98a93a284fad73c0016d06e872b94491165561b4d21b08a53.wav",
+      "audio_seconds": 11.28,
+      "source_audio_sha256": "c719b7c52e60cda65dd75243d477d541493fadffa4b5d9f10f9c3c0eb889b245",
+      "audio_sha256": "239129cf33db3eea0e7ab6b79f4288bc9065aa978d52958c4ad2b4c0fa109c02"
+    },
+    {
+      "id": "3538-163622-0006",
+      "reference": "WHEN HE HAD RUN AFTER THE FOALS FOR A LONG LONG TIME AND WAS HOT AND TIRED HE PASSED BY A CLEFT IN THE ROCK WHERE AN OLD WOMAN WAS SITTING SPINNING WITH A DISTAFF AND SHE CALLED TO HIM",
+      "source_audio": "LibriSpeech/test-other/3538/163622/3538-163622-0006.flac",
+      "speaker": "3538",
+      "wav": "audio/8bc12f10be681f3343e9fbe2bd93e711f43422fdbe95ed2b2bba96d1d0ec871d.wav",
+      "audio_seconds": 11.32,
+      "source_audio_sha256": "aa1281d04c5905167caf924afd2a3cdad2f805dd9753ee8e562b8d85105fa92f",
+      "audio_sha256": "1ee6ce2507589a5d62e888038362faeef7d0ca3f6996251f33e83240b79e5e81"
+    },
+    {
+      "id": "3764-168670-0030",
+      "reference": "HAVE YOU THE KEYS TO THOSE TWO DOORS",
+      "source_audio": "LibriSpeech/test-other/3764/168670/3764-168670-0030.flac",
+      "speaker": "3764",
+      "wav": "audio/61c6ed98f334e849fec7c8f4475630fc41280ea949bffd6a9bf1492cbb420078.wav",
+      "audio_seconds": 2.7,
+      "source_audio_sha256": "e141fafec6d379496f417f796c8ae9362d12cce4faf20b26e39730a53d215bc1",
+      "audio_sha256": "57d2066c38615f5ec69dab74c35b9baf121b2561eb18b005d0371a0e72d0e401"
+    },
+    {
+      "id": "2414-128292-0002",
+      "reference": "WHAT MATTER ABOUT MY SHADOW",
+      "source_audio": "LibriSpeech/test-other/2414/128292/2414-128292-0002.flac",
+      "speaker": "2414",
+      "wav": "audio/6654c5ebbecb66d412231b9b9b8f2db225590927bb54a28d4ff63e6ea2f3a9a1.wav",
+      "audio_seconds": 2.59,
+      "source_audio_sha256": "a2ddbce10d493a09d1b74a9d86c47b02f5d59c8a7ab07d2c7291f159caf8ade4",
+      "audio_sha256": "d21e0409a0f6075d17566c5ab010ca4078dcb5e4273826275580d643c3d061e7"
+    },
+    {
+      "id": "8280-266249-0060",
+      "reference": "OH HOW KIND HOW VERY KIND MISSUS DALY SAID WITH TEARS OF JOY AND GRATITUDE WE HAVE HARDLY KNOWN HOW WE SHOULD MEET THE MOST NECESSARY EXPENSES OF THIS TRIP BUT HAVE BEEN TRYING TO CAST OUR CARE UPON THE LORD ASKING HIM TO PROVIDE",
+      "source_audio": "LibriSpeech/test-other/8280/266249/8280-266249-0060.flac",
+      "speaker": "8280",
+      "wav": "audio/e8c5a392acfd005dd22916daecaab5feed6b82c629e3fbb27738b0d22725bc34.wav",
+      "audio_seconds": 15.69,
+      "source_audio_sha256": "1c2dc12d9ff6cda4cb3be88572bece8e4f92d4601829dc1cfc2ba9fec7c2b743",
+      "audio_sha256": "ee12a7ad0b412a40a73225972c81173b2c2001ef00c95027e5c0bf6993aea18d"
+    },
+    {
+      "id": "2414-128292-0013",
+      "reference": "MUST I EVER BE ON THE WAY",
+      "source_audio": "LibriSpeech/test-other/2414/128292/2414-128292-0013.flac",
+      "speaker": "2414",
+      "wav": "audio/bd28222167fc2de00941524d09b892a660614c9fae4c44b1e4372bb3b4971628.wav",
+      "audio_seconds": 2.465,
+      "source_audio_sha256": "00a52b1bc96021ab78e4f429a447de1e3fca7e99873f198cab2f6896018cf479",
+      "audio_sha256": "503727ca1eebb6daf94f034ae1d2e1487403b68fb9721f3a6f4e9df452d73d81"
+    },
+    {
+      "id": "1998-29455-0006",
+      "reference": "BUT I SHALL HAVE THEM WHILE THEY'RE ALIVE SAID DICKIE AS HE HAD SAID TO THE PAWNBROKER ABOUT THE MOONFLOWERS",
+      "source_audio": "LibriSpeech/test-other/1998/29455/1998-29455-0006.flac",
+      "speaker": "1998",
+      "wav": "audio/8c0828e63e8eaca675fc8f14151acff0bc1738b6a7fb397e01a83d9675c95c8c.wav",
+      "audio_seconds": 6.115,
+      "source_audio_sha256": "dcf1cdfb78422b6427fa219aeb6888ef8b4db82763aa86d18cd88e26aee70738",
+      "audio_sha256": "406a85ce5251958e2204b8ff7695570ef6b34c37cb4f8ec6c2b2cf6f1da31e0c"
+    },
+    {
+      "id": "8188-269288-0003",
+      "reference": "SHE HAD NO IDEA OF ALLOWING HERSELF TO BREAK DOWN",
+      "source_audio": "LibriSpeech/test-other/8188/269288/8188-269288-0003.flac",
+      "speaker": "8188",
+      "wav": "audio/962aa1d9dc16383fc032770709fbe915ddb710d796f402cb1345e78b3308b121.wav",
+      "audio_seconds": 3.14,
+      "source_audio_sha256": "3395b22802adbc43a4a612e3c90aecfc7d6962ca992f141ea17db31c995e7bf5",
+      "audio_sha256": "9cd737527555b00be7ef9d314313a9b90f373f880363edabb059fbcba64f4fad"
+    },
+    {
+      "id": "8188-269290-0055",
+      "reference": "EXCUSES MAKE NO DIFFERENCE",
+      "source_audio": "LibriSpeech/test-other/8188/269290/8188-269290-0055.flac",
+      "speaker": "8188",
+      "wav": "audio/a46a38a02ceaa3a5a05f12fd3f0d66faee3161ac34db7d9bc9098b662afae05a.wav",
+      "audio_seconds": 2.13,
+      "source_audio_sha256": "65a9e6ab849232a6998a4a5c376fa002421e32b2c7ed1b63a365f706ca792268",
+      "audio_sha256": "6d7ed6067d70a0ee588e35d74575bb8f83b58e7cc34ae28029303187d252f7fd"
+    },
+    {
+      "id": "8188-269288-0024",
+      "reference": "I MUST GO INTO THE GROUNDS THE AIR IS STIFLING",
+      "source_audio": "LibriSpeech/test-other/8188/269288/8188-269288-0024.flac",
+      "speaker": "8188",
+      "wav": "audio/b4c6473b4a83b14489271b8cca664e5b1fdf7d5f394b8e1d536019676a3faf7c.wav",
+      "audio_seconds": 3.57,
+      "source_audio_sha256": "60d796ef4d256d6915982da8789f0eab825e472dd73ab5202a711cffdf6eeda3",
+      "audio_sha256": "cd5acedcdfca293a4cd62f6a9b17b8321d56922fa6a00a48d0886801d2646c5b"
+    },
+    {
+      "id": "6070-63485-0015",
+      "reference": "IN THE PLAIN OF SAINT DENIS",
+      "source_audio": "LibriSpeech/test-other/6070/63485/6070-63485-0015.flac",
+      "speaker": "6070",
+      "wav": "audio/75846093771e7d4ce3ad6d84f9caac5c3e53e8ab74aebfa783d880e2023fb399.wav",
+      "audio_seconds": 2.13,
+      "source_audio_sha256": "607016bb636bf17eca66e1439463996489bd2add61c9c83dd9c63b048cb9b232",
+      "audio_sha256": "dfc2486e32846336f36b28a0f6ddd34ef8e8daa9f727b8ded7e9bd966dcf06f8"
+    },
+    {
+      "id": "8188-274364-0007",
+      "reference": "HOWEVER THESE GENTLEMEN AT THE BAR SAY THEY SPEAK FOR THE COMMONWEALTH AND THEY BELIEVE SO YET UNDER FAVOR IT IS I WHO IN THIS PARTICULAR SPEAK FOR THE COMMONWEALTH",
+      "source_audio": "LibriSpeech/test-other/8188/274364/8188-274364-0007.flac",
+      "speaker": "8188",
+      "wav": "audio/289c0aa93214232d649b07924a5b7de652ae00323b6121171ab06ca4a22450b6.wav",
+      "audio_seconds": 11.57,
+      "source_audio_sha256": "780c9964328ebf0e9321e08315712e61911c5b99c2d9fed2757357a97cf9a3e3",
+      "audio_sha256": "c06f76828996c05650d9064cdddbf57b4bf6701aefd4be08cc6f98ea001cb648"
+    },
+    {
+      "id": "3331-159605-0004",
+      "reference": "WHAT A SPITEFUL THING I AM",
+      "source_audio": "LibriSpeech/test-other/3331/159605/3331-159605-0004.flac",
+      "speaker": "3331",
+      "wav": "audio/c562c9cf8c13d22967d1face49bb5cfae260f55c2155a10b1f409b529d4d5f93.wav",
+      "audio_seconds": 2.115,
+      "source_audio_sha256": "ffeadb8ff5db8eac7323c475acbf295cfc80a2a592e6cfffcde7a4b206c7881c",
+      "audio_sha256": "c059ff7d24f1e47ba03b7038e980c2ce866fbf6afecdcc75b4b59fe49a316170"
+    },
+    {
+      "id": "3005-163390-0008",
+      "reference": "YOU BET IT IS THE JEDGE IS RIGHT EVERYBODY SINGS OUT",
+      "source_audio": "LibriSpeech/test-other/3005/163390/3005-163390-0008.flac",
+      "speaker": "3005",
+      "wav": "audio/ea753554d499a72adebcdb609d3f6571b85daa222f40b8fc536f44b57722f457.wav",
+      "audio_seconds": 4.25,
+      "source_audio_sha256": "f71ea8185424d4c1597e3f1441938d330479247348942626470035e2d3c039e0",
+      "audio_sha256": "35d737b7798ea4fd1b9a8385dc8d638bae787c844d6102cac9b3812d02f0fc41"
+    },
+    {
+      "id": "5484-24318-0030",
+      "reference": "BESIDES HE KNEW THAT THE OBJECT OF HIS LOVE WOULD NOT PART FROM HIM WITHOUT GRANTING HIM ONE LAST WORD",
+      "source_audio": "LibriSpeech/test-other/5484/24318/5484-24318-0030.flac",
+      "speaker": "5484",
+      "wav": "audio/f9a736658bbefc40411684e63ec750235581a0ba6371755494a3e202793ebc12.wav",
+      "audio_seconds": 6.265,
+      "source_audio_sha256": "070243993ff2ef5d996bfc1523449ee10f7a8ce714fef634290f307fc1862347",
+      "audio_sha256": "22fc84142158704a2552ea81428ffa257b8402b243a7b956296f6452a9bae0f5"
+    },
+    {
+      "id": "3528-168669-0111",
+      "reference": "I HAVE MY HEAP OF OLD IRON AT THE BOTTOM OF THE GARDEN",
+      "source_audio": "LibriSpeech/test-other/3528/168669/3528-168669-0111.flac",
+      "speaker": "3528",
+      "wav": "audio/7e8a3530531eb62bf7ebb366a0989b5583bed68cc6a6afbabff170b0036476c5.wav",
+      "audio_seconds": 3.095,
+      "source_audio_sha256": "3a985290212bde6c135e12054a4e9ed9c09507f9c52ad6d26c14b2b74653fec4",
+      "audio_sha256": "a3472d16897cf841be77b8a33fdc2827db7a47b92559ef47c4088871a786f8a5"
+    },
+    {
+      "id": "3080-5040-0011",
+      "reference": "HERE ARE SOME VERSES OF COWLEY'S TELL ME HOW YOU LIKE THEM",
+      "source_audio": "LibriSpeech/test-other/3080/5040/3080-5040-0011.flac",
+      "speaker": "3080",
+      "wav": "audio/7bf2a2f682457e550cb3f0e31df09fd5acf5df9fc520c4aba2ec76f4a75ae589.wav",
+      "audio_seconds": 3.915,
+      "source_audio_sha256": "0b0f7d2b727f5b4e75511f518b814a10aa35467ff3004e778da3786d46924f27",
+      "audio_sha256": "7733bc0cf3c3ef4e53eecc5e6eddc9cbe9d3f61731dd6ab038ba7ef6c8748c42"
+    },
+    {
+      "id": "3538-163622-0007",
+      "reference": "COME HITHER COME HITHER MY HANDSOME SON AND LET ME COMB YOUR HAIR",
+      "source_audio": "LibriSpeech/test-other/3538/163622/3538-163622-0007.flac",
+      "speaker": "3538",
+      "wav": "audio/7cf45354d414ff1ff601a1ceb03d4c77c2bc05479eaf8d62b335bbd717c44149.wav",
+      "audio_seconds": 3.74,
+      "source_audio_sha256": "4b9408cb2f4bf444e1074bb647ada87b6530e328bae99c2bd897a7ec499f6741",
+      "audio_sha256": "c9ea55ef1cb3574e96be40dd009ec450b5f530e02a35fa21d8df5e6decb76b22"
+    },
+    {
+      "id": "7105-2340-0037",
+      "reference": "BRAVE LITTLE WOMAN SAID PETER WITH A GASP OF RELIEF I COULD NEVER HAVE DONE IT",
+      "source_audio": "LibriSpeech/test-other/7105/2340/7105-2340-0037.flac",
+      "speaker": "7105",
+      "wav": "audio/9e1ba028af8bfcc3b566afbd5737f89c3f53328c0db87e2c39889ba02acdbc27.wav",
+      "audio_seconds": 6.535,
+      "source_audio_sha256": "5c1121a1585e9066bf28b3c2f7eacce7ac53353006970fb775fd309538a60635",
+      "audio_sha256": "15c9f32cef0f5597dd5eaf1d4bf9f0c0ecb821e9f62dd52211061eab4201f6cc"
+    },
+    {
+      "id": "3538-163622-0014",
+      "reference": "AND THUS THEY JOURNEYED ONWARDS A LONG LONG WAY",
+      "source_audio": "LibriSpeech/test-other/3538/163622/3538-163622-0014.flac",
+      "speaker": "3538",
+      "wav": "audio/f92d9b0c5f5dcbae6c323c529825defbf08460dbcb223649c067f7416de31e77.wav",
+      "audio_seconds": 3.425,
+      "source_audio_sha256": "2dc8d2f0bfe9d79d65d3bc3dc86a1253f61d99093498e62d0496fae38bcc561c",
+      "audio_sha256": "fdf310eadcd18c3a393636dd46937020ef0cf4b0ba1b9f194c8ad96b4a5b70cc"
+    },
+    {
+      "id": "5764-299665-0040",
+      "reference": "A MAN PUTS HIMSELF IN THE PLACE OF ANOTHER",
+      "source_audio": "LibriSpeech/test-other/5764/299665/5764-299665-0040.flac",
+      "speaker": "5764",
+      "wav": "audio/b651dcbcad19ad3f14bb6b050457f46a149f51103d168a7e8816384a1d8b3088.wav",
+      "audio_seconds": 3.24,
+      "source_audio_sha256": "6477319bdc362bb9a98ab76178f2be8f93380496538f4e409ad0a64965db221d",
+      "audio_sha256": "02ee326f5a19da1446f9de22a51e12e6297115688dc185ea20d5bc1da4839047"
+    },
+    {
+      "id": "8188-269290-0022",
+      "reference": "SOME DAY JANE YOU MUST SEE HER",
+      "source_audio": "LibriSpeech/test-other/8188/269290/8188-269290-0022.flac",
+      "speaker": "8188",
+      "wav": "audio/e6ae9ea6fb6da2beb72c957eeca111506bff61b857aba63141efcf3f86d64823.wav",
+      "audio_seconds": 2.56,
+      "source_audio_sha256": "78e1b2c39968088604a87628ae13da3188f2bd682d56a1f37ec7aa93f3b0c40e",
+      "audio_sha256": "6ba7382f414fe209098faa77b9ca69b90418a9d157a9379d00d3356c17315f41"
+    },
+    {
+      "id": "2414-128292-0014",
+      "reference": "O EARTH THOU HAST BECOME TOO ROUND FOR ME",
+      "source_audio": "LibriSpeech/test-other/2414/128292/2414-128292-0014.flac",
+      "speaker": "2414",
+      "wav": "audio/3547ab8e5e337166e2da0543c063192eae7737e7711d77a6c556c16d3ed8d028.wav",
+      "audio_seconds": 4.535,
+      "source_audio_sha256": "8722a144506fc3deb8c1c60db5805b0dd25bb445eccd937c07cf5d90e8ed7ee3",
+      "audio_sha256": "5779ce0529b2f4391a40d72fdd8559dee8b0cf924317e179c2bb17d4c177f377"
+    },
+    {
+      "id": "2609-156975-0022",
+      "reference": "THESE SAND WANDERERS SENT HIM ON FROM TRIBE TO TRIBE UNTIL HE REACHED THE LAND OF KEDEM EAST OF THE DEAD SEA WHERE HE REMAINED FOR A YEAR AND A HALF",
+      "source_audio": "LibriSpeech/test-other/2609/156975/2609-156975-0022.flac",
+      "speaker": "2609",
+      "wav": "audio/cf6d1c477484dbb0d4242302951bebcfc4fd3abf465f9ef154f60452a3338ea6.wav",
+      "audio_seconds": 13.505,
+      "source_audio_sha256": "4abe4f826d65a251b2da70fbaf6b282191d6fdf826d16c83bfa26c65cbfa9efd",
+      "audio_sha256": "80704c5150a583bc829afb3bc88336e6c9d7c2d07f7abe61f9375214b0f39d60"
+    },
+    {
+      "id": "3331-159609-0021",
+      "reference": "SHE KEPT MUCH AT HOME WHEN THE DAY'S WORK WAS DONE FINDING IT PLEASANTER TO SIT DREAMING OVER BOOK OR SEWING ALONE THAN TO EXERT HERSELF EVEN TO GO TO THE SHAWS",
+      "source_audio": "LibriSpeech/test-other/3331/159609/3331-159609-0021.flac",
+      "speaker": "3331",
+      "wav": "audio/66ed16c536be507999d049775c91c0207e7fc16d6f83a049d38fd6c68216b309.wav",
+      "audio_seconds": 10.37,
+      "source_audio_sha256": "79be856e15fd97b4d128bb7365db9d758c0b6cbdd86bd9dcccee886cff8a9700",
+      "audio_sha256": "3485f8529ac7aa5c87d6d39bc85c05bc1b435b9240997d03dec159fe56cb84e3"
+    },
+    {
+      "id": "8280-266249-0051",
+      "reference": "THEY BENT EAGERLY OVER THE BOARD EACH WATCHING WITH FEVERISH ANXIETY HIS COMPANION'S MOVEMENTS EACH CASTING NOW AND AGAIN A GLOATING EYE UPON THE HEAP OF GOLD AND GREENBACKS THAT LAY BETWEEN THEM AND AT TIMES HALF STRETCHING OUT HIS HAND TO CLUTCH IT",
+      "source_audio": "LibriSpeech/test-other/8280/266249/8280-266249-0051.flac",
+      "speaker": "8280",
+      "wav": "audio/51a544a56d35cb581a0750b975576f7686367cb9a169572eff0079a7da6bcd2f.wav",
+      "audio_seconds": 15.535,
+      "source_audio_sha256": "fbce9087a6413b4ca1d07c6cc595ab3e9e81457d8fae85d119fb727d3eb04b4e",
+      "audio_sha256": "bb3056841b4205382222bfca85ef9c2631eda43fe1535438a38e3e3746b4a000"
+    },
+    {
+      "id": "8280-266249-0020",
+      "reference": "IN A SMALL COUNTRY TOWN SEVEN OF THESE MYSTERIOUS PROVIDENCES OCCURRED WITHIN THE CIRCUIT OF A MILE ALL DIRECTLY TRACEABLE TO TOBACCO AND ANY PHYSICIAN ON A FEW MOMENTS REFLECTION CAN MATCH THIS FACT BY HIS OWN OBSERVATION",
+      "source_audio": "LibriSpeech/test-other/8280/266249/8280-266249-0020.flac",
+      "speaker": "8280",
+      "wav": "audio/133a6acb3b986ea6e3098ed6fcf1b7725b0807571e19096295d9156fcd49b168.wav",
+      "audio_seconds": 14.31,
+      "source_audio_sha256": "1104f296201b55a35b25ff353e929b5368f05602d70b1d3e362efa4971b869c7",
+      "audio_sha256": "cfd39a047e9597e6746906d885bac3c1466b37c864acbd8a2a96a9233662c641"
+    },
+    {
+      "id": "8131-117017-0009",
+      "reference": "SOME TURNED AWAY AS GORDON AND THE OTHER COP WENT TO WORK BUT MOST OF THEM WEREN'T SQUEAMISH",
+      "source_audio": "LibriSpeech/test-other/8131/117017/8131-117017-0009.flac",
+      "speaker": "8131",
+      "wav": "audio/d853b818783c0cededb45dda92eb7cc2eb7eebed64d1601d64ec860ca438c69f.wav",
+      "audio_seconds": 6.285,
+      "source_audio_sha256": "7ae8ed8be080502be2bfb98b7577c22067d71e3bc386508c48636e745ca21cca",
+      "audio_sha256": "a9f0cdb3ecbbc6cdc4bb976f47ef3f40d2e9b4faa3c9f640d1130c5f672feb5f"
+    },
+    {
+      "id": "3005-163399-0023",
+      "reference": "HE MUST A COME AND YOU'VE MISSED HIM ALONG THE ROAD",
+      "source_audio": "LibriSpeech/test-other/3005/163399/3005-163399-0023.flac",
+      "speaker": "3005",
+      "wav": "audio/02b2906dcc4bf2f0fcfe1bff9f1e16237fe5760454f0533f31730ca117f085b1.wav",
+      "audio_seconds": 3.365,
+      "source_audio_sha256": "de6dc07250c5117ae113aec8b7c55290c4a5efe85ed56f1b9e34e77e831d60cc",
+      "audio_sha256": "ea7d52e97db832e93268a26c5053abb6c4b085fb8e4a666bb72abd08264fbeff"
+    },
+    {
+      "id": "1998-29454-0024",
+      "reference": "THE SUN SHOT LONG GOLDEN BEAMS THROUGH THE GAPS IN THE HEDGE",
+      "source_audio": "LibriSpeech/test-other/1998/29454/1998-29454-0024.flac",
+      "speaker": "1998",
+      "wav": "audio/41c5eb2cd3720320e15a2837335b30fdd2f019d4c6da76f3830c9c4fbbed03c1.wav",
+      "audio_seconds": 3.535,
+      "source_audio_sha256": "3efb00ff985168ab39cc873d57e4328e58376875ebdcce55b8122bf5499d9ace",
+      "audio_sha256": "9fe2c2a47b2205d5a3352117482b0d6f25e4d0b830f01896663e4e6c7a0a15ca"
+    },
+    {
+      "id": "2033-164915-0004",
+      "reference": "ACCORDINGLY SHE TOLD HIM ALL THAT HAD COME TO HER SINCE THEIR SEPARATION AT THE KHAN AND WHAT HAD HAPPENED TO HER WITH THE BADAWI HOW THE MERCHANT HAD BOUGHT HER OF HIM AND HAD TAKEN HER TO HER BROTHER SHARRKAN AND HAD SOLD HER TO HIM HOW HE HAD FREED HER AT THE TIME OF BUYING HOW HE HAD MADE A MARRIAGE CONTRACT WITH HER AND HAD GONE IN TO HER AND HOW THE KING THEIR SIRE HAD SENT AND ASKED FOR HER FROM SHARRKAN",
+      "source_audio": "LibriSpeech/test-other/2033/164915/2033-164915-0004.flac",
+      "speaker": "2033",
+      "wav": "audio/3ed754574de038dcb8f86c71c18fa5a7f64873bedd216f27c6f3ced35584c4e3.wav",
+      "audio_seconds": 32.955,
+      "source_audio_sha256": "78fd1c5feaf6af639fd0aea25afcb9538476b6e2984f1d2c5da5d62ca2118d0a",
+      "audio_sha256": "5195bdb82b9146a691da2c7231e7ae57bf16780aeb51f3d8b75d732a60c1d358"
+    },
+    {
+      "id": "3528-168669-0068",
+      "reference": "THE DEAD MUST BE OBEYED TO BE BURIED IN THE VAULT UNDER THE ALTAR OF THE CHAPEL NOT TO GO TO PROFANE EARTH TO REMAIN THERE IN DEATH WHERE SHE PRAYED WHILE LIVING SUCH WAS THE LAST WISH OF MOTHER CRUCIFIXION",
+      "source_audio": "LibriSpeech/test-other/3528/168669/3528-168669-0068.flac",
+      "speaker": "3528",
+      "wav": "audio/e6fd957e6efad86e0ec4644126a7f4b1f67af4d65b42bebf68ee05b8ca16ad6a.wav",
+      "audio_seconds": 10.435,
+      "source_audio_sha256": "bbe1028cdafd7f9f535116f31a647ba41b12f2fcbe284583da77622cf66079e4",
+      "audio_sha256": "3faae5fa796b895aedf41f3a7bd14432bdb4bf1635929ad974b0d2b75655eddf"
+    },
+    {
+      "id": "3997-180297-0018",
+      "reference": "NEVER DO THEY GIVE YOU ADVICE WHICH IS NOT LUCRATIVE",
+      "source_audio": "LibriSpeech/test-other/3997/180297/3997-180297-0018.flac",
+      "speaker": "3997",
+      "wav": "audio/ba3ae66a8af6cf8e227c7e0321c0ceb9dfe134940e5cecdee565e1f4e8993f9c.wav",
+      "audio_seconds": 3.215,
+      "source_audio_sha256": "9edd9f45ef7e829078f20704530b84f88bd3411c13eef2eb86a8af95e6790736",
+      "audio_sha256": "125c9f8d87ee230d16644de96bd6ea5e22d68747abe2b9cbe222a124a984a018"
+    },
+    {
+      "id": "8188-269288-0034",
+      "reference": "ANNIE'S EYES WERE VERY BRIGHT HER CHEEKS WERE NO LONGER PALE AND THERE WAS A BRILLIANT COLOR IN THEM",
+      "source_audio": "LibriSpeech/test-other/8188/269288/8188-269288-0034.flac",
+      "speaker": "8188",
+      "wav": "audio/98d9a3bb5722f8e4a0bf458f61a2ab75861c59786144602fe35aa62b72f96692.wav",
+      "audio_seconds": 6.36,
+      "source_audio_sha256": "45e345f86ddd1a7b317a70f2ba6f3f63844bedee7f8277a1af3e2cb4fab500c9",
+      "audio_sha256": "f82a99e004b7ec743e73d1d943237ff26a50aaa80104e7e7acb371708e999349"
+    },
+    {
+      "id": "3538-163622-0018",
+      "reference": "CINDERLAD TRIED BUT COULD NOT DO IT SO HE HAD TO TAKE A DRAUGHT FROM THE PITCHER AND THEN ONE MORE AND AFTER THAT STILL ANOTHER AND THEN HE WAS ABLE TO WIELD THE SWORD WITH PERFECT EASE",
+      "source_audio": "LibriSpeech/test-other/3538/163622/3538-163622-0018.flac",
+      "speaker": "3538",
+      "wav": "audio/69f0ab0086b670e079213bd82688adf83b6e9935367c22e1f3740edbf270faa2.wav",
+      "audio_seconds": 11.13,
+      "source_audio_sha256": "9d3d88517c138fe11aa2c23a0ddd5c801b81b1161b0de8d51b2ca364a7bf1581",
+      "audio_sha256": "335cd26ae009842b94004639bd626e14aa95d4b9829e869a35c9e82a8572fcb0"
+    },
+    {
+      "id": "3764-168670-0045",
+      "reference": "TO HAVE HIMSELF NAILED UP IN A CASE AND CARRIED OFF LIKE A BALE OF GOODS TO LIVE FOR A LONG TIME IN A BOX TO FIND AIR WHERE THERE IS NONE TO ECONOMIZE HIS BREATH FOR HOURS TO KNOW HOW TO STIFLE WITHOUT DYING THIS WAS ONE OF JEAN VALJEAN'S GLOOMY TALENTS",
+      "source_audio": "LibriSpeech/test-other/3764/168670/3764-168670-0045.flac",
+      "speaker": "3764",
+      "wav": "audio/49fe5626253d7c41fa76eaa81bc4d1d1aa778787867ac8454537f1ead577db1e.wav",
+      "audio_seconds": 16.265,
+      "source_audio_sha256": "7b668367cf721f05a0d56f0105eb8f34e7be8779b23c194fd0587ea6379911fa",
+      "audio_sha256": "52532a2a37e41e680eddc25ab1c74e881349a95924ccad815663db29f7466a5c"
+    },
+    {
+      "id": "5484-24317-0015",
+      "reference": "HIS SON HAD BEEN THIS ROYAL DAME'S FIRST HUSBAND AND SHE HAD DESERTED HIM TO MARRY LYSIMACHUS THE AGED KING OF THRACE",
+      "source_audio": "LibriSpeech/test-other/5484/24317/5484-24317-0015.flac",
+      "speaker": "5484",
+      "wav": "audio/cb72f64f94071bcd9f518715018749647626d6823cabbc97b8213161848fce73.wav",
+      "audio_seconds": 8.155,
+      "source_audio_sha256": "50dfdf1dabe63d2c61df9163124b5d71d123bc833aa9d83326ed4fa3f28cab81",
+      "audio_sha256": "f4cddd39d11c9f321ae83f7855ad9da0d2db819b2f728eed7087c88f1de30f3f"
+    },
+    {
+      "id": "8131-117016-0002",
+      "reference": "SOME OF MARS LAWS DATED FROM THE TIME WHEN LAW ENFORCEMENT HAD BEEN HAMPERED BY LACK OF MEN RATHER THAN BY THE TYPE OF MEN",
+      "source_audio": "LibriSpeech/test-other/8131/117016/8131-117016-0002.flac",
+      "speaker": "8131",
+      "wav": "audio/0afe4e55e7267658b7cd4288a570b5e68dc7d14d605fb89a1c08a0da3e19cc0c.wav",
+      "audio_seconds": 8.29,
+      "source_audio_sha256": "e319ce27bcf6e9c58c930a0418591d5f6bafec8377efa5d268eaaa5dd10e7989",
+      "audio_sha256": "8b1d020bc50d46035ee3b17884526ada62985578b32ab5502ab816bec48d761e"
+    },
+    {
+      "id": "3080-5032-0018",
+      "reference": "WELL IN EARNEST IF I WERE A PRINCE THAT LADY SHOULD BE MY MISTRESS BUT I CAN GIVE NO RULE TO ANY ONE ELSE AND PERHAPS THOSE THAT ARE IN NO DANGER OF LOSING THEIR HEARTS TO HER MAY BE INFINITELY TAKEN WITH ONE I SHOULD NOT VALUE AT ALL FOR SO SAYS THE JUSTINIAN WISE PROVIDENCE HAS ORDAINED IT THAT BY THEIR DIFFERENT HUMOURS EVERYBODY MIGHT FIND SOMETHING TO PLEASE THEMSELVES WITHAL WITHOUT ENVYING THEIR NEIGHBOURS",
+      "source_audio": "LibriSpeech/test-other/3080/5032/3080-5032-0018.flac",
+      "speaker": "3080",
+      "wav": "audio/7a88793b5037c6785e7f98e1e87376f31f33ce5758ae89ede70b1a98f95e0405.wav",
+      "audio_seconds": 30.9399375,
+      "source_audio_sha256": "367456b24395e177ccfceb0e92350c5f9850f0609d7d9454c507b48f0b57b3f2",
+      "audio_sha256": "5559bf626c1e90858eb371dd4cf4f18f47f3916a76e89e55f007f4fc3809992f"
+    },
+    {
+      "id": "533-1066-0012",
+      "reference": "THEY WERE TALKING CONFIDENTIALLY TOGETHER BUT WHEN I CAME DOWN THEY CEASED",
+      "source_audio": "LibriSpeech/test-other/533/1066/533-1066-0012.flac",
+      "speaker": "533",
+      "wav": "audio/c0fb265e48d92978cb20f5477fcd574be2d9d3426b8a2d3191d822e6770c88c3.wav",
+      "audio_seconds": 5.215,
+      "source_audio_sha256": "6ad3554d8c0b520ded0f8d955f5b7ebe010d75a8edd31bf453985e99d4c521d9",
+      "audio_sha256": "a27178b4eacddadb8fa38510dfe7672a6db6072dea852809aa7646cec432114d"
+    },
+    {
+      "id": "8461-258277-0007",
+      "reference": "THEN HE SET OUT REJOICING TO RETURN TO THE BARRACK OF THE FORTY",
+      "source_audio": "LibriSpeech/test-other/8461/258277/8461-258277-0007.flac",
+      "speaker": "8461",
+      "wav": "audio/38da8aae677d6020b134ad50019c2cbc2ec39dd59f6bc1fdba0c5d02e2af6c95.wav",
+      "audio_seconds": 4.46,
+      "source_audio_sha256": "918d880ac1dcdc8ec72d29755de51c09e1f5122b9b0f8c85c6d269a849ee37d7",
+      "audio_sha256": "b59c7d5603978bbfb6a9c284f22b53aaea99ac192b1a28efd2205b36510f9e0a"
+    },
+    {
+      "id": "3528-168656-0001",
+      "reference": "IT WAS HER PLEASURE AND HER VANITY TO DRAG IN THESE NAMES ON EVERY PRETEXT",
+      "source_audio": "LibriSpeech/test-other/3528/168656/3528-168656-0001.flac",
+      "speaker": "3528",
+      "wav": "audio/b8a28e7205bf02f20f2c3439b1d592c637cd3c1deac7d2c9410bbbb2fca9051f.wav",
+      "audio_seconds": 4.34,
+      "source_audio_sha256": "d597fc6eb38408a029e01b023466aa0c950ebca6e92e0b1ec09ea11d32944bf5",
+      "audio_sha256": "1d452d17eaf90a6a7b4c997189cc3d7ef577ee994a111912f28ffa54f536a69a"
+    },
+    {
+      "id": "4852-28319-0021",
+      "reference": "DUSK CAME TWO HOURS BEFORE ITS TIME THUNDER SNARLED IN THE SKY",
+      "source_audio": "LibriSpeech/test-other/4852/28319/4852-28319-0021.flac",
+      "speaker": "4852",
+      "wav": "audio/34b48f83511235027e274f2bf4476ad90a2204f4d6b4cb2306f45773daf59bed.wav",
+      "audio_seconds": 4.845,
+      "source_audio_sha256": "38a60879890a9a35a1391ed05b418345cd2abc7105faf5e504c87b231a8e201b",
+      "audio_sha256": "868437abd49b6fe4cc50b74434878e8a11d1ef883d5ad2d1a155d3cbf19d4fac"
+    },
+    {
+      "id": "8280-266249-0038",
+      "reference": "I WONDER WHICH OF US IT IS REMARKED THE FIRST LOOKING HARD AT OUR PARTY I DON'T KNOW BUT COME ON",
+      "source_audio": "LibriSpeech/test-other/8280/266249/8280-266249-0038.flac",
+      "speaker": "8280",
+      "wav": "audio/6269cd4557045548e6f4db38c0623f42a3aefd6c59325dede8f1bd460300f5b0.wav",
+      "audio_seconds": 6.385,
+      "source_audio_sha256": "bd5ff113532efb17ee3fda51fd2aaf9611ca574733f76882a0ac39f5276e010c",
+      "audio_sha256": "8cad88ab1623cde517a052ca9b1270d781029bfcd386cfb5e899a69931fdbea7"
+    },
+    {
+      "id": "4198-61336-0010",
+      "reference": "ARPAD WAS CAPTURED AND MATI ILU DEPOSED AND PROBABLY PUT TO DEATH",
+      "source_audio": "LibriSpeech/test-other/4198/61336/4198-61336-0010.flac",
+      "speaker": "4198",
+      "wav": "audio/5a970e8ee45f8ed2ca85adb3ca7089e94277a0e9dcaa6310089e3d1eb14d46b7.wav",
+      "audio_seconds": 5.385,
+      "source_audio_sha256": "147cf255eb79358a2eccd5d1fb22b3f54afbc7b6475b581fd18f7a0babe8afd5",
+      "audio_sha256": "e0c7741bb8801b37554d822e0274a3a95e4bbc7156647420609493465bc0f18e"
+    },
+    {
+      "id": "4198-61336-0008",
+      "reference": "TIGLATH PILESER HAD THEREFORE TO MARCH WESTWARD AGAIN",
+      "source_audio": "LibriSpeech/test-other/4198/61336/4198-61336-0008.flac",
+      "speaker": "4198",
+      "wav": "audio/d41c764cdfb60855a046b6e4217bc0e0b86dc05d9aff165dca70330cb9794d66.wav",
+      "audio_seconds": 3.645,
+      "source_audio_sha256": "900bec656958e1b742dbd01f68d09de221d2c9321d535fa438df6fbe7a96c0bc",
+      "audio_sha256": "f61e92f3eea3d0ff5ec8212134810f6077d77a56d3af1ee9ecfcdd5a47672f65"
+    },
+    {
+      "id": "7018-75789-0019",
+      "reference": "HIS LETTER HATH SHOWN ME THIS AND AS FOR THE MIGHTINESS OF HIS DOMINION THOU HAST TOLD US WHAT THOU HAST EYE WITNESSED",
+      "source_audio": "LibriSpeech/test-other/7018/75789/7018-75789-0019.flac",
+      "speaker": "7018",
+      "wav": "audio/57fb0c8459dedf2147cc6c7535e619031abdbca2ae488bb95bb57dc2f0581937.wav",
+      "audio_seconds": 7.765,
+      "source_audio_sha256": "09e6efa87307b9ed454943ac5973c4297ebc534780b59d25ecb516a03dd686e9",
+      "audio_sha256": "7d68a43c507184a3c1feaa29fb527c6561be16121776ddd7085f1fa8f5e78ae3"
+    },
+    {
+      "id": "7105-2330-0041",
+      "reference": "THE LOCAL TRADE UNIONISTS TOOK OFFENCE AT THE FACT OF CABINET MINISTERS HAVING PERSONALLY ACTED AS STRIKE BREAKERS AND EVEN THE RELEASE OF PLATTERBAFF FAILED TO PACIFY THEM",
+      "source_audio": "LibriSpeech/test-other/7105/2330/7105-2330-0041.flac",
+      "speaker": "7105",
+      "wav": "audio/e4d4b420682872449f594e176df32a8f7775eb9a54c3436f1b03f7112359e1b9.wav",
+      "audio_seconds": 13.365,
+      "source_audio_sha256": "834791c6df2355c25cbb8c8044145539c166a5e65aef389871e3ae118b2e3603",
+      "audio_sha256": "7c4d5126161fd079c5169955b12d93d686e5695d5420367b52fceb9fe4918c3d"
+    },
+    {
+      "id": "3080-5040-0001",
+      "reference": "MY POOR LADY VAVASOUR IS CARRIED TO THE TOWER AND HER GREAT BELLY COULD NOT EXCUSE HER BECAUSE SHE WAS ACQUAINTED BY SOMEBODY THAT THERE WAS A PLOT AGAINST THE PROTECTOR AND DID NOT DISCOVER IT",
+      "source_audio": "LibriSpeech/test-other/3080/5040/3080-5040-0001.flac",
+      "speaker": "3080",
+      "wav": "audio/93b87c03d04f3b2ac826788cde3df154a2ab45eb69c53b940fe7fcef58270447.wav",
+      "audio_seconds": 12.95,
+      "source_audio_sha256": "aea809a291024e3fa594de41cfcd1f969bfbe95601fa3c270ed710d8fe855146",
+      "audio_sha256": "2ebcb941cb4d223f395fb5210a2b9a5e24684f0b6fdb0a30c6a50a8d4a038678"
+    },
+    {
+      "id": "1688-142285-0024",
+      "reference": "PAPA I DO THINK MISTER THORNTON A VERY REMARKABLE MAN BUT PERSONALLY I DON'T LIKE HIM AT ALL",
+      "source_audio": "LibriSpeech/test-other/1688/142285/1688-142285-0024.flac",
+      "speaker": "1688",
+      "wav": "audio/cd3b482c6d4aa9f3f780d77cb4989fa956ea232d963b7e52764c91f95460c983.wav",
+      "audio_seconds": 9.015,
+      "source_audio_sha256": "69d1c2dd8d2b725777eadf3daf9a2f765ad947f4674cc2a72012cda4cf5486a7",
+      "audio_sha256": "148c9d579285554de3bd4894d495ef762c86f64f3ed3d9fab9ed1f141ac7d6b0"
+    },
+    {
+      "id": "7018-75788-0013",
+      "reference": "NEXT MORNING AS SOON AS IT WAS LIGHT HE PRAYED THE DAWN PRAYER AND AFTER BLESSING MOHAMMED THE CREAM OF ALL CREATURES BETOOK HIMSELF TO THE HOUSE OF SINDBAD THE SEAMAN AND WISHED HIM A GOOD DAY",
+      "source_audio": "LibriSpeech/test-other/7018/75788/7018-75788-0013.flac",
+      "speaker": "7018",
+      "wav": "audio/e6072f0d73ad6892a886b29ad91c984db68c20d03801cce44eb06a810b1737bd.wav",
+      "audio_seconds": 13.605,
+      "source_audio_sha256": "ff9cd577eab978c7848ccde376aff9b2f6bfc25477d7fb958144f09afba4f164",
+      "audio_sha256": "6a4f41a6d11ca3464fb0b4df2282a4bc823603f956a0e4d2e8ea35af6c02b6aa"
+    },
+    {
+      "id": "1688-142285-0011",
+      "reference": "ALL HIS FORMER FRIENDS SHRUNK FROM THE DISCLOSURES THAT HAD TO BE MADE OF HIS DISHONEST GAMBLING WILD HOPELESS STRUGGLES MADE WITH OTHER PEOPLE'S MONEY TO REGAIN HIS OWN MODERATE PORTION OF WEALTH",
+      "source_audio": "LibriSpeech/test-other/1688/142285/1688-142285-0011.flac",
+      "speaker": "1688",
+      "wav": "audio/b61cc336a81e0d310f59c2c6f1017bada925970b0180e1e82474e2e026b078f1.wav",
+      "audio_seconds": 14.05,
+      "source_audio_sha256": "4089a7fee9c799dc5f5d6c6f3c53e68e49e7cf700125817ce7e7fab75e7ce1b4",
+      "audio_sha256": "3614e436db358036bb9efd7f49b9d9daa9509e1e99c73468f53028f7cd72b110"
+    },
+    {
+      "id": "3538-163624-0018",
+      "reference": "THERE IS SIGURD ROASTING FAFNIR'S HEART FOR ANOTHER WHEN HE SHOULD TASTE OF IT HIMSELF AND LEARN ALL WISDOM",
+      "source_audio": "LibriSpeech/test-other/3538/163624/3538-163624-0018.flac",
+      "speaker": "3538",
+      "wav": "audio/b0328b8f6b140b59e1edeb4dfdc055a1e0d7e2e7b4d7a5e3b34b54b063412489.wav",
+      "audio_seconds": 6.06,
+      "source_audio_sha256": "d879e882e1d60df26aa2a4bb94046b65cb2e28ff691ecac32c3a915125871d62",
+      "audio_sha256": "641ef16c64cb053cee4796d164c8474a68a179bca081aea5af847e623ce8ea34"
+    },
+    {
+      "id": "3997-180297-0015",
+      "reference": "WE ARE NOT ALLOWED TO HAVE HEARTS UNDER PENALTY OF BEING HOOTED DOWN AND OF RUINING OUR CREDIT",
+      "source_audio": "LibriSpeech/test-other/3997/180297/3997-180297-0015.flac",
+      "speaker": "3997",
+      "wav": "audio/0721f66852f59ead4f05e7a013a686d95da25cde7a0f73d26b2c817d8b81addf.wav",
+      "audio_seconds": 5.825,
+      "source_audio_sha256": "e122cc73d84d83af83a1039277deee483f2a1e5a1dd318af268a8e92f5f8d01a",
+      "audio_sha256": "aef0da5f02647d5c5ae4a1d4da43ed88bd76cd1a444db062ec45a13849d0c7fc"
+    },
+    {
+      "id": "6070-86745-0013",
+      "reference": "PESTE I WILL DO NOTHING OF THE KIND THE MOMENT THEY COME FROM GOVERNMENT YOU WOULD FIND THEM EXECRABLE",
+      "source_audio": "LibriSpeech/test-other/6070/86745/6070-86745-0013.flac",
+      "speaker": "6070",
+      "wav": "audio/6bfc6484a83980c64be22b8cdfceda2aaf34ef5ef6019c9e40863140be350caa.wav",
+      "audio_seconds": 8.145,
+      "source_audio_sha256": "289299c30b53150cbae9bcbbac43847d6ab8c7fe3bb646952ce1daf15abfbca5",
+      "audio_sha256": "bab8838d75c2ceec9312fc7e26d679cb22e700b43b64d160556e64aa595869b9"
+    },
+    {
+      "id": "3997-180294-0012",
+      "reference": "WHEN A CREATURE WHO HAS ALL HER PAST TO REPROACH HERSELF WITH IS TAKEN ALL AT ONCE BY A PROFOUND SINCERE IRRESISTIBLE LOVE OF WHICH SHE HAD NEVER FELT HERSELF CAPABLE WHEN SHE HAS CONFESSED HER LOVE HOW ABSOLUTELY THE MAN WHOM SHE LOVES DOMINATES HER",
+      "source_audio": "LibriSpeech/test-other/3997/180294/3997-180294-0012.flac",
+      "speaker": "3997",
+      "wav": "audio/850a319d5922c61e755a07ae2fd26b8f46acb176406b7af058b247aea0691993.wav",
+      "audio_seconds": 19.035,
+      "source_audio_sha256": "612314c634b5260c71a1cab3ec515538278e58f641ca0f3631f8ba0baa6d2fc3",
+      "audio_sha256": "dadf59c7ea9925bc8b6af7d8f022a1da0cbe9afcbb7cf651978e7dfc1f1d359a"
+    },
+    {
+      "id": "3331-159605-0002",
+      "reference": "I VE TRIED IT AND LIKED IT AND MAYBE THIS IS THE CONSEQUENCE OF THAT NIGHT'S FUN",
+      "source_audio": "LibriSpeech/test-other/3331/159605/3331-159605-0002.flac",
+      "speaker": "3331",
+      "wav": "audio/e3874a6d14e1d06b65f59f307b58374d1b732e2b101fde7efdec14d0daca2f1d.wav",
+      "audio_seconds": 6.23,
+      "source_audio_sha256": "866289ce5feaf568461d554e97484cf3ff7e6a3908583e205f1995d2feb7b988",
+      "audio_sha256": "985f66bc58acd7eb24a680d8b3ed1ba067b68053c60f3da2a5eddcae1cf08864"
+    },
+    {
+      "id": "6432-63722-0004",
+      "reference": "AND HAVING PUT HIMSELF IN A FAIR WAY AS HE HOPED TO SOLVE SOME OF THE PROBLEMS CONNECTED WITH THE DARCY CASE COLONEL ASHLEY WENT DOWN TO POLICE HEADQUARTERS TO LEARN MORE FACTS IN CONNECTION WITH THE MURDER OF THE EAST INDIAN",
+      "source_audio": "LibriSpeech/test-other/6432/63722/6432-63722-0004.flac",
+      "speaker": "6432",
+      "wav": "audio/08b3fedf5bedfb54e34b5895dc04d7df5e7464ddf47683ab34e50bb329c57195.wav",
+      "audio_seconds": 13.69,
+      "source_audio_sha256": "2e098b2c46b2d59262b1127caf0998ecb5d0a1e9f6717bdc8de5e54fe58b76e0",
+      "audio_sha256": "3a000b57faa2cff0426cb3ad98b956238dc90810bc725ed01c05d662d33c60b7"
+    },
+    {
+      "id": "6938-70848-0016",
+      "reference": "MEANWHILE THE QUESTION OF THE STATUS OF THE EXECUTIVE COMMITTEE WAS AGITATING ALL MINDS",
+      "source_audio": "LibriSpeech/test-other/6938/70848/6938-70848-0016.flac",
+      "speaker": "6938",
+      "wav": "audio/5a392c67cde7760613089914714dff7f4f4a6f81c7ae3854c47e02e10088b7dd.wav",
+      "audio_seconds": 5.615,
+      "source_audio_sha256": "8d2eb60e725b9dd2089c97f168822f9205949ce45a994247b68b10b2f6ea263c",
+      "audio_sha256": "0a1727d61eb701d3dc2eea20eaaa3564f4403ffc05343f5bae07d3eaad4323bd"
+    },
+    {
+      "id": "3080-5040-0004",
+      "reference": "I NEVER SAW ANY ONE YET THAT DID NOT LOOK SIMPLY AND OUT OF COUNTENANCE NOR EVER KNEW A WEDDING WELL DESIGNED BUT ONE AND THAT WAS OF TWO PERSONS WHO HAD TIME ENOUGH I CONFESS TO CONTRIVE IT AND NOBODY TO PLEASE IN'T BUT THEMSELVES",
+      "source_audio": "LibriSpeech/test-other/3080/5040/3080-5040-0004.flac",
+      "speaker": "3080",
+      "wav": "audio/e85263fb3df49cc42c7ba9d3b4aea61f7f70c6fe4a368494feb8b95756d64c60.wav",
+      "audio_seconds": 16.06,
+      "source_audio_sha256": "5adca80e509acd72012ef2bdddef067d3fb269672445f862a9b184cce07d561b",
+      "audio_sha256": "f258f0fe18a6b0ce71e23e76a7c5d4cc4aa897efbc0ad9db4fe8d77a85cf835c"
+    },
+    {
+      "id": "4294-35475-0021",
+      "reference": "MY GRAIN MUST FALL AND ROT IN THE FIELD FROM OVERRIPENESS BECAUSE I HAVE NOT THE STRENGTH TO RISE AND HARVEST IT THEN INDEED MUST WE ALL STARVE",
+      "source_audio": "LibriSpeech/test-other/4294/35475/4294-35475-0021.flac",
+      "speaker": "4294",
+      "wav": "audio/8f884726a821c752647502c335cbf44aa3f18e22ac287b5e52dac221d7c4ef8e.wav",
+      "audio_seconds": 9.03,
+      "source_audio_sha256": "21b75ca990a7cd1f72b3f92e628c8fe0222b38e42938684d1cfc6619b0fc5962",
+      "audio_sha256": "e2bbbc34acf9425eec792645a63e5202f60c4ec972e99396a6331a04e08308c2"
+    },
+    {
+      "id": "5442-41168-0001",
+      "reference": "HE WENT UP TO THE TABLE AND STRIKING IT WITH HIS FINGER RING HE SHOUTED LOUDLY A BALLOT",
+      "source_audio": "LibriSpeech/test-other/5442/41168/5442-41168-0001.flac",
+      "speaker": "5442",
+      "wav": "audio/89a8cb8cba64d2003f234154384372d8ec88f348c36c14328f1c3034491dff76.wav",
+      "audio_seconds": 6.67,
+      "source_audio_sha256": "e1564f07161bca55e518623a99c4b88a0f38ded72d682c05c44deafa4b1549e4",
+      "audio_sha256": "96ecc44e105c3219cfe8605735b268897f92aa1ae56a471ed074d4c114cd5edc"
+    },
+    {
+      "id": "3538-142836-0009",
+      "reference": "BOIL THEM UP THREE DAYS SUCCESSIVELY SKIMMING EACH TIME AND THEY WILL THEN BE FINISHED AND IN A STATE FIT TO BE PUT INTO POTS FOR USE",
+      "source_audio": "LibriSpeech/test-other/3538/142836/3538-142836-0009.flac",
+      "speaker": "3538",
+      "wav": "audio/ce809b6fa17adf89a068c5402ed3adb21c4ad2cd5f7737ab4a002e7d83a0dc19.wav",
+      "audio_seconds": 7.295,
+      "source_audio_sha256": "aa1fbc0a232556d9e0350ef87324024f89ef744ff138a1698513dd6d00d3cc22",
+      "audio_sha256": "357a055916bd7443e55c24b439a28b9a19234ee4dc3a33e241c0aea75b7c6484"
+    },
+    {
+      "id": "4294-14317-0007",
+      "reference": "I HAD BETTER LOOK TO MY CONDUCT FOR IT HAD COME TO HIS EARS THAT I RELIED UPON HIS FAVOUR TO TAKE IN FIRST ONE MAN AND THEN ANOTHER",
+      "source_audio": "LibriSpeech/test-other/4294/14317/4294-14317-0007.flac",
+      "speaker": "4294",
+      "wav": "audio/d5ecb1f7be5fd923b97e2021ba19a97d5d5c2563a42de82d49aa36bf76338c85.wav",
+      "audio_seconds": 8.43,
+      "source_audio_sha256": "b112f203abc7bc65badd2a230034c7fabec853070444b6d365b8bf84b18ab73d",
+      "audio_sha256": "6aa764a8a86ecddefdaa3e73f60954cfcf4521a60bbb9ee02d754464a233d5de"
+    },
+    {
+      "id": "3005-163390-0019",
+      "reference": "S'POSE HE OPENED HIS MOUTHWHAT THEN",
+      "source_audio": "LibriSpeech/test-other/3005/163390/3005-163390-0019.flac",
+      "speaker": "3005",
+      "wav": "audio/e9b5e032fdbe4332f2eed32aa609a791945f908415a349acf8ae8b8612c824ba.wav",
+      "audio_seconds": 3.165,
+      "source_audio_sha256": "2db43749ba49e1b241b237b4d3a60754082b4502965c72b27cc151cceac87aa8",
+      "audio_sha256": "742d261355e64bb5a3258e8bd114f37131ba483a3eb5c1b4859b8c18f3f92867"
+    },
+    {
+      "id": "7105-2330-0039",
+      "reference": "THE WORD OF THE SONG HAD REFERENCE IT WAS UNDERSTOOD TO THE INCARCERATING GOVERNMENT AND NOT TO THE DESTROYER OF THE ALBERT HALL",
+      "source_audio": "LibriSpeech/test-other/7105/2330/7105-2330-0039.flac",
+      "speaker": "7105",
+      "wav": "audio/4c54423ef0fd678cda704a7c903b404a5446a48ec85eb1bd4d5f0f74638b77bb.wav",
+      "audio_seconds": 8.22,
+      "source_audio_sha256": "b6f6ba1b85dcc4d5f56885acbf32ca51ac9ee7188f369ca6aebc9529c29a98f6",
+      "audio_sha256": "9ceebcabbf3bd4d08f25f24a187a1a42d2625081a322f071f6d0b352e13f4d00"
+    },
+    {
+      "id": "8131-117017-0017",
+      "reference": "THE LITTLE MAN SHOOK HIS HEAD HIS ANCIENT EIGHTEEN YEAR OLD FACE TURNING SOBER NOPE",
+      "source_audio": "LibriSpeech/test-other/8131/117017/8131-117017-0017.flac",
+      "speaker": "8131",
+      "wav": "audio/d29d5ce907273d3256fd1674578aebd3a25e880c3fb8c2c171aee184d5c0c9f8.wav",
+      "audio_seconds": 8.585,
+      "source_audio_sha256": "3d0c5fcf3529bee3990b461cf86ed3763f0c9091dc3905d3dc85b40d72436e4a",
+      "audio_sha256": "1e84db0e4fe50b0ec3747a923478bfd099cbc5c85d97e014eae9aa570bb1cb60"
+    },
+    {
+      "id": "2609-157645-0005",
+      "reference": "ANOTHER EIGHTEENTH CENTURY CLERICAL WORTHY THE FAMOUS DOCTOR PARR AN INVETERATE SMOKER WAS ACCUSTOMED TO DO WHAT MISTER DISNEY PREVENTED ARCHBISHOP BLACKBURN FROM DOING HE SMOKED IN HIS VESTRY AT HATTON",
+      "source_audio": "LibriSpeech/test-other/2609/157645/2609-157645-0005.flac",
+      "speaker": "2609",
+      "wav": "audio/08d957f2ef94ddc3ad532fbc6da8a47bd954e4f955539c91de2c905d968132f2.wav",
+      "audio_seconds": 16.305,
+      "source_audio_sha256": "5c61b4df4a831b0631146ab13866f44674031dea252ef18b49f39f7a773f52fe",
+      "audio_sha256": "70a4980a30626099eadd95601fcee39eb212b3a3cf8171082ed271e5ea9645a0"
+    },
+    {
+      "id": "2414-128292-0007",
+      "reference": "BUT DOTH ZARATHUSTRA NEED TO BE FRIGHTENED BY HIS SHADOW",
+      "source_audio": "LibriSpeech/test-other/2414/128292/2414-128292-0007.flac",
+      "speaker": "2414",
+      "wav": "audio/3195296e87ef1ebc829418b3e1d53385ff8b31745a30a54ff14a9a6a27d3433c.wav",
+      "audio_seconds": 4.32,
+      "source_audio_sha256": "ceaf18a659c73943f9278450edce309863a7e00046b244e24711f918cef80e65",
+      "audio_sha256": "09098f25fdd78f01703de31a4f5dc5ffddf3cf4523e5cfaa234b2fea380e0268"
+    },
+    {
+      "id": "4198-12259-0018",
+      "reference": "AND I TANQUAM SPONSUS",
+      "source_audio": "LibriSpeech/test-other/4198/12259/4198-12259-0018.flac",
+      "speaker": "4198",
+      "wav": "audio/30a9adce9e3aa012354e4c57b684e752f8c3b9d6d3a5ee4bdafeb591feb84fdf.wav",
+      "audio_seconds": 3.03,
+      "source_audio_sha256": "7d47e4912613efc850aa306c4f67b473e31f9473c11d13ca4d4563daff5ca44f",
+      "audio_sha256": "ee48603e461e14426236a46f55cc90b1663c157cb1161d5e43b151f5853a5ee2"
+    },
+    {
+      "id": "4350-9170-0051",
+      "reference": "THIS ARGUMENT TOO WAS WELL FOUNDED ONLY SOME CENTURIES AGO",
+      "source_audio": "LibriSpeech/test-other/4350/9170/4350-9170-0051.flac",
+      "speaker": "4350",
+      "wav": "audio/e27ac716e6c36ce3fb6b540e1f1f784ff9a9b517855282c04eee679ccf65c112.wav",
+      "audio_seconds": 3.465,
+      "source_audio_sha256": "e179bc7b609df48e6fa99af6ccfbe37c9ce51b58033e25effde88711fdf78731",
+      "audio_sha256": "c5c6174f18d85b2b55f48dc6541b22e9acc9c5d3240626b2738a6b9233660187"
+    },
+    {
+      "id": "8461-278226-0009",
+      "reference": "HOW I WISH YOU COULD GET ME A COPY OF THAT PICTURE PHILIP LAURA SAID ENTREATINGLY",
+      "source_audio": "LibriSpeech/test-other/8461/278226/8461-278226-0009.flac",
+      "speaker": "8461",
+      "wav": "audio/763449259d80708d1fdc721edb8cc6efdec98f3104535636db49ad964592cdcb.wav",
+      "audio_seconds": 6.135,
+      "source_audio_sha256": "6dc27a7a48c88eb2dce228128848545fe0bb3dbc8f53231bf5e797bf61bae832",
+      "audio_sha256": "1a5d5da546e2c4324f5bb662709ad15e2f4118eabc9b902f936f85153d850fef"
+    },
+    {
+      "id": "5764-299665-0016",
+      "reference": "FEAR ERECTS THE CATHEDRAL AND BOWS THE HEAD OF MAN IN WORSHIP",
+      "source_audio": "LibriSpeech/test-other/5764/299665/5764-299665-0016.flac",
+      "speaker": "5764",
+      "wav": "audio/105057a164fd7e4fec5ad88a63cc4d38384e4d52ae01fa4b68affa2628b87f76.wav",
+      "audio_seconds": 6.44,
+      "source_audio_sha256": "64c8d80e0465117d9b031d7819a65e4a643c4178e96f77df9acee67b0df3ea89",
+      "audio_sha256": "55712b57313a7c422ed26bac1b11e0c6a8f3b0c17d7f42931ad7c37c1dac7e65"
+    },
+    {
+      "id": "6432-63723-0047",
+      "reference": "THAT IS NOT ALWAYS BUT SOMETIMES IT HAPPENED TO BE SO NOW",
+      "source_audio": "LibriSpeech/test-other/6432/63723/6432-63723-0047.flac",
+      "speaker": "6432",
+      "wav": "audio/9348ca67ec707e58a1c116fc69c2f0d0bee1064692a64b77a5b6fe12fff77612.wav",
+      "audio_seconds": 4.26,
+      "source_audio_sha256": "b94a7d9576d0ce544a0167620d18b39426197a8b38c9eb48ec05fccc702bccdb",
+      "audio_sha256": "996611be835f920e5116106d9033392e58d62be8020aac9da80ee6fca828ea41"
+    },
+    {
+      "id": "7902-96592-0034",
+      "reference": "GUINEA SAID THE BOY THINK I'D DO IT FOR A GUINEA WELL THEN TWO",
+      "source_audio": "LibriSpeech/test-other/7902/96592/7902-96592-0034.flac",
+      "speaker": "7902",
+      "wav": "audio/fde489bdb7eae87ccf938eaf6dae5f0ccdb098aae7fae9ddff87a67a42b0dfc7.wav",
+      "audio_seconds": 3.97,
+      "source_audio_sha256": "6dc4a3a3fb023de31159a50e4d68c46f425067c239e26a689a249fa29e1450c0",
+      "audio_sha256": "f2e07516a71c7dd3561c20365df7f87cab27ffdc40417028a27179f5c7d3e235"
+    },
+    {
+      "id": "4294-14317-0018",
+      "reference": "HAVING THIS EXCELLENT RESOLVE IN HEART I REACHED MY HOME",
+      "source_audio": "LibriSpeech/test-other/4294/14317/4294-14317-0018.flac",
+      "speaker": "4294",
+      "wav": "audio/4118cae41ecbe69b71351ecec6ee88fc0f52f42de12f05287ab21d227873aa21.wav",
+      "audio_seconds": 3.75,
+      "source_audio_sha256": "c5b8cd0e0a639105f3452d1a11a322d7313eee034703dd1df6bc8051c57bc6ec",
+      "audio_sha256": "163d794fdf5805d697cb2e0af4548d4a27cf6426e42a4ce21fcac1bd238bf4b4"
+    },
+    {
+      "id": "8280-266249-0057",
+      "reference": "IT WAS THE LAST GAME OF CARDS FOR THAT TRIP",
+      "source_audio": "LibriSpeech/test-other/8280/266249/8280-266249-0057.flac",
+      "speaker": "8280",
+      "wav": "audio/8f1de0824bbcd6d92de7d4bcf8a49188b012c2b33580d02353508ac3bac80d5a.wav",
+      "audio_seconds": 2.945,
+      "source_audio_sha256": "ea8a6ca7732996f6c9f12695e903e4ecedd1648a0070e51fb900fabab6c702b0",
+      "audio_sha256": "ed37d6d636cbfbae12091df42a55182f3bab93757c67bb0624c8b78f97ec14fc"
+    },
+    {
+      "id": "8188-269288-0026",
+      "reference": "I SHALL GO I KNOW A WAY",
+      "source_audio": "LibriSpeech/test-other/8188/269288/8188-269288-0026.flac",
+      "speaker": "8188",
+      "wav": "audio/704a97a06d94a4633fa6b362ff3fe51358903755fa20003dc7ddd61a96b8f2c1.wav",
+      "audio_seconds": 2.72,
+      "source_audio_sha256": "cc09d2b9a624754570eca9f6128601fdbe0b82e9b1dd8303588d2dcc01571020",
+      "audio_sha256": "de2dec8655a6eebf5957ee861dffc549eabd7147619f86ce05070f5b4418b466"
+    },
+    {
+      "id": "5764-299665-0031",
+      "reference": "IT IS A RESULT",
+      "source_audio": "LibriSpeech/test-other/5764/299665/5764-299665-0031.flac",
+      "speaker": "5764",
+      "wav": "audio/3177792d04baf0dce612ddc4af5cfed4bec67cc119833e00da29e4034d2e9425.wav",
+      "audio_seconds": 2.23,
+      "source_audio_sha256": "13a3c007339f5562d28ea461b20dcd6a99db8e6748f5655d85ef5e9d64d2552f",
+      "audio_sha256": "48df3b7007164fb778045d734ee943968bdc71634bc95499eac0599c855d5311"
+    },
+    {
+      "id": "533-131556-0015",
+      "reference": "YES YES",
+      "source_audio": "LibriSpeech/test-other/533/131556/533-131556-0015.flac",
+      "speaker": "533",
+      "wav": "audio/15b94e18104698ec4034da22ad712a6ef4072132a26f321aa8f7967da04f9391.wav",
+      "audio_seconds": 2.25,
+      "source_audio_sha256": "913869c4c6557b23ec7bad035f5fb69f5a49deef4e308b2ee6909b019e0fa65c",
+      "audio_sha256": "43c83004be4b15b1e415fd8b30e46aedc777f4a3f3cd3711af9ed1302679950f"
+    },
+    {
+      "id": "5442-41168-0019",
+      "reference": "THEN THERE WAS A LAUGH A BUTTON AND TWO NUTS WERE FOUND IN THE BOX",
+      "source_audio": "LibriSpeech/test-other/5442/41168/5442-41168-0019.flac",
+      "speaker": "5442",
+      "wav": "audio/b2551efb2c87f2b90aee41ee9ce8a1b95ce3570d3a73d3b062820aa5da1775cd.wav",
+      "audio_seconds": 4.98,
+      "source_audio_sha256": "ce5cd5ca9b7972e2f63170f43a1a43cffa7281a67f3a64ceffb09691aeb72f6d",
+      "audio_sha256": "175dea49fe46d3c78aafcdd77e6ba52cac95eb0e49d3b970cdab64de197f13b6"
+    },
+    {
+      "id": "7018-75789-0027",
+      "reference": "SO HAVING MADE UP MY MIND I PACKED UP IN BALES A QUANTITY OF PRECIOUS STUFFS SUITED FOR SEA TRADE AND REPAIRED WITH THEM FROM BAGHDAD CITY TO BASSORAH TOWN WHERE I FOUND A SHIP READY FOR SEA AND IN HER A COMPANY OF CONSIDERABLE MERCHANTS",
+      "source_audio": "LibriSpeech/test-other/7018/75789/7018-75789-0027.flac",
+      "speaker": "7018",
+      "wav": "audio/15cc2361fb5d556b9d5374fbbf2b0a49f3df5c730807c6f83bb8378708a852dc.wav",
+      "audio_seconds": 16.74,
+      "source_audio_sha256": "22355f39766c9329cb3ebbf2a5adc47e378f83353a50f90db0fd3f80eb6cc73b",
+      "audio_sha256": "e86a80088d37e8acf35c067e49f4553f4d0ae64ad3e72202c37c21312002ef45"
+    },
+    {
+      "id": "533-131562-0003",
+      "reference": "NOW THEN SNEERED HE WE MUST HAVE A CONFISCATION OF PROPERTY",
+      "source_audio": "LibriSpeech/test-other/533/131562/533-131562-0003.flac",
+      "speaker": "533",
+      "wav": "audio/ba6e1191c7ac1a2c71ea2e04c82700ed65820c3ddb270bab9c98892a024eb6bc.wav",
+      "audio_seconds": 5.75,
+      "source_audio_sha256": "14bab9aae7c4e2544f04e31c49315181c2465667bbcc157e2d20ab9cb7c375f8",
+      "audio_sha256": "a36d10c5f8c13f895f368fbecbd849a9683af723bb5d40bf6221807b0135406e"
+    },
+    {
+      "id": "2414-159411-0032",
+      "reference": "WHEN THE BRAHMAN HAD DONE THIS THE JACKAL SAID OH YOU WICKED AND UNGRATEFUL TIGER",
+      "source_audio": "LibriSpeech/test-other/2414/159411/2414-159411-0032.flac",
+      "speaker": "2414",
+      "wav": "audio/bad7e2e60810afddf8cab92b8c168b372adc0fa343de5b1aa4f1d07900fdb3b4.wav",
+      "audio_seconds": 7.72,
+      "source_audio_sha256": "ea0406f9f91c3dec3613839fddcbeb0a694fa379d7017a461180f30d2358f35c",
+      "audio_sha256": "c07c865acd4a4a38aee98c5d912b89162d8203f3d19073062484a86ca01d18fc"
+    },
+    {
+      "id": "3005-163390-0030",
+      "reference": "JIS AS LOUD AS I COULD YELL",
+      "source_audio": "LibriSpeech/test-other/3005/163390/3005-163390-0030.flac",
+      "speaker": "3005",
+      "wav": "audio/9f60aba3070b1e103f5244fc1ef4871406a5c8676c1a271f6acb7b156b91cf36.wav",
+      "audio_seconds": 2.415,
+      "source_audio_sha256": "5989cf3a5519cefa13e8e2d739ad9c4d9ac5279f80582b87d8f35e119a8c2cc9",
+      "audio_sha256": "e5bdf69b4c6bc6f45165ac2697258420923375269f2df6e734726f84695263f3"
+    },
+    {
+      "id": "533-131564-0003",
+      "reference": "I CAN'T YOU DON'T WANT HIM DO YOU",
+      "source_audio": "LibriSpeech/test-other/533/131564/533-131564-0003.flac",
+      "speaker": "533",
+      "wav": "audio/d971c9e9c22462e67cdb249872c7502685051a9df5acdf0ae459b77a6b0367db.wav",
+      "audio_seconds": 3.62,
+      "source_audio_sha256": "11cac5887c27090e6d6b25400dafaeb9f8d4186cdf6b66cb6fb0a7a4d4611fa4",
+      "audio_sha256": "04fa08e52e44eaf42a9c7da552d3043d641232b4dd0792f230e073dcd1994fd9"
+    },
+    {
+      "id": "5442-41168-0021",
+      "reference": "IN REPLY SNETKOV SPOKE OF THE TRUST THE NOBLEMEN OF THE PROVINCE HAD PLACED IN HIM THE AFFECTION THEY HAD SHOWN HIM WHICH HE DID NOT DESERVE AS HIS ONLY MERIT HAD BEEN HIS ATTACHMENT TO THE NOBILITY TO WHOM HE HAD DEVOTED TWELVE YEARS OF SERVICE",
+      "source_audio": "LibriSpeech/test-other/5442/41168/5442-41168-0021.flac",
+      "speaker": "5442",
+      "wav": "audio/2aafc5dbde0cdaba36b4bdb67989d3f14761684e82ec5af29c13a6ab40b4a076.wav",
+      "audio_seconds": 16.465,
+      "source_audio_sha256": "b44b556f33c6e95f6b91025a242d421c112a91647bdbf0c4e4eb74cbed4f0a92",
+      "audio_sha256": "2b92af8fd2e33f10f1d6e62682d9cf6d2e7c5b526ac5a88bd7f151e235900c7f"
+    },
+    {
+      "id": "3528-168669-0061",
+      "reference": "THE FOUR MOTHER PRECENTORS WILL ASSIST YOU",
+      "source_audio": "LibriSpeech/test-other/3528/168669/3528-168669-0061.flac",
+      "speaker": "3528",
+      "wav": "audio/4c3257d9516bd56962d79a70a89c7df875041b0b1fa73421a22997acb037e48c.wav",
+      "audio_seconds": 3.14,
+      "source_audio_sha256": "f5cacd2a904e580584936676eef6d7cfba6bdde0be04f60c755493c84002a456",
+      "audio_sha256": "3b4190c3de491ab20a4dd31529d4f2f64a9171c2e5cb836bab07e1a32e822648"
+    },
+    {
+      "id": "3764-168670-0038",
+      "reference": "I SHALL BE HUNGRY I WILL BRING YOU SOMETHING",
+      "source_audio": "LibriSpeech/test-other/3764/168670/3764-168670-0038.flac",
+      "speaker": "3764",
+      "wav": "audio/ffa21ee800537e1a8a428a4bfdb7413308c39f32aa6a09c09be3c39d735b7045.wav",
+      "audio_seconds": 3.4149375,
+      "source_audio_sha256": "e106b3c383f7fbf148a99b65f39d1ceffe9a672ecf206e4da8238e5c4b84fcf8",
+      "audio_sha256": "8fb7babceeb64aab3d2fd10e2f727117278d666d16a8ac1cab9f6fa21abff34f"
+    },
+    {
+      "id": "5764-299665-0080",
+      "reference": "WE NOW KNOW IF WE KNOW ANYTHING THAT THE UNIVERSE IS NATURAL AND THAT MEN AND WOMEN HAVE BEEN NATURALLY PRODUCED",
+      "source_audio": "LibriSpeech/test-other/5764/299665/5764-299665-0080.flac",
+      "speaker": "5764",
+      "wav": "audio/48e38c2eb1e5bd27c84f3c4d10a13f5539bd4117fc3b839b1be94190dfdcf4fc.wav",
+      "audio_seconds": 9.92,
+      "source_audio_sha256": "aac412869b742179402f0016b09cbe4523b43e90eb6390d3e88da5effb37c8dc",
+      "audio_sha256": "c2c83a65fbff415e3ec94cd5e85c6ce8504eeb7c4cad36ef9ccf7ff6709c7afd"
+    },
+    {
+      "id": "1688-142285-0019",
+      "reference": "NOT VICIOUS HE NEVER SAID THAT",
+      "source_audio": "LibriSpeech/test-other/1688/142285/1688-142285-0019.flac",
+      "speaker": "1688",
+      "wav": "audio/c788bec63eca7f337ee2b125c2a593c028b3ddf2ff2b34f0d70daa029bbfaf4e.wav",
+      "audio_seconds": 3.19,
+      "source_audio_sha256": "c14eafbbcb872180effc1acabc99b2f3640d3256701377b22ab78477eddec370",
+      "audio_sha256": "04a7c6b3018e24e8e61f09b5e52e677935a9b8ce5dc15d56246ab20a2e29cbfe"
+    },
+    {
+      "id": "4852-28312-0001",
+      "reference": "SO NOW ALONE UNTIL SOMEONE SHOULD ANSWER THE BELL HE LOOKED EAGERLY IF UNEASILY AROUND HIM",
+      "source_audio": "LibriSpeech/test-other/4852/28312/4852-28312-0001.flac",
+      "speaker": "4852",
+      "wav": "audio/ef144f7ad6aafa110d72ed11d3072231275c40a0d37be1b9a16dc9ef19a70838.wav",
+      "audio_seconds": 6.33,
+      "source_audio_sha256": "16954d0a223fc4f4119fc4b4a90a47df597b35a6201628fa01f4f3bdf6ca2d50",
+      "audio_sha256": "8fa42cfa7a7487b950700e5a369bc4ad849f9e7d9e06f3e95b66ed9ecd3763be"
+    },
+    {
+      "id": "3764-168670-0037",
+      "reference": "ABOUT THREE O'CLOCK IN THE AFTERNOON",
+      "source_audio": "LibriSpeech/test-other/3764/168670/3764-168670-0037.flac",
+      "speaker": "3764",
+      "wav": "audio/6ff2470c78bbafb9eef2d4b8adf8063f2b7074ab97f388d55e15de9eaa6dd8cd.wav",
+      "audio_seconds": 2.63,
+      "source_audio_sha256": "5be2ba26fec3c99ac715545347d38859bef22c36175a78f7987c19f5ada9e621",
+      "audio_sha256": "83d62069636c61373663271691cb4c03d278b14d6ce1ec47367d3423230f493a"
+    },
+    {
+      "id": "6432-63722-0014",
+      "reference": "BUSTED HIS HEAD IN WITH A HEAVY CANDLESTICK ONE OF A PAIR",
+      "source_audio": "LibriSpeech/test-other/6432/63722/6432-63722-0014.flac",
+      "speaker": "6432",
+      "wav": "audio/ead58a9312e94309b7e3031eec5e8ac78760d6f2dd771d36af9e536b547228c9.wav",
+      "audio_seconds": 3.84,
+      "source_audio_sha256": "b70e3e289c7e40222e6e20f65593aded189b87d621ba7fbc4eb6408755c11bed",
+      "audio_sha256": "bc6b20f879363fbe3122bb0b96565a2b15335941c5144ac242947f16f5f06f1a"
+    },
+    {
+      "id": "5764-299665-0073",
+      "reference": "IT FOLLOWS THAT NOTHING HAS BEEN OR CAN BE CREATED THAT THERE NEVER HAS BEEN OR CAN BE A CREATOR",
+      "source_audio": "LibriSpeech/test-other/5764/299665/5764-299665-0073.flac",
+      "speaker": "5764",
+      "wav": "audio/26bb090ce874c5e045c4ed650e6b32ee5e0405e792548681dc3819284384faee.wav",
+      "audio_seconds": 10.25,
+      "source_audio_sha256": "3dae10dfb70984fd1d5a02a8c95ebc1fdc15939736a6ef4ab9cdd86ca033de14",
+      "audio_sha256": "6a3a0f6ed1bc8a146c70dc9928dae3e702c76b3ccc39a02fb3ebdcc77ad974c1"
+    },
+    {
+      "id": "3764-168670-0029",
+      "reference": "THE CHURCH IN THE STREET THE CHURCH WHICH ANY ONE CAN ENTER",
+      "source_audio": "LibriSpeech/test-other/3764/168670/3764-168670-0029.flac",
+      "speaker": "3764",
+      "wav": "audio/45a642c639bd9f307b6620efa0513f969d3e4cca8dc9ef6d834c3f7ebfa99373.wav",
+      "audio_seconds": 4.16,
+      "source_audio_sha256": "3d6e88d03c111a52cf96c52d90363a6158dab3e92ec47ad9ef250341bda05c0a",
+      "audio_sha256": "fe36b5a23029555fce104f66c9cb1b12a2c8df32fc4a5ccf46507d53f7b11b5d"
+    },
+    {
+      "id": "7902-96592-0026",
+      "reference": "HE HAS GONE TO GIVE THE ALARM THOUGHT THE PRISONER AND HE LOOKED EXCITEDLY ROUND FOR A WAY OF ESCAPE",
+      "source_audio": "LibriSpeech/test-other/7902/96592/7902-96592-0026.flac",
+      "speaker": "7902",
+      "wav": "audio/d76d80546494b752d85e37307bc09a06ada6e831fb4a9c98cf2c2bb760f7b9b1.wav",
+      "audio_seconds": 4.82,
+      "source_audio_sha256": "1e970abf5524df0a0419598dae09617724c8c6254cd92c06687356884094d963",
+      "audio_sha256": "150fd1ea1a95304f6e43f4727cfa32650f5215f3da00e46456791e9d09d0bde8"
+    },
+    {
+      "id": "8188-269290-0052",
+      "reference": "I SEE BY YOUR FACE MISS GILROY THAT YOU ARE DISTRESSED ABOUT SOMETHING ARE YOU KEEPING ANYTHING BACK",
+      "source_audio": "LibriSpeech/test-other/8188/269290/8188-269290-0052.flac",
+      "speaker": "8188",
+      "wav": "audio/bf6dca5aa6c082ca1b962d9b36c9aacf37645bb8f1031dc01b7c024f234d186a.wav",
+      "audio_seconds": 5.56,
+      "source_audio_sha256": "975d5332de953aec18bd136bfe353b1e6b58c33869aea60084f32f5379f9e51c",
+      "audio_sha256": "fa4ba74a73253944ffa1b707b168a80d1eb1bd8f9e6beda09e959a564c8ea9c9"
+    },
+    {
+      "id": "5764-299665-0024",
+      "reference": "IF THEY GIVE UP ONE GOD THEY IMAGINE ANOTHER",
+      "source_audio": "LibriSpeech/test-other/5764/299665/5764-299665-0024.flac",
+      "speaker": "5764",
+      "wav": "audio/1aa345c180296aeff74e1ad822b80c237908f8c04f6197aa796f4d76c9a656cf.wav",
+      "audio_seconds": 4.38,
+      "source_audio_sha256": "edc3dc72909feeaa7c7b8769cf509b96866cf236b75d538ea791b520d83da28b",
+      "audio_sha256": "6b412b1dbb7de021b61960f6c49a98537f25e702d8b0bfce7ea95022e0486ee2"
+    },
+    {
+      "id": "3997-180294-0010",
+      "reference": "WITH THEM THE BODY HAS WORN OUT THE SOUL THE SENSES HAVE BURNED UP THE HEART DISSIPATION HAS BLUNTED THE FEELINGS",
+      "source_audio": "LibriSpeech/test-other/3997/180294/3997-180294-0010.flac",
+      "speaker": "3997",
+      "wav": "audio/0de733b73d3609782f9c68e35350df58f33f22cdab42f43feb43d18553bcdeb8.wav",
+      "audio_seconds": 8.63,
+      "source_audio_sha256": "ec807ccd2e10126286d333eb62742f7d87818ad36d7754672ddbbf250fecd19d",
+      "audio_sha256": "9a7d3dcf0f5990fa19f748a76152e92945242de4fd02cf3a08bcb3d00d76d2ff"
+    },
+    {
+      "id": "1688-142285-0035",
+      "reference": "VISITING REGISTER OFFICES SEEING ALL MANNER OF UNLIKELY PEOPLE AND VERY FEW IN THE LEAST LIKELY ABSORBED MARGARET'S TIME AND THOUGHTS FOR SEVERAL DAYS",
+      "source_audio": "LibriSpeech/test-other/1688/142285/1688-142285-0035.flac",
+      "speaker": "1688",
+      "wav": "audio/e0c55ca173459542c7f8a74dc3cc4a48af44c31390fad2e15e7676cc39326699.wav",
+      "audio_seconds": 10.9,
+      "source_audio_sha256": "a06eb22d356f264a1ca02ad54c133dde015764db13bbc17af1e6c2bd9de55dda",
+      "audio_sha256": "31efdddd00a91c033f85342e73515fc862ca2befcfc00cd639a7b5510598fa62"
+    },
+    {
+      "id": "4852-28312-0021",
+      "reference": "ACROSS THE WATER WHERE WAS THE FREEWAY",
+      "source_audio": "LibriSpeech/test-other/4852/28312/4852-28312-0021.flac",
+      "speaker": "4852",
+      "wav": "audio/e4c9dc2482110ed733d09bea7f7ca929b0b8075ded4ba7e3701b9a96e7176693.wav",
+      "audio_seconds": 3.87,
+      "source_audio_sha256": "ad4982289874047fd88dd0142a23a407e4fe77f2f0c1c12c53405de989980223",
+      "audio_sha256": "bd5ae46b32cd964fd9a7e9fd5a34d0cc78ae93d33ca679cdd7b9c3a697fb88af"
+    },
+    {
+      "id": "5484-24318-0018",
+      "reference": "IN SPITE OF HIS DEEP MENTAL DISTRESS HE COULD HAVE SHOUTED ALOUD IN HIS DELIGHT AND GRATITUDE",
+      "source_audio": "LibriSpeech/test-other/5484/24318/5484-24318-0018.flac",
+      "speaker": "5484",
+      "wav": "audio/b6636953339f68a2c7035390a87c56b2ef0f866fc4728b1ad6f13c5571368731.wav",
+      "audio_seconds": 5.025,
+      "source_audio_sha256": "d1f700d41ae9ef5a9e7517e9651c1b1baeb739bd3d231b9860769855fb682e63",
+      "audio_sha256": "ffd37d0b61ca6a46364f2feefdec89f759d37329f59c7125374dfcb4b48fc12b"
+    },
+    {
+      "id": "4294-35475-0014",
+      "reference": "HE LIFTED THE SCISSORS AND WITH ONE STROKE DESTROYED THE WEB AND GAVE THE FLY ITS FREEDOM",
+      "source_audio": "LibriSpeech/test-other/4294/35475/4294-35475-0014.flac",
+      "speaker": "4294",
+      "wav": "audio/b38205a19096154e59c14efa091a5a9dcf2748b9f1e222c2e863051b9afd273f.wav",
+      "audio_seconds": 5.93,
+      "source_audio_sha256": "5597500e51a790c7d212efa228a62640a84ef63702ac4c58f44a6f9c734f8d3e",
+      "audio_sha256": "6c04056c8c87c6fedb92eaa6edd361276413f0c3a60a53ea399526976adbf95b"
+    },
+    {
+      "id": "2033-164916-0002",
+      "reference": "WHEN THE MINISTER HEARD THESE WORDS HE REJOICED WITH GREAT JOY AND SAID O CHAMBERLAIN TELL ME THE TALE OF THE TWAIN AND WHAT BEFEL THEM AND THE CAUSE OF THEIR LONG ABSENCE",
+      "source_audio": "LibriSpeech/test-other/2033/164916/2033-164916-0002.flac",
+      "speaker": "2033",
+      "wav": "audio/17d04fc5ccb4b80a58a257c160980ff697bd20d57a357a5f1340a65946f88483.wav",
+      "audio_seconds": 14.07,
+      "source_audio_sha256": "aa1defbe9ede61d5909052db1077841f6d170ce315cee51f150ed89d775cd4a4",
+      "audio_sha256": "b2424595631e8db64057cb6abc46568b7c4ab78e79fe5cd812c597e75ab86f39"
+    },
+    {
+      "id": "7105-2330-0019",
+      "reference": "SAID THE PRIME MINISTER WE CAN HARDLY BE SUPPOSED TO SUPPLY A RELEASED PRISONER WITH A BRASS BAND HOW ON EARTH COULD WE DEFEND IT ON THE ESTIMATES",
+      "source_audio": "LibriSpeech/test-other/7105/2330/7105-2330-0019.flac",
+      "speaker": "7105",
+      "wav": "audio/6a31c474674d7133b13e5553081c08c61f68826b72d6af1845fd9c2d6b9de860.wav",
+      "audio_seconds": 9.425,
+      "source_audio_sha256": "57696679871c6e7d54873820a54d4603e4f18bdea091f96a9af9ffb5d5175629",
+      "audio_sha256": "49b429ee1280af86199e5b2e69e3969683378dae15d0109e2a9a474ca4972189"
+    },
+    {
+      "id": "2609-156975-0024",
+      "reference": "THE SCHOOL OF THE WILDERNESS",
+      "source_audio": "LibriSpeech/test-other/2609/156975/2609-156975-0024.flac",
+      "speaker": "2609",
+      "wav": "audio/b7d077c24b307b914737fc3ee8cb50e8e4926370aa21facc7d0cdf2bb81d2de1.wav",
+      "audio_seconds": 2.525,
+      "source_audio_sha256": "ecf0025b14b368069a7f77e528b7d71c29957d57533c4141df971012424fad1c",
+      "audio_sha256": "c27de8631a27f0ed40d7aeefd63b7f2a24c000cb76c5d3ac18bd831f230f80ed"
+    },
+    {
+      "id": "1998-29454-0003",
+      "reference": "HE GOT IT UP AND PUSHED HIS TREASURES AS FAR IN AS HE COULD ALONG THE ROUGH CRUMBLY SURFACE OF THE LATH AND PLASTER",
+      "source_audio": "LibriSpeech/test-other/1998/29454/1998-29454-0003.flac",
+      "speaker": "1998",
+      "wav": "audio/4c69abf5078dc9f5b3ed20cdd695f20c9707ce0f74cb6cc436da81658764d975.wav",
+      "audio_seconds": 7.735,
+      "source_audio_sha256": "f097e65765f0a845d8c40daa4608d94ddf46264259efa0fbc7d78952db65259a",
+      "audio_sha256": "72dd72c40305a187d3066f71182843b274732407d902b6cf951f5b347e516358"
+    },
+    {
+      "id": "1688-142285-0013",
+      "reference": "AT LEAST NO FRIEND CAME FORWARDS IMMEDIATELY AND MISSUS THORNTON IS NOT ONE I FANCY TO WAIT TILL TARDY KINDNESS COMES TO FIND HER OUT",
+      "source_audio": "LibriSpeech/test-other/1688/142285/1688-142285-0013.flac",
+      "speaker": "1688",
+      "wav": "audio/507ad88ffe595b7a5ebf0392b98cd6e337af1293c2dbe2ea011c83e1600a1f40.wav",
+      "audio_seconds": 10.18,
+      "source_audio_sha256": "6969a1c3231efffb34acada8d005e50ebcce241ae77fc312e7925ab1023ceaf3",
+      "audio_sha256": "3fad514f3afcaa0317f0d4060b8632df68f4ef0d75737fa74eb227c3e1d46aac"
+    },
+    {
+      "id": "5764-299665-0037",
+      "reference": "THE GREATEST OF HUMAN BEINGS HAS SAID CONSCIENCE IS BORN OF LOVE",
+      "source_audio": "LibriSpeech/test-other/5764/299665/5764-299665-0037.flac",
+      "speaker": "5764",
+      "wav": "audio/c003fbc4be22dbf5c93bc20659530ad7777d504c5844d1eb69c1ce69c5427ab9.wav",
+      "audio_seconds": 6.6,
+      "source_audio_sha256": "7ec0845c890dfd3c713d89597287236fdbb47a04f702d365456adac3e87621a6",
+      "audio_sha256": "7785e7d26fd4bd1a49f09481ea318bee5365173e105b35c8def9941dafe492b0"
+    },
+    {
+      "id": "6128-63241-0005",
+      "reference": "HIS FAMILY WAS RUINED THEY HAD LOST THEIR SLAVES THEIR PROPERTY THEIR FRIENDS AND RELATIONS THEIR HOME HAD TASTED OF ALL THE CRUELTY OF DEFEAT",
+      "source_audio": "LibriSpeech/test-other/6128/63241/6128-63241-0005.flac",
+      "speaker": "6128",
+      "wav": "audio/d65c63d443045786bf9fe8fdff84871265d8b9b02470bfd3345474705f071b5a.wav",
+      "audio_seconds": 10.48,
+      "source_audio_sha256": "d7912a64d40c90c5faa1c84ed96755794c953391d74f1093fe986de6045283c2",
+      "audio_sha256": "5addc2c33f539d0955db95a07fe635896d67310f6dc17c9c1d1f0dad8a330f78"
+    },
+    {
+      "id": "1998-29454-0037",
+      "reference": "THAT WAS CHARMING BUT IT WAS PLEASANT TOO TO WASH THE MUD OFF ON THE WET GRASS",
+      "source_audio": "LibriSpeech/test-other/1998/29454/1998-29454-0037.flac",
+      "speaker": "1998",
+      "wav": "audio/8076d8a3a266e0fce59138de1822df32b83ad5e800abfe9c97b7186e79c971d6.wav",
+      "audio_seconds": 5.465,
+      "source_audio_sha256": "32ae67ed346340012a30ee330cdc9b48d1f879da566f74a0be06241af91f360a",
+      "audio_sha256": "59693f4bb496cf9ef88d70d44d4d852f3af99794c6a0c013e6d5a5ce70063d9e"
+    },
+    {
+      "id": "1998-29454-0025",
+      "reference": "A BIRD PAUSED IN ITS FLIGHT ON A BRANCH QUITE CLOSE AND CLUNG THERE SWAYING",
+      "source_audio": "LibriSpeech/test-other/1998/29454/1998-29454-0025.flac",
+      "speaker": "1998",
+      "wav": "audio/f3f4f54ae3a23ec61256f4f37e82b63a3594715c425808b21e9fc3069b9ec4cd.wav",
+      "audio_seconds": 4.635,
+      "source_audio_sha256": "2c46b742ce021d35ada87487f59e731a1fa742c2369e05bcbcbd5bd1463ea25d",
+      "audio_sha256": "2bbd8b0a08ea11d6f7c4a28699ccfef8906b1f94cb9236c84836fa58ef4a47c1"
+    },
+    {
+      "id": "7975-280084-0011",
+      "reference": "DOCTOR WHEELER WHO HAD GONE UPSTAIRS IN THE HOTEL SHOT MILLER AND HE LAY DYING IN THE STREET",
+      "source_audio": "LibriSpeech/test-other/7975/280084/7975-280084-0011.flac",
+      "speaker": "7975",
+      "wav": "audio/f3c2458d9a028e5d91872697b019f37fc133d6fa96c61801d01a4b1d1d0748a2.wav",
+      "audio_seconds": 5.1850625,
+      "source_audio_sha256": "154179ce6c923a3efc9d63e8d33c1e4519ca7c5aeb36a2449fe4fd45a786b837",
+      "audio_sha256": "8deaf097d147992eaab79751288bb07665ae50b638ff2d298b28a3b7e6418697"
+    },
+    {
+      "id": "2033-164915-0015",
+      "reference": "THEN HE BADE HIM BE SEATED AND QUESTIONED HIM AND HE REPLIED THAT HE WAS CHAMBERLAIN TO THE EMIR OF DAMASCUS AND WAS BOUND TO KING OMAR WITH PRESENTS AND THE TRIBUTE OF SYRIA",
+      "source_audio": "LibriSpeech/test-other/2033/164915/2033-164915-0015.flac",
+      "speaker": "2033",
+      "wav": "audio/a245f05d50ba807de7f35c5b6c1f9d921dcb95fd3ad654f59aaf8056d811cdfb.wav",
+      "audio_seconds": 14.0500625,
+      "source_audio_sha256": "92f0d70e2711d8877320a870cbdf50f8e3393a7f079988091219d34a865f3f3d",
+      "audio_sha256": "ff0d00a098649b6cd9bd0b71d838c0431ecdf7e756df5222c49e0f7411f3e352"
+    },
+    {
+      "id": "8280-266249-0059",
+      "reference": "TO ELSIE'S OBSERVANT EYES IT PRESENTLY BECAME EVIDENT THAT THE DALYS WERE IN VERY STRAITENED CIRCUMSTANCES",
+      "source_audio": "LibriSpeech/test-other/8280/266249/8280-266249-0059.flac",
+      "speaker": "8280",
+      "wav": "audio/61c15994640fd0d3aaceff9e86d6dd6b5b9e42713e2bb98893a790b9a345f7fb.wav",
+      "audio_seconds": 6.83,
+      "source_audio_sha256": "0f9d616d69818c3ab43418c30b3725574d3ad0980e2175c63a8bfb6724b4a6ce",
+      "audio_sha256": "4622e119bc181d4458ae2d474262c43b7165fb04de39eec94be1c2eff4018410"
+    },
+    {
+      "id": "5484-24317-0021",
+      "reference": "HOW LONG HE KEPT YOU WAITING FOR THE FIRST WORD CONCERNING A WORK WHICH JUSTLY TRANSPORTED THE WHOLE CITY WITH DELIGHT",
+      "source_audio": "LibriSpeech/test-other/5484/24317/5484-24317-0021.flac",
+      "speaker": "5484",
+      "wav": "audio/5d9fdf9f484d2253c01d7655fc29e814a479f746671dc82eb7887cb7a7a2c6e2.wav",
+      "audio_seconds": 7.26,
+      "source_audio_sha256": "85c314a51183b793bcb173af431f6b7a2bff02e53d75d7f00eb4fbc3acc846a6",
+      "audio_sha256": "e20e14f65567270cae0cd46c8bc275100f1de1dc1d510171e9e6cc738a0f5174"
+    },
+    {
+      "id": "6432-63722-0041",
+      "reference": "SIMPLY BECAUSE THIS WATCH",
+      "source_audio": "LibriSpeech/test-other/6432/63722/6432-63722-0041.flac",
+      "speaker": "6432",
+      "wav": "audio/2dc2876e690d60dc893c0251d6fb6b5616c86b1d618deb6be5444934bfa5a77a.wav",
+      "audio_seconds": 2.345,
+      "source_audio_sha256": "f95ff8828ccc1bbd20f7a408ff371e5e2369d15b4f4f63a1aae769f2c11c4667",
+      "audio_sha256": "66f61bd99c5268834068d37112f6e74c87b6158b48f6e6bc4cd886c0d92ee852"
+    },
+    {
+      "id": "1998-29455-0009",
+      "reference": "HOW BEAUTIFUL SAID DICKIE WRIGGLING WITH DELIGHT",
+      "source_audio": "LibriSpeech/test-other/1998/29455/1998-29455-0009.flac",
+      "speaker": "1998",
+      "wav": "audio/172f1b823377e6add38b57ca54255f58a7f3fb89e573c22b2a05a5c0eb8ebce8.wav",
+      "audio_seconds": 3.735,
+      "source_audio_sha256": "1cd53016be2472d3dabfc5fbad7f7a05cb70d4f01d9c6d59d064a64c2c73f42b",
+      "audio_sha256": "04b048ce1b5f11d0377a26bebb6029fa0eefe7000632f84c50a3df1acda0fd90"
+    },
+    {
+      "id": "4198-12259-0001",
+      "reference": "SO MY FRIEND SO WHIP ME OFF THIS GLASS NEATLY BRING ME HITHER SOME CLARET A FULL WEEPING GLASS TILL IT RUN OVER",
+      "source_audio": "LibriSpeech/test-other/4198/12259/4198-12259-0001.flac",
+      "speaker": "4198",
+      "wav": "audio/a25ad189aa55532504ac7eb5b383baac423a3f47c586e5e94f5dcdf84dbcd358.wav",
+      "audio_seconds": 9.62,
+      "source_audio_sha256": "984086b6c0e9151d67ddb8cc24ce8f15c839681103cb78d0a5011ec963d09958",
+      "audio_sha256": "04850f7c0b97d33896bf30af461cdfe1ad85f0e79bade96675f9f32fc0ced43d"
+    }
+  ]
+}

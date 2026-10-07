@@ -68,7 +68,7 @@ fn main() -> anyhow::Result<()> {
         anyhow::ensure!(dir.is_dir(), "Audio directory does not exist");
     }
     let parakeet = if audio_dir.is_some() {
-        let dir = models.join(transcribe::PARAKEET_V3_ID);
+        let dir = models.join(transcribe::PARAKEET_ULTRA_ID);
         anyhow::ensure!(
             linty_lib::parakeet::models_exist(&dir),
             "Parakeet must already be installed"
@@ -152,7 +152,7 @@ fn main() -> anyhow::Result<()> {
         "runtime": "linty-candle",
         "language": corpus.language,
         "options": corpus.options,
-        "speechModelId": parakeet.as_ref().map(|_| transcribe::PARAKEET_V3_ID),
+        "speechModelId": parakeet.as_ref().map(|_| transcribe::PARAKEET_ULTRA_ID),
         "speechPreparationMs": parakeet.as_ref().map(|(_, ms)| ms),
         "cleanupPreparationMs": preparation_ms,
         "dictionaryEnabled": false,

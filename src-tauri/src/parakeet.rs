@@ -1,4 +1,4 @@
-//! NVIDIA Parakeet TDT v3 on the Apple Neural Engine, via FluidAudio.
+//! Parakeet Ultra and legacy TDT v3 on the Apple Neural Engine, via FluidAudio.
 //!
 //! The Swift side lives in `swift/Sources/LintyParakeet/Bridge.swift` and is
 //! compiled by `build.rs` into a static library when the `parakeet` feature is
@@ -86,7 +86,7 @@ pub fn is_supported() -> bool {
     unsafe { linty_parakeet_is_supported() != 0 }
 }
 
-/// True when a complete Parakeet TDT v3 bundle is present in `dir`.
+/// True when a complete supported Parakeet bundle is present in `dir`.
 pub fn models_exist(dir: &Path) -> bool {
     let Ok(c_dir) = path_cstring(dir) else {
         return false;
@@ -95,7 +95,7 @@ pub fn models_exist(dir: &Path) -> bool {
     unsafe { linty_parakeet_models_exist(c_dir.as_ptr()) != 0 }
 }
 
-/// Download (and CoreML-compile) the Parakeet TDT v3 bundle into `dir`.
+/// Download (and CoreML-compile) the selected Parakeet bundle into `dir`.
 /// `on_progress` receives a 0.0–1.0 fraction from FluidAudio's downloader; it may
 /// be invoked from any thread, so it is serialized through a mutex.
 pub fn download<F>(dir: &Path, on_progress: F) -> Result<(), String>

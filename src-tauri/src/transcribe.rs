@@ -414,6 +414,8 @@ pub enum ModelBackend {
 /// Bundle id (directory name inside the models dir) for Parakeet TDT 0.6B v3.
 /// FluidAudio derives this name from its HuggingFace repo, so it must match.
 pub const PARAKEET_V3_ID: &str = "parakeet-tdt-0.6b-v3";
+/// Preferred post-trained v3 model, sharing its 25-language contract.
+pub const PARAKEET_ULTRA_ID: &str = "parakeet-ultra";
 
 /// Bundle id of the Parakeet CTC 110M keyword-spotter models that let Parakeet
 /// recognise dictionary words. FluidAudio keeps the "-coreml" suffix for this one.
@@ -421,7 +423,7 @@ pub const PARAKEET_CTC_ID: &str = "parakeet-ctc-110m-coreml";
 
 /// True when `filename` refers to the Parakeet bundle rather than a whisper file.
 pub fn is_parakeet_model(filename: &str) -> bool {
-    filename == PARAKEET_V3_ID
+    matches!(filename, PARAKEET_ULTRA_ID | PARAKEET_V3_ID)
 }
 
 /// Available model variants with download URLs and sizes.
@@ -442,8 +444,18 @@ pub struct ModelInfo {
 /// this build includes the bridge and the machine can run it (Apple Silicon),
 /// otherwise whisper Turbo Q5.
 pub fn available_models(parakeet_supported: bool) -> Vec<ModelInfo> {
-    let mut models = Vec::with_capacity(2);
+    let mut models = Vec::with_capacity(3);
     if parakeet_supported {
+        models.push(ModelInfo {
+            name: "Parakeet Ultra (~633 MB)".into(),
+            filename: PARAKEET_ULTRA_ID.into(),
+            url: "https://huggingface.co/FluidInference/parakeet-ultra-coreml".into(),
+            size_mb: 633,
+            description:
+                "Runs on the Neural Engine · 25 European languages · improved speech accuracy"
+                    .into(),
+            backend: ModelBackend::Parakeet,
+        });
         models.push(ModelInfo {
             name: "Parakeet TDT v3 (~500 MB)".into(),
             filename: PARAKEET_V3_ID.into(),

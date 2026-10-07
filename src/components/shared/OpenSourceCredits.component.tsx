@@ -9,6 +9,7 @@ const projects = [
   { name: "whisper.cpp", url: "https://github.com/ggml-org/whisper.cpp", contribution: "Local speech inference by the ggml authors and contributors." },
   { name: "whisper-rs", url: "https://codeberg.org/tazz4843/whisper-rs", contribution: "Rust bindings for whisper.cpp." },
   { name: "Parakeet by NVIDIA", url: "https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3", contribution: "Speech recognition and vocabulary models." },
+  { name: "Parakeet Ultra by moondream", url: "https://huggingface.co/moondream/parakeet-ultra", contribution: "Improved Parakeet speech model, converted to Core ML by FluidInference." },
   { name: "FluidAudio by FluidInference", url: "https://github.com/FluidInference/FluidAudio", contribution: "Apple speech inference and Core ML model conversions." },
   { name: "S1-mini by Superwhisper", url: "https://huggingface.co/superwhisper/s1-mini-GGUF", contribution: "Optional on-device text cleanup." },
   { name: "Qwen by Alibaba Cloud", url: "https://huggingface.co/Qwen/Qwen3-0.6B", contribution: "The base model from which S1-mini is derived." },

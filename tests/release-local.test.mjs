@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { assertMainMatches, buildAndCheckBrowsers, parseArgs, publishBuiltRelease, readPreviousManifest, releaseCheckReporter, runBrowserChecks, selectReleaseType, synchronizeMain, updaterManifest } from '../scripts/release-local.mjs';
+import { assertMainMatches, buildAndCheckBrowsers, parseArgs, publishBuiltRelease, readPreviousManifest, releaseCheckReporter, runBrowserChecks, requireSwiftVersion, selectReleaseType, synchronizeMain, updaterManifest } from '../scripts/release-local.mjs';
 import { uiSuites } from '../scripts/run-ui-checks.mjs';
 
 function statusRecorder() {
@@ -382,4 +382,9 @@ test('the local command refuses to run inside GitHub Actions', () => {
   });
   assert.equal(result.status, 1);
   assert.match(result.stderr, /cannot run in GitHub Actions/);
+});
+
+test('release prerequisites reject Swift versions that cannot disable the extra Rust runtime', () => {
+  for (const version of ['Apple Swift version 6.2.0', 'Swift version 6.3.3', 'Swift version 7.0']) assert.doesNotThrow(() => requireSwiftVersion(version));
+  for (const version of ['Swift version 5.10', 'Apple Swift version 6.1.2', 'unrecognized output']) assert.throws(() => requireSwiftVersion(version), /Swift 6.2/);
 });

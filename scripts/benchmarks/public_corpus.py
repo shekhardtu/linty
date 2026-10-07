@@ -40,8 +40,8 @@ def source_hashes():
     return {str(path.relative_to(ROOT)): digest(path) for path in sorted(files) if path.is_file()}
 
 
-def model_hashes(models, engine):
-    name = "ggml-large-v3-turbo-q5_0.bin" if engine == "whisper" else "parakeet-tdt-0.6b-v3"
+def model_hashes(models, engine, parakeet_model="parakeet-ultra"):
+    name = "ggml-large-v3-turbo-q5_0.bin" if engine == "whisper" else parakeet_model
     path = models / name
     if not path.exists():
         raise ValueError(f"Install {name} in Linty first; benchmark does not download models")
@@ -65,7 +65,7 @@ def run(args):
     output.mkdir(parents=True)
     shutil.copyfile(manifest, output / "manifest.json")
     metadata = {"schema_version": 1, "started_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "engine": args.engine, "model_files_sha256": model_hashes(args.models, args.engine),
+                "engine": args.engine, "model_files_sha256": model_hashes(args.models, args.engine, args.parakeet_model),
                 "binary_sha256": digest(binary), "source_files_sha256": source_hashes(),
                 "git_head": command("git", "rev-parse", "HEAD")["stdout"],
                 "git_dirty": bool(command("git", "status", "--porcelain")["stdout"]),
@@ -80,7 +80,7 @@ def run(args):
     print(f"Running {args.engine} on {manifest.parent.name}; logs: {output / 'native.log'}", flush=True)
     with (output / "native.log").open("w") as log:
         try:
-            process = subprocess.run([str(binary), args.engine, str(args.models.resolve()), str(manifest), str(output / "results.jsonl")],
+            process = subprocess.run([str(binary), args.engine, str(args.models.resolve()), str(manifest), str(output / "results.jsonl"), args.parakeet_model],
                                      stdout=log, stderr=log, timeout=args.timeout, check=False)
             metadata["exit_code"] = process.returncode
         except subprocess.TimeoutExpired:
@@ -165,6 +165,7 @@ def main():
     native.add_argument("engine", choices=("whisper", "parakeet"))
     native.add_argument("manifest", type=Path)
     native.add_argument("output", type=Path)
+    native.add_argument("--parakeet-model", choices=("parakeet-ultra", "parakeet-tdt-0.6b-v3"), default="parakeet-ultra")
     native.add_argument("--models", type=Path, default=MODELS)
     native.add_argument("--binary", type=Path, default=BINARY)
     native.add_argument("--skip-build", action="store_true", help="Use an already-built binary; hash recorded")

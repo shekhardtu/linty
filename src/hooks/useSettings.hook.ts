@@ -157,7 +157,6 @@ export function useSettings() {
 
   const saveReformatSetting = useCallback(<K extends "reformatStyle" | "reformatLists" | "reformatContext",>(key: K, value: SettingsSlice[K]) => saveSetting(key, value), []);
   const saveTheme = useCallback((value: ThemePreference) => saveSetting("theme", value), []);
-  const saveWhisperPrompt = useCallback((value: string) => saveSetting("whisperPrompt", value), []);
   const saveOnboardingComplete = useCallback((value: boolean) => saveSetting("onboardingComplete", value), []);
   const saveTranscriptionLanguage = useCallback(async (value: string) => {
     const state = useAppStore.getState();
@@ -206,7 +205,6 @@ export function useSettings() {
     theme,
     whisperPrompt,
     saveTheme,
-    saveWhisperPrompt,
     onboardingComplete,
     saveOnboardingComplete,
     transcriptionLanguage,

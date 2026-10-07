@@ -76,6 +76,22 @@ private func modelDirectory(_ path: UnsafePointer<CChar>) -> URL {
     URL(fileURLWithPath: String(cString: path), isDirectory: true)
 }
 
+/// Keep installed v3 available while the preferred Ultra bundle downloads.
+func parakeetModelVersion(for directory: URL) throws -> AsrModelVersion {
+    switch directory.lastPathComponent {
+    case "parakeet-ultra": return .ultra
+    case "parakeet-tdt-0.6b-v3": return .v3
+    default: throw BridgeError.invalidArgument("unsupported Parakeet model directory")
+    }
+}
+
+private func configureSpeechLogging() {
+    // FluidAudio's ASR debug lines contain recognized text. Drop them from
+    // every sink and keep its diagnostics out of Linty's console/log collector.
+    AppLogger.minimumLevel = .warning
+    AppLogger.mirrorsToConsole = false
+}
+
 /// C progress callback: (fraction in 0...1, opaque context).
 public typealias LintyProgressFn = @convention(c) (Double, UnsafeMutableRawPointer?) -> Void
 
@@ -94,17 +110,20 @@ private struct ProgressSink: @unchecked Sendable {
 /// 1 when this machine can run the CoreML Parakeet models (Apple Silicon).
 @_cdecl("linty_parakeet_is_supported")
 public func linty_parakeet_is_supported() -> Int32 {
+    configureSpeechLogging()
     return SystemInfo.isAppleSilicon ? 1 : 0
 }
 
-/// 1 when a complete Parakeet TDT v3 bundle exists at `dir`.
+/// 1 when a complete supported Parakeet bundle exists at `dir`.
 @_cdecl("linty_parakeet_models_exist")
 public func linty_parakeet_models_exist(_ dir: UnsafePointer<CChar>?) -> Int32 {
     guard let dir else { return 0 }
-    return AsrModels.modelsExist(at: modelDirectory(dir), version: .v3) ? 1 : 0
+    let url = modelDirectory(dir)
+    guard let version = try? parakeetModelVersion(for: url) else { return 0 }
+    return AsrModels.modelsExist(at: url, version: version) ? 1 : 0
 }
 
-/// Download (or verify) the Parakeet TDT v3 bundle into `dir`.
+/// Download (or verify) the selected Parakeet bundle into `dir`.
 /// `progress` receives the download+compile fraction on an arbitrary thread.
 @_cdecl("linty_parakeet_download")
 public func linty_parakeet_download(
@@ -118,12 +137,13 @@ public func linty_parakeet_download(
         return -1
     }
     let url = modelDirectory(dir)
+    configureSpeechLogging()
     let sink = ProgressSink(fn: progress, ctx: ctx)
 
     let result = runBlocking { () -> URL in
         let downloaded = try await AsrModels.download(
             to: url,
-            version: .v3,
+            version: try parakeetModelVersion(for: url),
             progressHandler: { snapshot in sink.report(snapshot.fractionCompleted * 0.98) }
         )
         _ = try await SpeechPresenceDetector.download(
@@ -156,7 +176,8 @@ public func linty_parakeet_load(
     let url = modelDirectory(dir)
 
     let result = runBlocking { () -> ParakeetEngine in
-        let models = try await AsrModels.load(from: url, version: .v3)
+        configureSpeechLogging()
+        let models = try await AsrModels.load(from: url, version: parakeetModelVersion(for: url))
         let manager = AsrManager()
         try await manager.loadModels(models)
         let engine = ParakeetEngine(manager: manager, models: models)
@@ -199,7 +220,7 @@ public func linty_parakeet_has_speech(
 }
 
 /// Transcribe 16 kHz mono f32 samples. `language` is an optional ISO 639-1
-/// code used as a script hint (v3 only); pass NULL for auto-detection.
+/// code used as a script hint (v3 family); pass NULL for auto-detection.
 /// Each call uses a fresh decoder state so utterances never bleed into each other.
 @_cdecl("linty_parakeet_transcribe")
 public func linty_parakeet_transcribe(

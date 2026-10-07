@@ -68,8 +68,16 @@ fn read_audio(base: &Path, case: &Case) -> Result<Vec<f32>> {
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     ensure!(
-        args.len() == 4 && ["whisper", "parakeet"].contains(&args[0].as_str()),
+        (args.len() == 4 || args.len() == 5) && ["whisper", "parakeet"].contains(&args[0].as_str()),
         "usage: corpus_eval <whisper|parakeet> <models-dir> <manifest.json> <results.jsonl>"
+    );
+    let parakeet_model = args
+        .get(4)
+        .map(String::as_str)
+        .unwrap_or(transcribe::PARAKEET_ULTRA_ID);
+    ensure!(
+        transcribe::is_parakeet_model(parakeet_model),
+        "unknown Parakeet model"
     );
     let manifest_path = Path::new(&args[2]);
     let bytes = fs::read(manifest_path)?;
@@ -97,7 +105,7 @@ fn main() -> Result<()> {
         &mut file,
         json!({"type":"start", "schema_version":1, "engine":args[0],
         "manifest_sha256":sha256_hex(Sha256::digest(&bytes)), "expected_cases":manifest.cases.len(),
-        "language":"en", "cleanup":false, "dictionary":false, "context_prompt":false,
+        "language":"en", "model_id":if args[0] == "parakeet" { parakeet_model } else { "ggml-large-v3-turbo-q5_0.bin" }, "cleanup":false, "dictionary":false, "context_prompt":false,
         "production_speech_guards":true, "profile":if cfg!(debug_assertions) {"debug"} else {"release"}}),
     )?;
     let load_started = Instant::now();
@@ -115,10 +123,7 @@ fn main() -> Result<()> {
         None
     };
     let parakeet = if args[0] == "parakeet" {
-        Some(
-            ParakeetEngine::load(&models.join(transcribe::PARAKEET_V3_ID))
-                .map_err(|e| anyhow!(e))?,
-        )
+        Some(ParakeetEngine::load(&models.join(parakeet_model)).map_err(|e| anyhow!(e))?)
     } else {
         None
     };

@@ -1,5 +1,5 @@
-// swift-tools-version:5.10
-// Swift bridge that exposes FluidAudio's Parakeet TDT v3 (CoreML / Neural Engine)
+// swift-tools-version:6.2
+// Swift bridge that exposes FluidAudio's Parakeet models (CoreML / Neural Engine)
 // to Rust through a tiny C ABI. Built by src-tauri/build.rs when the `parakeet`
 // Cargo feature is enabled; the resulting static library is linked into linty.
 import PackageDescription
@@ -17,7 +17,9 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.14.8")
+        // Linty uses ASR/VAD and its own cleanup engine. Disable the bundled
+        // NeMo Rust text-normalization engine to avoid a second Rust runtime.
+        .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.17.5", traits: [])
     ],
     targets: [
         .target(
@@ -28,5 +30,6 @@ let package = Package(
             path: "Sources/LintyParakeet"
         ),
         .testTarget(name: "LintyParakeetTests", dependencies: ["LintyParakeet"])
-    ]
+    ],
+    swiftLanguageModes: [.v5]
 )

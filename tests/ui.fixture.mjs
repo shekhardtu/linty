@@ -582,9 +582,16 @@ export const fixture = ({
       if (command === "get_available_models")
         return [
           {
-            filename: "parakeet-tdt-0.6b-v3",
-            name: "Parakeet TDT v3 (~500 MB) ★ Recommended",
+            filename: "parakeet-ultra",
+            name: "Parakeet Ultra (~633 MB) ★ Recommended",
             description: "Neural Engine · sub-second",
+            size_mb: 633,
+            backend: "parakeet",
+          },
+          {
+            filename: "parakeet-tdt-0.6b-v3",
+            name: "Parakeet TDT v3 (~500 MB)",
+            description: "Installed speech support during upgrade",
             size_mb: 500,
             backend: "parakeet",
           },

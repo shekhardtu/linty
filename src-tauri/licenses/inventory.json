@@ -2,9 +2,9 @@
   "inputs": {
     "yarn.lock": "cee0b8524c3cc77e5fb82cb0a087d4d40882835ecbf64fe92e45de0237f5bfd7",
     "src-tauri/Cargo.lock": "5a03fdac80ffa84286012afa1e07a732aa1d34c1dcd6f573ad235639bf827e45",
-    "src-tauri/swift/Package.resolved": "51ca7f28c7e3ec9a6078527ab7a67f6ab6517c21a8d3f6ee2f260941cb682e12"
+    "src-tauri/swift/Package.resolved": "4d381296f57860901d021bc5052024f0d3aa0013942498413e5e2fc9a5926598"
   },
-  "notices_sha256": "3c8d5ac65df7ab854ed346d5b0314ff6ac664c158daf98b7b94d01c26d4d60b2",
+  "notices_sha256": "24b16b5cc4551d29318941f29a67bed70f91d339abe0cb7236d5cd6a0c9b10b5",
   "components": [
     {
       "ecosystem": "Cargo",
@@ -8601,20 +8601,32 @@
     {
       "ecosystem": "Swift",
       "name": "fluidaudio",
-      "version": "0.14.8",
+      "version": "0.17.5",
       "repository": "https://github.com/FluidInference/FluidAudio.git",
-      "revision": "56607d90b97de7d95a731200563bf49aa5beef20",
+      "revision": "0b1f46289fe27d95b5e66ad8be46e64f5ee02ae7",
       "notices": [
         {
-          "source": "https://github.com/FluidInference/FluidAudio.git@56607d90b97de7d95a731200563bf49aa5beef20/LICENSE",
+          "source": "https://github.com/FluidInference/FluidAudio.git@0b1f46289fe27d95b5e66ad8be46e64f5ee02ae7/LICENSE",
           "sha256": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a"
         },
         {
-          "source": "https://github.com/FluidInference/FluidAudio.git@56607d90b97de7d95a731200563bf49aa5beef20/ThirdPartyLicenses/fastcluster-LICENSE.md",
+          "source": "https://github.com/FluidInference/FluidAudio.git@0b1f46289fe27d95b5e66ad8be46e64f5ee02ae7/ThirdPartyLicenses/JapaneseG2P-LICENSE.md",
+          "sha256": "cb82031f608b056ffb378073d15fd840e070a1dd3063f8975556f9536d447103"
+        },
+        {
+          "source": "https://github.com/FluidInference/FluidAudio.git@0b1f46289fe27d95b5e66ad8be46e64f5ee02ae7/ThirdPartyLicenses/KokoroAneSpanishFrenchG2P-LICENSE.md",
+          "sha256": "82b80894661fb61209fc39f91bb50b2ed5d0c8628f9d1460ccc853b8bcf12043"
+        },
+        {
+          "source": "https://github.com/FluidInference/FluidAudio.git@0b1f46289fe27d95b5e66ad8be46e64f5ee02ae7/ThirdPartyLicenses/NemoTextProcessing-LICENSE.md",
+          "sha256": "300a31d86c7c5d809f0adc00ef7d35259226acc7e412b9767cd3029a3395c50e"
+        },
+        {
+          "source": "https://github.com/FluidInference/FluidAudio.git@0b1f46289fe27d95b5e66ad8be46e64f5ee02ae7/ThirdPartyLicenses/fastcluster-LICENSE.md",
           "sha256": "67594dbe4a7477719c8160373e7767c2c319ef966a6042f76846a18af02cde0a"
         },
         {
-          "source": "https://github.com/FluidInference/FluidAudio.git@56607d90b97de7d95a731200563bf49aa5beef20/ThirdPartyLicenses/vbx-LICENSE.md",
+          "source": "https://github.com/FluidInference/FluidAudio.git@0b1f46289fe27d95b5e66ad8be46e64f5ee02ae7/ThirdPartyLicenses/vbx-LICENSE.md",
           "sha256": "7ce3d3c8708d2647644a6ba9ba05b8f5d2b7dd6750464972bf29aae1dd57eceb"
         }
       ]

@@ -56,7 +56,7 @@ public struct SpeechPresenceDetector: Sendable {
     }
 
     static func download(
-        in modelDirectory: URL, progress: DownloadUtils.ProgressHandler? = nil
+        in modelDirectory: URL, progress: ProgressHandler? = nil
     ) async throws -> SpeechPresenceDetector {
         let manager = try await VadManager(
             modelDirectory: directory(in: modelDirectory), progressHandler: progress
