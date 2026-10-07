@@ -1,6 +1,6 @@
 {
   "inputs": {
-    "yarn.lock": "c8697aa3ce720a430506a65a5a380469c81c613f2ee5fa5d2a97aa93fff19b66",
+    "yarn.lock": "cee0b8524c3cc77e5fb82cb0a087d4d40882835ecbf64fe92e45de0237f5bfd7",
     "src-tauri/Cargo.lock": "5a03fdac80ffa84286012afa1e07a732aa1d34c1dcd6f573ad235639bf827e45",
     "src-tauri/swift/Package.resolved": "51ca7f28c7e3ec9a6078527ab7a67f6ab6517c21a8d3f6ee2f260941cb682e12"
   },
