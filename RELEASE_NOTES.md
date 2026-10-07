@@ -1,5 +1,5 @@
 ## What's new
 
-- Start another recording immediately while an earlier take is still processing. Both takes paste in the order you recorded them.
-- The recording pill is more reliable when Linty is hidden or you switch between apps.
-- Opening Linty from Spotlight or the Dock brings its window to the front, including after you close or minimize it.
+- Linty now launches in the menu bar when you sign in to your Mac. This is enabled by default for new and existing installations; you can turn it off in Settings → General, and your choice stays saved across updates.
+- Find “Launch at login” directly through Search Linty, including searches for startup, autostart, or boot.
+- Right-click Linty’s menu bar icon to open the app. Left-click keeps the microphone, language, and transcription menu.

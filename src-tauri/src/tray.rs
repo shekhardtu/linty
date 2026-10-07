@@ -2,6 +2,7 @@
 use std::sync::Mutex;
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu},
+    tray::{MouseButton, MouseButtonState, TrayIconEvent},
     Emitter, Listener, Manager,
 };
 use tauri_plugin_clipboard_manager::ClipboardExt;
@@ -353,6 +354,21 @@ pub fn init_tray(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>>
     let tray = app.tray_by_id(TRAY_ID).expect("configured tray icon");
     tray.set_menu(Some(build_menu(app.handle(), &snapshot(app.handle()))?))?;
     tray.set_show_menu_on_left_click(true)?;
+    // Tauri's public inner-icon API exposes the macOS right-click menu switch.
+    // Keep left-click as the menu and use right-button release to restore Linty.
+    tray.with_inner_tray_icon(|icon| icon.set_show_menu_on_right_click(false))?;
+    tray.on_tray_icon_event(|tray, event| {
+        if matches!(
+            event,
+            TrayIconEvent::Click {
+                button: MouseButton::Right,
+                button_state: MouseButtonState::Up,
+                ..
+            }
+        ) {
+            super::show_main_window(tray.app_handle());
+        }
+    });
     tray.on_menu_event(|app, event| match event.id.as_ref() {
         "tray-show" => open_app(app, "show"),
         "tray-settings" => open_app(app, "settings"),

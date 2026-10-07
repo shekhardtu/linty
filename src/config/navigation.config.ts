@@ -102,6 +102,13 @@ export const NAVIGATION_ITEMS = [
 export const SETTINGS_SECTIONS = [
   {
     id: "general",
+    label: "General",
+    description: "Make Linty part of your day.",
+    icon: Settings,
+    keywords: "app preferences behavior",
+  },
+  {
+    id: "dictation",
     label: "Dictation",
     description: "Choose how Linty listens and writes.",
     icon: Sparkles,
@@ -134,5 +141,15 @@ export const SETTINGS_SECTIONS = [
 
 export type AppView = (typeof NAVIGATION_ITEMS)[number]["id"];
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number]["id"];
+export const SETTING_SEARCH_ITEMS = [
+  {
+    label: "Launch at login",
+    keywords: "startup start automatically open at login autostart auto start boot start with mac restart launch on startup",
+    section: "general" satisfies SettingsSection,
+    target: "launch-at-login",
+    icon: Settings,
+  },
+] as const;
+export type SettingTarget = (typeof SETTING_SEARCH_ITEMS)[number]["target"];
 export const getPageDefinition = (id: AppView) =>
   NAVIGATION_ITEMS.find((page) => page.id === id)!;

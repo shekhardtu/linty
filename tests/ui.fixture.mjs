@@ -447,6 +447,8 @@ export const fixture = ({
       { name: "Built-in Microphone", selectable: true },
       { name: "USB Microphone", selectable: true },
     ], error: null },
+    startup: { status: onboarding ? "disabled" : "enabled", initialized: !onboarding, error: null },
+    startupChoices: [],
     failures: {},
     setUpdate: (next) => {
       update = next;
@@ -499,6 +501,15 @@ export const fixture = ({
       if (command.startsWith("history_"))
         return structuredClone(historyCommand(command, structuredClone(args)));
       if (command === "get_audio_inputs") return structuredClone(window.__QA__.audioInputs);
+      if (command === "get_startup_settings") return structuredClone(window.__QA__.startup);
+      if (command === "set_launch_at_login" || command === "finish_startup_setup") {
+        if (command === "set_launch_at_login" || stores[1].onboardingComplete !== true) {
+          window.__QA__.startupChoices.push(args.enabled);
+          Object.assign(window.__QA__.startup, { status: args.enabled ? "enabled" : "disabled", initialized: true, error: null });
+          stores[1].launchAtLoginInitialized = true;
+        }
+        return structuredClone(window.__QA__.startup);
+      }
       if (command === "start_dictation") { window.__QA__.dictationOptions = structuredClone(args.options); return 1; }
       if (command === "dictation_result") return window.__QA__.dictationOutcome ?? { record: null, warnings: [], recognized: [], corrected: [] };
       if (command === "stop_dictation") return { sample_count: 0, duration_secs: 0 };

@@ -29,6 +29,7 @@ import { BrandMark } from "@/components/shared/BrandMark.component";
 import { HistoryStorage } from "@/components/settings/HistoryStorage.component";
 import { AudioStorage } from "@/components/settings/AudioStorage.component";
 import { DictationLanguages } from "@/components/settings/DictationLanguages.component";
+import { LaunchAtLogin } from "@/components/settings/LaunchAtLogin.component";
 import { modelLabel } from "@/lib/model-labels.util";
 import type { ThemePreference } from "@/store/slices/settings.slice";
 
@@ -70,7 +71,15 @@ export function SettingsPage() {
       <PageHeader page="settings" title={metadata.label} description={metadata.description} />
       <div className="settings-pane">
         {(visited.has("general") || section === "general") && (
-          <div hidden={section !== "general"}>
+          <div hidden={section !== "general"} className="settings-section">
+            <SectionCard>
+              <SectionHeading title="Startup" />
+              <LaunchAtLogin />
+            </SectionCard>
+          </div>
+        )}
+        {(visited.has("dictation") || section === "dictation") && (
+          <div hidden={section !== "dictation"}>
             <DictationSection />
           </div>
         )}

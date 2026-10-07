@@ -164,7 +164,7 @@ try {
     assert.equal(overflow, false, `${view}: page reflows at 200% equivalent zoom`);
     if (view === 'dictionary') await page.screenshot({ path: `${output}/dictionary-zoom.png` });
   }
-  for (const section of ['general','audio','appearance','privacy']) {
+  for (const section of ['general','dictation','audio','appearance','privacy']) {
     await page.evaluate(async section => {
       const { useAppStore } = await import('/src/store/app.store.ts');
       useAppStore.getState().setSettingsSection(section);
