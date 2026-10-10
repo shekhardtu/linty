@@ -129,7 +129,7 @@ jobs:
       - run: yarn playwright install --with-deps webkit
       - run: yarn build
       - run: yarn test:browsers
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: failure()
         with:
           name: ui-failure-webkit
@@ -156,7 +156,7 @@ jobs:
         run: printf '%s\n' "$CHECKED_COMMIT" > "$RUNNER_TEMP/checked-commit.txt"
       - name: Save checked source for release validation
         if: github.event_name == 'pull_request' && needs.changes.outputs.scope == 'full'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: checked-source-${{ github.run_attempt }}
           path: ${{ runner.temp }}/checked-commit.txt
