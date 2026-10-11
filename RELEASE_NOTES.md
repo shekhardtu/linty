@@ -1,4 +1,4 @@
 ## What's new
 
-- This update is required: every copy of Linty installs it automatically when dictation is idle, so that the recording overlay stays fast for everyone. It completes the memory fix from the previous release: the overlay's memory now stays flat no matter how many dictations you make, instead of growing a little with each one, and Linty quietly restarts the overlay's helper process if it ever grows large.
-- Hold to talk, quick taps and hands-free listening work exactly as before.
+- Linty now checks for updates reliably while it lives in the menu bar. Earlier versions only completed that check, and the install of a required update, while the Linty window was open or right after your Mac woke, so an update could wait until you opened the window. If you are on 0.0.10 or 0.0.11 and this update has not appeared yet, open the Linty window once: Linty checks right away and installs the update when it is required, or offers it.
+- No change to dictation, the recording overlay or your settings.

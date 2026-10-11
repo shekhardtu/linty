@@ -13,6 +13,12 @@ const MONITOR_CHECK_EVERY_TICKS: u64 = 15;
 /// Read the capsule web process footprint every N ticks (30 × 2s = 60s).
 #[cfg(target_os = "macos")]
 const CAPSULE_MEMORY_CHECK_EVERY_TICKS: u64 = 30;
+/// Ask the main window to check for updates every N ticks (450 × 2s = 15 min):
+/// the app's single periodic trigger, short enough that a required update
+/// reaches running copies within the hour it is published. The event delivery
+/// also resumes the page if WebKit ever suspends it; the install path itself
+/// relies on the windows' `backgroundThrottling: disabled`.
+const UPDATE_CHECK_EVERY_TICKS: u64 = 450;
 
 pub fn start(app: tauri::AppHandle) {
     tauri::async_runtime::spawn(async move {
@@ -27,11 +33,14 @@ pub fn start(app: tauri::AppHandle) {
 
         let mut consecutive_high_ticks: u32 = 0;
         let mut silent_ticks: u32 = 0;
-        #[cfg(target_os = "macos")]
         let mut tick_count: u64 = 0;
 
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(TICK_INTERVAL_SECS)).await;
+            tick_count += 1;
+            if tick_count % UPDATE_CHECK_EVERY_TICKS == 0 {
+                let _ = app.emit_to("main", "updater-check", ());
+            }
 
             // ── Check 0: fn-key monitor liveness ──
             // If monitor creation failed (e.g., a wake reinit fired before the
@@ -40,7 +49,6 @@ pub fn start(app: tauri::AppHandle) {
             // No-ops instantly while the monitor is active.
             #[cfg(target_os = "macos")]
             {
-                tick_count += 1;
                 if tick_count % MONITOR_CHECK_EVERY_TICKS == 0 {
                     let app_clone = app.clone();
                     let _ = app.run_on_main_thread(move || {

@@ -4,7 +4,7 @@ How to make every copy of Linty below a version install the latest release. Ever
 
 ## How it works
 
-- Each GitHub release has a `latest.json`. The app reads the one from the latest release at launch, every 15 minutes and when the Mac wakes.
+- Each GitHub release has a `latest.json`. The app reads the one from the latest release at launch, every 15 minutes and when the Mac wakes. Copies before 0.0.12 ran that check, and the 30-second idle wait before a required install, only while the Linty window was open or right after a wake: WebKit suspended the hidden window's timers. If such a copy has not taken a required update, opening the Linty window once lets it check right away; a required update then installs after the 30-second quiet period, an optional one is offered. Since 0.0.12 the windows are not throttled and the native watchdog is the periodic trigger.
 - If that file has `minimum_version` and the app is below it, the release is required. The app shows a screen that cannot be dismissed and downloads the update. It installs 30 seconds after the last dictation, then restarts. Dictation keeps working until then.
 - Without `minimum_version`, updates stay optional, as before.
 - The field is not signed. It cannot make a copy install anything except the latest release, which the updater verifies with the release key. The worst a wrong value can do is require the latest release.
