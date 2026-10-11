@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { listen } from "@tauri-apps/api/event";
 import { advanceWaveform, WAVEFORM_BAR_COUNT } from "@/lib/dictation-waveform";
+import { useInputLevel } from "@/hooks/useInputLevel.hook";
 import { cn } from "@/lib/utils";
 
 interface WaveformVisualizerProps {
@@ -15,18 +15,10 @@ export function WaveformVisualizer({ isActive, className, barCount = WAVEFORM_BA
 
   useEffect(() => {
     setLevels(Array<number>(barCount).fill(0));
-    if (!isActive) return;
-    let disposed = false;
-    // Consume every native frame, including repeated zeroes. A single amplitude
-    // prop can skip identical values and leave old speech visible during silence.
-    const unlisten = listen<number>("audio-amplitude", ({ payload }) => {
-      if (!disposed) setLevels(previous => advanceWaveform(previous, payload));
-    });
-    return () => {
-      disposed = true;
-      void unlisten.then(off => off());
-    };
   }, [isActive, barCount]);
+  // Every polled frame advances the history, including repeated zeroes, so old
+  // speech never stays visible during silence.
+  useInputLevel(isActive, rms => setLevels(previous => advanceWaveform(previous, rms)));
 
   return (
     <div className={cn("flex items-center justify-center gap-[2px]", className)} aria-hidden="true">

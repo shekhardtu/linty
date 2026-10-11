@@ -63,7 +63,8 @@ function startMeter() {
       const levels = presets[preset].levels;
       rms = levels[frame++ % levels.length];
     }
-    window.__QA__.emit('capsule-amplitude', rms * gain);
+    // The capsule polls this level through `input_level` on its own timer.
+    window.__QA__.inputLevel = rms * gain;
     // Read the component's rendered target, rather than reimplementing its curve.
     requestAnimationFrame(() => {
       if (mode !== 'recording') return;

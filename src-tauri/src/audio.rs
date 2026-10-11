@@ -1,5 +1,5 @@
 use cpal::traits::{DeviceTrait, StreamTrait};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::{mpsc, Arc, Mutex};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter};
@@ -21,6 +21,7 @@ pub fn spawn_audio_thread(
     buffer: Arc<Mutex<Vec<f32>>>,
     callback_count: Arc<AtomicU64>,
     generation: Arc<AtomicU64>,
+    input_level: Arc<AtomicU32>,
 ) -> mpsc::Sender<AudioCommand> {
     let (tx, rx) = mpsc::channel::<AudioCommand>();
     std::thread::spawn(move || {
@@ -86,14 +87,16 @@ pub fn spawn_audio_thread(
                     activity = Arc::new(Mutex::new(InputActivity::new(Instant::now())));
                     active_generation = expected;
                     previous_quiet = 0;
+                    input_level.store(0, Ordering::Relaxed);
                     let result = start_stream(
-                        app.clone(),
                         buffer.clone(),
                         callback_count.clone(),
                         input_name.as_deref(),
                         generation.clone(),
                         expected,
                         activity.clone(),
+                        input_level.clone(),
+                        app.clone(),
                     );
                     match result {
                         Ok(stream) => {
@@ -118,6 +121,7 @@ pub fn spawn_audio_thread(
                 }
                 AudioCommand::Stop { reply } => {
                     active_stream.take();
+                    input_level.store(0, Ordering::Relaxed);
                     let _ = app.emit("recording-stopped", ());
                     if let Some(reply) = reply {
                         let _ = reply.send(());
@@ -130,13 +134,14 @@ pub fn spawn_audio_thread(
 }
 
 fn start_stream(
-    app: AppHandle,
     buffer: Arc<Mutex<Vec<f32>>>,
     callback_count: Arc<AtomicU64>,
     selected: Option<&str>,
     generation: Arc<AtomicU64>,
     expected: u64,
     activity: Arc<Mutex<InputActivity>>,
+    input_level: Arc<AtomicU32>,
+    app: AppHandle,
 ) -> Result<cpal::Stream, String> {
     let device = crate::audio_input::resolve_device(selected)?;
     {
@@ -169,7 +174,6 @@ fn start_stream(
     );
 
     let buf_clone = buffer.clone();
-    let app_clone = app.clone();
     let cb_count = callback_count.clone();
 
     // Pre-allocate reusable scratch buffers — avoids heap allocs
@@ -226,13 +230,12 @@ fn start_stream(
                     guard.observe(samples, Instant::now());
                 }
 
-                // Throttle amplitude events to ~15fps (every 6th callback
-                // at ~93/sec) — UI can't display faster than this.
+                // Publish the level every 6th callback (~15/s at ~93/sec); the
+                // waveforms poll it over IPC. No per-frame event reaches a webview.
                 if !samples.is_empty() && tick % 6 == 0 {
                     let rms: f32 =
                         (samples.iter().map(|s| s * s).sum::<f32>() / samples.len() as f32).sqrt();
-                    let _ = app_clone.emit("audio-amplitude", rms);
-                    let _ = app_clone.emit_to("capsule", "capsule-amplitude", rms);
+                    input_level.store(rms.to_bits(), Ordering::Relaxed);
                 }
             },
             move |err| {

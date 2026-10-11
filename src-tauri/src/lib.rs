@@ -308,6 +308,7 @@ async fn start_recording(
                 Arc::clone(&state.audio_buffer),
                 Arc::clone(&state.audio_callback_count),
                 Arc::clone(&state.audio_generation),
+                Arc::clone(&state.input_level),
             );
             *tx_guard = Some(tx);
         }
@@ -346,6 +347,14 @@ async fn start_recording(
 
 /// Abandon the old capture worker. Generation checks prevent a late startup or
 /// old CoreAudio callback from modifying the next recording's buffer.
+/// Latest microphone RMS for the waveforms. Polled ~15 times a second while
+/// listening instead of pushed per frame: every pushed event is a script
+/// evaluation that WebKit caches per unique payload (#150).
+#[tauri::command]
+fn input_level(state: tauri::State<'_, AppState>) -> f32 {
+    f32::from_bits(state.input_level.load(Ordering::Relaxed))
+}
+
 #[tauri::command]
 async fn recover_recording(
     app: tauri::AppHandle,
@@ -1598,6 +1607,7 @@ pub fn run() {
             history::history_export_audio,
             audio_input::get_audio_inputs,
             audio_input::set_audio_input,
+            input_level,
             recover_recording,
             stop_correction_watch,
             check_accessibility,

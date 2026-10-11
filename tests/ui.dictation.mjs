@@ -301,9 +301,10 @@ try {
   const liveControl=await stopTest.boundingBox();
   assert.ok(liveControl.width >= 154,'The microphone control has a readable action label');
   const testLevels=()=>microphoneTest.locator('.waveform-bar').evaluateAll(bars=>bars.map(bar=>new DOMMatrix(bar.style.transform).d));
+  // The waveform polls `input_level` every 65 ms; one queued value per poll.
   const feedTest=async levels=>{
-    await page.evaluate(levels=>{for(const rms of levels) window.__QA__.emit('audio-amplitude',rms);},levels);
-    await page.clock.runFor(70);
+    await page.evaluate(levels=>{window.__QA__.levelQueue.push(...levels);},levels);
+    for(let i=0;i<levels.length+1;i++) await page.clock.runFor(65);
   };
   await feedTest(Array(100).fill(.003));
   assert.ok((await testLevels()).every(height=>height<.2),'The app test keeps background noise close to the baseline');
@@ -318,11 +319,12 @@ try {
     await store.evaluate((s,theme)=>s.getState().setTheme(theme),theme);
     await microphoneTest.screenshot({path:`artifacts/dictation-pill/microphone-test-${engine.name()}-${theme}.png`});
   }
-  const releases=await count('plugin:event|unlisten');
   await stopTest.click(); await status('idle');
   await startTest.waitFor();
   assert.equal(await microphoneTest.locator('.waveform-bar').count(),0);
-  assert.ok(await count('plugin:event|unlisten')>releases,'Stopping removes the amplitude listener');
+  const polls=await count('input_level');
+  await page.clock.runFor(650);
+  assert.equal(await count('input_level'),polls,'Stopping ends the level polling');
   for(const theme of ['dark','light']) {
     await store.evaluate((s,theme)=>s.getState().setTheme(theme),theme);
     await microphoneTest.screenshot({path:`artifacts/dictation-pill/microphone-idle-${engine.name()}-${theme}.png`});
@@ -416,8 +418,8 @@ try {
     await send({state:'recording',generation:12,hands_free:true});
     assert.equal(await pill.locator('.capsule-time').innerText(),'0:01','Latching does not restart the duration');
     const feed=async levels=>{
-      await pill.evaluate(levels=>{for(const rms of levels) window.__QA__.emit('capsule-amplitude',rms);},levels);
-      await pill.clock.runFor(70);
+      await pill.evaluate(levels=>{window.__QA__.levelQueue.push(...levels);},levels);
+      for(let i=0;i<levels.length+1;i++) await pill.clock.runFor(65);
     };
     const waveLevels=()=>pill.locator('.capsule-wave span').evaluateAll(bars=>bars.map(bar=>new DOMMatrix(bar.style.transform).d));
     await feed(Array(24).fill(.001));
@@ -442,10 +444,8 @@ try {
     await feed(Array(45).fill(0));
     assert.ok((await waveLevels()).every(height=>Math.abs(height-0.1)<0.000001),'Silence settles to the baseline without decorative motion');
     assert.equal(await pill.locator('.capsule-favicon.is-speaking').count(),0);
-    await pill.evaluate(()=>{
-      for(const rms of [0,.001,.003,.008,.018,.06,.04,.009,.002,0,.001,.005,.025,.09,.04,.018,.004,.001,.0004]) window.__QA__.emit('capsule-amplitude',rms);
-      window.__QA__.emit('recording-quiet',{generation:11,quiet_seconds:25});
-    });
+    await feed([0,.001,.003,.008,.018,.06,.04,.009,.002,0,.001,.005,.025,.09,.04,.018,.004,.001,.0004]);
+    await pill.evaluate(()=>window.__QA__.emit('recording-quiet',{generation:11,quiet_seconds:25}));
     await pill.locator('.capsule-favicon.is-speaking').waitFor();
     assert.ok(new Set(await waveLevels()).size>10,'The waveform retains modulation in actual input history');
     await brand.evaluate(el=>Promise.allSettled(el.getAnimations({subtree:true}).map(a=>a.finished)));

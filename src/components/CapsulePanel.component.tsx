@@ -1,4 +1,5 @@
 import { useCapsuleTheme } from "@/hooks/useCapsuleTheme.hook";
+import { useInputLevel } from "@/hooks/useInputLevel.hook";
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { CSSProperties } from "react";
 import { listen, emit, emitTo } from "@tauri-apps/api/event";
@@ -229,17 +230,6 @@ export function CapsulePanel() {
         if (modeRef.current === "idle") presentFeedback(payload);
         else pendingFeedbackRef.current.push(payload);
       }),
-      listen<number>("capsule-amplitude", ({ payload }) => {
-        if (modeRef.current !== "recording") return;
-        const levels = advanceWaveform(levelsRef.current, payload);
-        levelsRef.current = levels;
-        paintWave();
-        const talking = levels.slice(-3).some(level => level > 0.02);
-        if (talking !== speakingRef.current) {
-          speakingRef.current = talking;
-          setSpeaking(talking);
-        }
-      }),
       listen<QuietInput>("recording-quiet", ({ payload }) => {
         if (modeRef.current !== "recording" || payload.generation !== generationRef.current) return;
         quietRef.current = payload.quiet_seconds;
@@ -256,11 +246,23 @@ export function CapsulePanel() {
     };
   }, [dismiss, scheduleFeedbackDismissal, paintWave]);
 
-  // Mode and quiet changes repaint from the retained levels; amplitude frames
+  // Mode and quiet changes repaint from the retained levels; level frames
   // paint directly without passing through React.
   useEffect(() => {
     paintWave();
   }, [paintWave, mode, quietSeconds]);
+
+  useInputLevel(mode === "recording", rms => {
+    if (modeRef.current !== "recording") return;
+    const levels = advanceWaveform(levelsRef.current, rms);
+    levelsRef.current = levels;
+    paintWave();
+    const talking = levels.slice(-3).some(level => level > 0.02);
+    if (talking !== speakingRef.current) {
+      speakingRef.current = talking;
+      setSpeaking(talking);
+    }
+  });
 
   useEffect(() => {
     if (renderedRevision !== undefined && mode !== "idle" && !dismissing) {

@@ -246,7 +246,7 @@ Follow the project's file naming conventions:
 - Config: `configName.config.ts`
 
 Rust conventions:
-- Tauri commands use `#[tauri::command]` and are registered in `lib.rs`
+- Tauri commands use `#[tauri::command]`, are registered in `lib.rs`, and are allowed per window in `src-tauri/permissions/application.toml` (missing entries fail only in the real app, not in the UI fixture)
 - Shared state through `AppState` struct in `state.rs`
 - macOS FFI uses `objc2` / `cocoa` crates
 - Feature-gated code behind `#[cfg(feature = "local-stt")]`

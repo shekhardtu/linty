@@ -36,6 +36,7 @@ commands.allow = [
     "history_export_audio",
     "get_audio_inputs",
     "set_audio_input",
+    "input_level",
     "recover_recording",
     "stop_correction_watch",
     "check_accessibility",
@@ -69,4 +70,4 @@ commands.allow = [
 [[permission]]
 identifier = "capsule-commands"
 description = "Show and dismiss the recording overlay."
-commands.allow = ["show_capsule", "hide_capsule", "get_capsule_state", "capsule_state_rendered", "get_theme"]
+commands.allow = ["show_capsule", "hide_capsule", "get_capsule_state", "capsule_state_rendered", "get_theme", "input_level"]

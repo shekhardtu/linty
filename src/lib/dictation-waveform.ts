@@ -1,4 +1,6 @@
 export const WAVEFORM_BAR_COUNT = 19;
+/** Native publishes the level every 6th audio callback (~15/s); poll at that rate. */
+export const INPUT_LEVEL_INTERVAL_MS = 65;
 export const flatWaveform = () => Array<number>(WAVEFORM_BAR_COUNT).fill(0);
 
 /** Visual response only: never changes capture gain or inactivity detection. */
