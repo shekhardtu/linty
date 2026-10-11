@@ -96,7 +96,7 @@ gh pr checks <PR_NUMBER> --repo shekhardtu/linty
 
 If any checks are still running, wait and re-check (up to 2 retries with 30s between). If checks fail, **block merge** and report which checks failed.
 
-**Note**: Pull requests run `.github/workflows/checks.yml` (Node tests and Rust logging hygiene); wait for those checks to pass. `Build macOS DMG` runs after a push to `main`. A missing PR check is not a passing check: inspect the current workflow triggers and run status. After merging, verify the release workflow started on `main` (`gh run list --branch main`).
+**Note**: Pull requests run `.github/workflows/checks.yml` (scope-selected Node, Rust source, corpus and WebKit UI jobs); wait for those checks to pass. A missing PR check is not a passing check: inspect the current workflow triggers and run status. The hosted `Build macOS DMG` workflow is disabled; releases are published from the maintainer's Mac with `yarn release:local --publish --release-type optional|required` (see `docs/runbooks/local-releases.md`), which also requires fresh `RELEASE_NOTES.md` in the merged change.
 
 ---
 
@@ -202,8 +202,8 @@ git pull origin main
 │  /ship -> /pr-review -> /pr-resolve -> /pr-merge                                                                      │
 ├────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Post-Merge                                                                                                             │
-│  1. Monitor CI build-dmg workflow                                                                                      │
-│  2. Verify GitHub Release created                                                                                      │
+│  1. Publish from this Mac: yarn release:local --check, then --publish --release-type optional|required                 │
+│  2. Verify the GitHub Release and latest.json minimum_version                                                          │
 └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 Skill: /pr-merge
