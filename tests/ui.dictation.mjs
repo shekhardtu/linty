@@ -302,8 +302,10 @@ try {
   assert.ok(liveControl.width >= 154,'The microphone control has a readable action label');
   const testLevels=()=>microphoneTest.locator('.waveform-bar').evaluateAll(bars=>bars.map(bar=>new DOMMatrix(bar.style.transform).d));
   // The waveform polls `input_level` every 65 ms; one queued value per poll.
+  // One queued value per poll; a poll past the end repeats the last value so
+  // the newest bar never dips toward the idle level.
   const feedTest=async levels=>{
-    await page.evaluate(levels=>{window.__QA__.levelQueue.push(...levels);},levels);
+    await page.evaluate(levels=>{window.__QA__.levelQueue.push(...levels); window.__QA__.inputLevel=levels.at(-1);},levels);
     for(let i=0;i<levels.length+1;i++) await page.clock.runFor(65);
   };
   await feedTest(Array(100).fill(.003));
@@ -418,10 +420,11 @@ try {
     await send({state:'recording',generation:12,hands_free:true});
     assert.equal(await pill.locator('.capsule-time').innerText(),'0:01','Latching does not restart the duration');
     const feed=async levels=>{
-      await pill.evaluate(levels=>{window.__QA__.levelQueue.push(...levels);},levels);
+      await pill.evaluate(levels=>{window.__QA__.levelQueue.push(...levels); window.__QA__.inputLevel=levels.at(-1);},levels);
       for(let i=0;i<levels.length+1;i++) await pill.clock.runFor(65);
     };
-    const waveLevels=()=>pill.locator('.capsule-wave span').evaluateAll(bars=>bars.map(bar=>new DOMMatrix(bar.style.transform).d));
+    // The bars are drawn on a canvas; it exposes the drawn levels (bar height = 10 % + level × 90 %).
+    const waveLevels=()=>pill.locator('.capsule-wave').evaluate(canvas=>canvas.levels.map(level=>0.1+level*0.9));
     await feed(Array(24).fill(.001));
     const quietVoice=(await waveLevels()).at(-1);
     assert.ok(quietVoice*20<3,'Low room noise stays under 3 px in the 20 px display');
@@ -449,11 +452,13 @@ try {
     await pill.locator('.capsule-favicon.is-speaking').waitFor();
     assert.ok(new Set(await waveLevels()).size>10,'The waveform retains modulation in actual input history');
     await brand.evaluate(el=>Promise.allSettled(el.getAnimations({subtree:true}).map(a=>a.finished)));
+    // While listening the artwork's strokes are redrawn on a canvas from recent input.
+    assert.ok(await brand.locator('rect').evaluateAll(rects=>rects.every(el=>getComputedStyle(el).visibility==='hidden')),'The static strokes step aside while listening');
+    const strokes=await pill.locator('.capsule-strokes').evaluate(canvas=>canvas.strokes);
     if(reducedMotion==='no-preference') {
-      const heights=await brand.locator('rect').evaluateAll(bars=>bars.map(el=>new DOMMatrix(getComputedStyle(el).transform).d));
-      assert.equal(new Set(heights).size,3,'Each favicon stroke follows a staggered input sample');
+      assert.equal(new Set(strokes).size,3,'Each favicon stroke follows a staggered input sample');
     } else {
-      assert.ok((await brand.locator('rect').evaluateAll(bars=>bars.map(el=>getComputedStyle(el).transform))).every(transform=>transform==='none'),'Reduced motion keeps the favicon still');
+      assert.ok(strokes.every(scale=>scale===1),'Reduced motion keeps the favicon still');
     }
     await pill.locator('.capsule-wave').evaluate(el=>Promise.allSettled(el.getAnimations({subtree:true}).map(a=>a.finished)));
     await pill.screenshot({path:`artifacts/dictation-pill/listening-${theme}-${reducedMotion}.png`});
