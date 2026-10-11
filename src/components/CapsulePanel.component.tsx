@@ -6,7 +6,8 @@ import { listen, emit, emitTo } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { LockKeyhole, Square, X, CircleAlert, BookOpen, Undo2 } from "lucide-react";
-import { advanceWaveform, flatWaveform, WAVEFORM_BAR_COUNT } from "@/lib/dictation-waveform";
+import { advanceWaveform, drawBrandStrokes, drawWaveform, flatWaveform, WAVEFORM_BAR_COUNT } from "@/lib/dictation-waveform";
+import type { LevelCanvas } from "@/lib/dictation-waveform";
 import type { CorrectionFeedback } from "@/lib/correction-feedback";
 import lintyFavicon from "../../src-tauri/icons/icon.svg?raw";
 
@@ -52,12 +53,15 @@ export function CapsulePanel() {
   // Keep the outgoing row mounted while it fades inside the contracting shell.
   const [expandedMode, setExpandedMode] = useState<CapsuleMode>("recording");
   const [errorMsg, setErrorMsg] = useState("");
-  // Levels are painted straight onto the bars and favicon strokes. Per-frame
-  // React state plus CSS transitions created ~600 animation objects a second
-  // and leaked WebKit heap across a session (issue #147).
+  // Levels are drawn on two canvases (bars, favicon strokes). WebKit retains
+  // memory for every per-frame DOM style write: CSS transitions (#147), then
+  // inline transform/opacity and custom-property writes (#154). A canvas draw
+  // touches no DOM and stays flat.
   const levelsRef = useRef<number[]>(flatWaveform());
-  const waveRef = useRef<HTMLDivElement | null>(null);
-  const faviconRef = useRef<HTMLSpanElement | null>(null);
+  const waveRef = useRef<LevelCanvas | null>(null);
+  const strokesRef = useRef<LevelCanvas | null>(null);
+  // Read live: the capsule page outlives a change to the accessibility setting.
+  const reducedMotionRef = useRef(typeof window.matchMedia === "function" ? window.matchMedia("(prefers-reduced-motion: reduce)") : null);
   const [speaking, setSpeaking] = useState(false);
   const speakingRef = useRef(false);
   const quietRef = useRef(0);
@@ -82,27 +86,28 @@ export function CapsulePanel() {
 
   const paintWave = useCallback(() => {
     const levels = levelsRef.current;
-    const bars = waveRef.current?.children;
-    if (bars) {
-      for (let i = 0; i < bars.length; i++) {
-        const level = levels[i] ?? 0;
-        const bar = (bars[i] as HTMLElement).style;
-        bar.transform = `scaleY(${0.1 + level * 0.9})`;
-        bar.opacity = String(0.4 + level * 0.6);
-      }
-    }
-    const favicon = faviconRef.current;
-    if (!favicon) return;
-    const recording = modeRef.current === "recording";
+    if (waveRef.current) drawWaveform(waveRef.current, levels);
+    const strokes = strokesRef.current;
+    if (!strokes) return;
     // The three favicon strokes keep their staggered, centered movement from
-    // recent microphone input; a quiet warning or any other mode rests them.
-    const brand = recording && quietRef.current < 20
+    // recent microphone input while listening; a quiet warning rests them low.
+    // Reduced motion and every other mode keep the artwork's own height.
+    const live = modeRef.current === "recording" && !reducedMotionRef.current?.matches;
+    const brand = live && quietRef.current < 20
       ? [levels[WAVEFORM_BAR_COUNT - 3], levels[WAVEFORM_BAR_COUNT - 1], levels[WAVEFORM_BAR_COUNT - 2]] : [0, 0, 0];
-    const voice = (level: number) => String(recording ? 0.35 + level * 0.65 : 1);
-    favicon.style.setProperty("--voice-left", voice(brand[0]));
-    favicon.style.setProperty("--voice-center", voice(brand[1]));
-    favicon.style.setProperty("--voice-right", voice(brand[2]));
+    drawBrandStrokes(strokes, brand.map(level => (live ? 0.35 + level * 0.65 : 1)));
   }, []);
+
+  // Stable callbacks: a re-render (for example the speaking class) must not
+  // detach and re-attach the canvases.
+  const waveCanvasRef = useCallback((element: LevelCanvas | null) => {
+    waveRef.current = element;
+    if (element) paintWave();
+  }, [paintWave]);
+  const strokesCanvasRef = useCallback((element: LevelCanvas | null) => {
+    strokesRef.current = element;
+    if (element) paintWave();
+  }, [paintWave]);
 
   const dismiss = useCallback(() => {
     if (exitTimerRef.current !== null) return;
@@ -257,7 +262,9 @@ export function CapsulePanel() {
     const levels = advanceWaveform(levelsRef.current, rms);
     levelsRef.current = levels;
     paintWave();
-    const talking = levels.slice(-3).some(level => level > 0.02);
+    // Hysteresis keeps the class from flickering around a single threshold.
+    const loudest = Math.max(...levels.slice(-3));
+    const talking = speakingRef.current ? loudest > 0.012 : loudest > 0.02;
     if (talking !== speakingRef.current) {
       speakingRef.current = talking;
       setSpeaking(talking);
@@ -304,12 +311,15 @@ export function CapsulePanel() {
       >
         <div className="capsule-emblem">
           <span
-            ref={faviconRef}
             className={`capsule-favicon${isRecording ? " is-listening" : ""}${isSpeaking ? " is-speaking" : ""}`}
             role="img" aria-label="Linty" aria-hidden={isCompact || isProcessing}
-            // Inline the same generated favicon artwork so its three strokes can move.
-            dangerouslySetInnerHTML={{ __html: lintyFavicon }}
-          />
+          >
+            {/* The same generated favicon artwork; while listening its strokes are
+                hidden and redrawn on the canvas from recent input. The canvas sits
+                inside the favicon so it shares its fade and scale transitions. */}
+            <span className="capsule-favicon-art" dangerouslySetInnerHTML={{ __html: lintyFavicon }} />
+            {isRecording && <canvas className="capsule-strokes" aria-hidden="true" ref={strokesCanvasRef} />}
+          </span>
           <span className="capsule-spinner" aria-hidden="true">
             <svg className="capsule-orbit" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
               <circle className="capsule-orbit-track" cx="12" cy="12" r="8" />
@@ -324,9 +334,7 @@ export function CapsulePanel() {
           <span className="capsule-divider" aria-hidden="true" />
           <div className="capsule-content" key={expandedQuiet ? "quiet" : expandedMode}>
             {expandedMode === "recording" && (expandedQuiet ? <span className="capsule-quiet-message" aria-hidden="true">Stopping…</span> : <>
-              <div className="capsule-wave" aria-hidden="true" ref={element => { waveRef.current = element; if (element) paintWave(); }}>
-                {Array.from({ length: WAVEFORM_BAR_COUNT }, (_, i) => <span key={i} />)}
-              </div>
+              <canvas className="capsule-wave" aria-hidden="true" ref={waveCanvasRef} />
               <span className="capsule-time" aria-hidden="true">{handsFree && <LockKeyhole size={10} strokeWidth={1.6} />}{formatDuration(duration)}</span>
             </>)}
             {expandedMode === "preparing" && <span className="capsule-message" aria-hidden="true">Getting ready…</span>}

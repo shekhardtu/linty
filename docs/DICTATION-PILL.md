@@ -12,17 +12,18 @@ uses the middle of the 20 px display; loud input has room to move. The maximum
 bar height is 18.2 px, leaving space at both edges. An eased attack and longer
 release soften small fluctuations. This display curve also drives the favicon;
 it does not change recorded audio, speech detection, or the inactivity deadline.
-There is no continuous canvas draw loop. While listening, the pill polls the
-microphone level about 15 times a second through the `input_level` command,
-which reads a value the audio thread publishes every sixth callback. Each frame
-writes the bar transforms and the three stroke heights directly onto the
-elements, with no React state and no CSS transition on those values: the
-smoothing comes from the display curve itself. Two mechanisms were removed
-because they grew the capsule's web process with every frame: WebKit allocates a
-new animation object every time a CSS transition is retargeted (about 20 MB of
-heap per dictation, #147), and every pushed Tauri event is a script evaluation
-that WebKit caches per unique payload (about 7 MB per dictation, part of it at
-the process level, #150). Polling goes over Tauri's request channel instead.
+There is no continuous draw loop: the pill polls the microphone level about 15
+times a second through the `input_level` command (a value the audio thread
+publishes every sixth callback) and draws one frame per reading. The bars and
+the favicon's three strokes are drawn on two small canvases
+(`drawWaveform`, `drawBrandStrokes` in `src/lib/dictation-waveform.ts`); the
+favicon artwork stays as inline SVG for every other state and hides its strokes
+while listening. No DOM style changes happen per frame and no CSS transition
+applies to per-frame values; the smoothing comes from the display curve itself.
+Three mechanisms were removed because WebKit retained memory for them on every
+frame: retargeted CSS transitions (#147, about 20 MB per dictation), pushed
+Tauri events evaluated as scripts (#150), and inline style or custom-property
+writes (#154, about 10 MB per minute of recording; a canvas draw stays flat).
 Transitions remain only on mode changes (listening, processing, done).
 
 The in-app Microphone Test shares this response curve in an 80-bar, full-width

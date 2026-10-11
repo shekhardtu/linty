@@ -68,8 +68,8 @@ function startMeter() {
     // Read the component's rendered target, rather than reimplementing its curve.
     requestAnimationFrame(() => {
       if (mode !== 'recording') return;
-      const bar = document.querySelector('.capsule-wave span:last-child');
-      if (bar) document.getElementById('wave-height').textContent = (20 * new DOMMatrix(bar.style.transform).d).toFixed(1);
+      const height = document.querySelector('.capsule-wave')?.heights?.at(-1);
+      if (height !== undefined) document.getElementById('wave-height').textContent = (20 * height).toFixed(1);
     });
   }, 70);
 }
