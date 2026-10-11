@@ -1,9 +1,14 @@
 export const DOUBLE_PRESS_MS = 400;
 const TAP_MS = 250;
 
-/** One gesture interpreter for modifier keys and accelerator shortcuts. */
+/**
+ * One gesture interpreter for modifier keys and accelerator shortcuts.
+ * Times are wall-clock milliseconds: native fn events carry the key's own
+ * timestamp, so a webview that runs late never distorts hold or double-press
+ * timing. The native session applies the same rules (`dictation.rs`).
+ */
 export class DictationTrigger {
-  private actions: { start: () => void; stop: () => void; latch: () => void };
+  private actions: { start: (source: string) => void; stop: () => void; latch: () => void };
   private down = new Set<string>();
   private first: { source: string; at: number } | null = null;
   private held: { source: string; at: number } | null = null;
@@ -11,11 +16,11 @@ export class DictationTrigger {
   private active = false;
   private latched = false;
 
-  constructor(actions: { start: () => void; stop: () => void; latch: () => void }) {
+  constructor(actions: { start: (source: string) => void; stop: () => void; latch: () => void }) {
     this.actions = actions;
   }
 
-  press(source: string, now = performance.now()) {
+  press(source: string, now = Date.now()) {
     if (this.down.has(source)) return; // Ignore key repeat.
     this.down.add(source);
     if (this.latched) {
@@ -36,10 +41,10 @@ export class DictationTrigger {
     if (this.active) return;
     this.active = true;
     this.first = this.held = { source, at: now };
-    this.actions.start();
+    this.actions.start(source);
   }
 
-  release(source: string, now = performance.now()) {
+  release(source: string, now = Date.now()) {
     if (!this.down.delete(source) || this.latched || this.held?.source !== source) return;
     const pressedAt = this.held.at;
     this.held = null;

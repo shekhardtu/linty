@@ -1397,7 +1397,7 @@ fn register_wake_observer(app: &tauri::AppHandle, app_state: &AppState) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let mut app = tauri::Builder::default()
+    let builder = tauri::Builder::default()
         // Must be the first plugin registered. A second launch (double-open,
         // updater relaunch overlapping the old process) would run its own
         // fn-key monitors and paste pipeline — an independent double-paste
@@ -1422,7 +1422,22 @@ pub fn run() {
         .manage(audio_input::AudioInputState::default())
         .manage(startup::StartupState::default())
         .manage(history::HistoryState::default())
-        .manage(reformat::ReformatState::default())
+        .manage(reformat::ReformatState::default());
+    #[cfg(target_os = "macos")]
+    let builder = builder
+        .manage(capsule::CapsuleHealth::default())
+        // A webview whose content process died shows nothing until reloaded.
+        // Both pages restore their state from native snapshots and stores.
+        .on_web_content_process_terminate(|webview| {
+            let label = webview.label().to_string();
+            log::warn!("[webview] Web content process terminated for '{label}' — reloading");
+            if label == "capsule" {
+                capsule::reload_capsule(webview.app_handle(), "terminated", None);
+            } else if let Err(error) = webview.reload() {
+                log::warn!("[webview] Could not reload '{label}': {error}");
+            }
+        });
+    let mut app = builder
         // macOS app menu bar (Linty + Edit)
         .menu(|app| {
             let about = PredefinedMenuItem::about(app, Some("About Linty"), None)?;

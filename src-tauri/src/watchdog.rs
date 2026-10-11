@@ -10,6 +10,9 @@ const MAX_CALLBACKS_PER_SEC: u64 = 1000;
 /// Re-check fn-key monitor liveness every N ticks (15 × 2s = 30s).
 #[cfg(target_os = "macos")]
 const MONITOR_CHECK_EVERY_TICKS: u64 = 15;
+/// Read the capsule web process footprint every N ticks (30 × 2s = 60s).
+#[cfg(target_os = "macos")]
+const CAPSULE_MEMORY_CHECK_EVERY_TICKS: u64 = 30;
 
 pub fn start(app: tauri::AppHandle) {
     tauri::async_runtime::spawn(async move {
@@ -43,6 +46,11 @@ pub fn start(app: tauri::AppHandle) {
                     let _ = app.run_on_main_thread(move || {
                         crate::fnkey::reinit_monitor_if_needed(app_clone);
                     });
+                }
+                // The capsule page is reloaded while idle once it grows past
+                // its threshold or its web content process has terminated.
+                if tick_count % CAPSULE_MEMORY_CHECK_EVERY_TICKS == 0 {
+                    crate::capsule::check_memory(&app).await;
                 }
             }
 

@@ -51,7 +51,15 @@ export function CapsulePanel() {
   // Keep the outgoing row mounted while it fades inside the contracting shell.
   const [expandedMode, setExpandedMode] = useState<CapsuleMode>("recording");
   const [errorMsg, setErrorMsg] = useState("");
-  const [levels, setLevels] = useState(flatWaveform);
+  // Levels are painted straight onto the bars and favicon strokes. Per-frame
+  // React state plus CSS transitions created ~600 animation objects a second
+  // and leaked WebKit heap across a session (issue #147).
+  const levelsRef = useRef<number[]>(flatWaveform());
+  const waveRef = useRef<HTMLDivElement | null>(null);
+  const faviconRef = useRef<HTMLSpanElement | null>(null);
+  const [speaking, setSpeaking] = useState(false);
+  const speakingRef = useRef(false);
+  const quietRef = useRef(0);
   const [duration, setDuration] = useState(0);
   const [handsFree, setHandsFree] = useState(false);
   const [quietSeconds, setQuietSeconds] = useState(0);
@@ -70,6 +78,30 @@ export function CapsulePanel() {
   const feedbackRemainingRef = useRef(FEEDBACK_DURATION_MS);
   const feedbackDeadlineRef = useRef<number | null>(null);
   const feedbackInteractionRef = useRef({ pointer: false, focus: false });
+
+  const paintWave = useCallback(() => {
+    const levels = levelsRef.current;
+    const bars = waveRef.current?.children;
+    if (bars) {
+      for (let i = 0; i < bars.length; i++) {
+        const level = levels[i] ?? 0;
+        const bar = (bars[i] as HTMLElement).style;
+        bar.transform = `scaleY(${0.1 + level * 0.9})`;
+        bar.opacity = String(0.4 + level * 0.6);
+      }
+    }
+    const favicon = faviconRef.current;
+    if (!favicon) return;
+    const recording = modeRef.current === "recording";
+    // The three favicon strokes keep their staggered, centered movement from
+    // recent microphone input; a quiet warning or any other mode rests them.
+    const brand = recording && quietRef.current < 20
+      ? [levels[WAVEFORM_BAR_COUNT - 3], levels[WAVEFORM_BAR_COUNT - 1], levels[WAVEFORM_BAR_COUNT - 2]] : [0, 0, 0];
+    const voice = (level: number) => String(recording ? 0.35 + level * 0.65 : 1);
+    favicon.style.setProperty("--voice-left", voice(brand[0]));
+    favicon.style.setProperty("--voice-center", voice(brand[1]));
+    favicon.style.setProperty("--voice-right", voice(brand[2]));
+  }, []);
 
   const dismiss = useCallback(() => {
     if (exitTimerRef.current !== null) return;
@@ -146,7 +178,11 @@ export function CapsulePanel() {
         feedbackInteractionRef.current.focus = false;
       }
       if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-      if (state === "idle") { dismiss(); return; }
+      if (state === "idle") {
+        // A reloaded page restores an idle snapshot: nothing to dismiss or hide.
+        if (modeRef.current !== "idle" || exitTimerRef.current !== null) dismiss();
+        return;
+      }
       if (exitTimerRef.current !== null) {
         clearTimeout(exitTimerRef.current);
         exitTimerRef.current = null;
@@ -160,7 +196,10 @@ export function CapsulePanel() {
       if (newRecording) {
         generationRef.current = generation;
         setDuration(0);
-        setLevels(flatWaveform());
+        levelsRef.current = flatWaveform();
+        speakingRef.current = false;
+        setSpeaking(false);
+        quietRef.current = 0;
         setQuietSeconds(0);
         setStopping(false);
         const started = Date.now();
@@ -192,10 +231,19 @@ export function CapsulePanel() {
       }),
       listen<number>("capsule-amplitude", ({ payload }) => {
         if (modeRef.current !== "recording") return;
-        setLevels(previous => advanceWaveform(previous, payload));
+        const levels = advanceWaveform(levelsRef.current, payload);
+        levelsRef.current = levels;
+        paintWave();
+        const talking = levels.slice(-3).some(level => level > 0.02);
+        if (talking !== speakingRef.current) {
+          speakingRef.current = talking;
+          setSpeaking(talking);
+        }
       }),
       listen<QuietInput>("recording-quiet", ({ payload }) => {
-        if (modeRef.current === "recording" && payload.generation === generationRef.current) setQuietSeconds(payload.quiet_seconds);
+        if (modeRef.current !== "recording" || payload.generation !== generationRef.current) return;
+        quietRef.current = payload.quiet_seconds;
+        setQuietSeconds(payload.quiet_seconds);
       }),
     ];
     return () => {
@@ -206,7 +254,13 @@ export function CapsulePanel() {
       if (exitTimerRef.current !== null) clearTimeout(exitTimerRef.current);
       if (durationIntervalRef.current) clearInterval(durationIntervalRef.current);
     };
-  }, [dismiss, scheduleFeedbackDismissal]);
+  }, [dismiss, scheduleFeedbackDismissal, paintWave]);
+
+  // Mode and quiet changes repaint from the retained levels; amplitude frames
+  // paint directly without passing through React.
+  useEffect(() => {
+    paintWave();
+  }, [paintWave, mode, quietSeconds]);
 
   useEffect(() => {
     if (renderedRevision !== undefined && mode !== "idle" && !dismissing) {
@@ -220,11 +274,7 @@ export function CapsulePanel() {
   const isCompact = (isProcessing && mode !== "preparing") || mode === "done";
   const isQuiet = isRecording && quietSeconds >= 20;
   const expandedQuiet = expandedMode === "recording" && quietSeconds >= 20;
-  const isSpeaking = isRecording && !isQuiet && levels.slice(-3).some(level => level > 0.02);
-  // The three favicon strokes retain their staggered, centered movement, but
-  // every height now comes from recent microphone input instead of a timed loop.
-  const brandLevels = isRecording && !isQuiet
-    ? [levels[WAVEFORM_BAR_COUNT - 3], levels[WAVEFORM_BAR_COUNT - 1], levels[WAVEFORM_BAR_COUNT - 2]] : [0, 0, 0];
+  const isSpeaking = isRecording && !isQuiet && speaking;
   const remainingSeconds = Math.max(0, Math.min(10, 30 - quietSeconds));
   const announcement = mode === "idle" ? "" : isQuiet ? "Stopping automatically. Speak to keep listening, or click the countdown to finish now."
     : isRecording ? handsFree ? "Hands-free listening. Press your trigger once to finish." : "Listening. Release your trigger to finish."
@@ -252,13 +302,9 @@ export function CapsulePanel() {
       >
         <div className="capsule-emblem">
           <span
+            ref={faviconRef}
             className={`capsule-favicon${isRecording ? " is-listening" : ""}${isSpeaking ? " is-speaking" : ""}`}
             role="img" aria-label="Linty" aria-hidden={isCompact || isProcessing}
-            style={{
-              "--voice-left": isRecording ? 0.35 + brandLevels[0] * 0.65 : 1,
-              "--voice-center": isRecording ? 0.35 + brandLevels[1] * 0.65 : 1,
-              "--voice-right": isRecording ? 0.35 + brandLevels[2] * 0.65 : 1,
-            } as CSSProperties}
             // Inline the same generated favicon artwork so its three strokes can move.
             dangerouslySetInnerHTML={{ __html: lintyFavicon }}
           />
@@ -276,8 +322,8 @@ export function CapsulePanel() {
           <span className="capsule-divider" aria-hidden="true" />
           <div className="capsule-content" key={expandedQuiet ? "quiet" : expandedMode}>
             {expandedMode === "recording" && (expandedQuiet ? <span className="capsule-quiet-message" aria-hidden="true">Stopping…</span> : <>
-              <div className="capsule-wave" aria-hidden="true">
-                {levels.map((level, i) => <span key={i} style={{ transform: `scaleY(${0.1 + level * 0.9})`, opacity: 0.4 + level * 0.6 }} />)}
+              <div className="capsule-wave" aria-hidden="true" ref={element => { waveRef.current = element; if (element) paintWave(); }}>
+                {Array.from({ length: WAVEFORM_BAR_COUNT }, (_, i) => <span key={i} />)}
               </div>
               <span className="capsule-time" aria-hidden="true">{handsFree && <LockKeyhole size={10} strokeWidth={1.6} />}{formatDuration(duration)}</span>
             </>)}

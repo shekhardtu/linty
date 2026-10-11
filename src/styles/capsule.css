@@ -33,7 +33,10 @@ html, body, #root {
 .capsule-favicon { display: block; width: 22px; height: 22px; border-radius: 6px; opacity: 1; transform: scale(1); transition: opacity 160ms ease, transform 260ms var(--ease-out); }
 .is-compact .capsule-favicon, .is-processing .capsule-favicon { opacity: 0; transform: scale(.65); }
 .capsule-favicon > svg { display: block; width: 22px; height: 22px; }
-.capsule-favicon rect { transform-box: fill-box; transform-origin: center; transition: transform 100ms var(--ease-out); }
+/* Per-frame values (strokes, bars) are written directly and never transitioned:
+   a retargeted CSS transition allocates a new animation object in WebKit, ~600/s
+   while recording, which leaked heap across a session (issue #147). */
+.capsule-favicon rect { transform-box: fill-box; transform-origin: center; }
 .capsule-favicon rect:nth-child(1) { transform: scaleY(var(--voice-left, 1)); }
 .capsule-favicon rect:nth-child(2) { transform: scaleY(var(--voice-center, 1)); }
 .capsule-favicon rect:nth-child(3) { transform: scaleY(var(--voice-right, 1)); }
@@ -42,7 +45,7 @@ html, body, #root {
 .capsule-divider { width: 1px; height: 16px; background: var(--color-border-subtle); flex: none; }
 .capsule-content { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; animation: capsule-content-in 160ms var(--ease-out); }
 .capsule-wave { height: 20px; display: flex; align-items: center; justify-content: center; gap: 2px; flex: 1; }
-.capsule-wave span { flex: 0 0 2px; height: 20px; border-radius: 2px; background: var(--color-accent); transform-origin: center; transition: transform 70ms linear, opacity 70ms linear; }
+.capsule-wave span { flex: 0 0 2px; height: 20px; border-radius: 2px; background: var(--color-accent); transform-origin: center; }
 .capsule-time { display: flex; align-items: center; gap: 4px; font-size: 10px; font-variant-numeric: tabular-nums; color: var(--color-text-muted); white-space: nowrap; }
 .capsule-action {
   position: relative; box-sizing: border-box; width: 24px; height: 24px; min-width: 24px; min-height: 24px; max-width: 24px; max-height: 24px; aspect-ratio: 1;

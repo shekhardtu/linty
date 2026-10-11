@@ -6,6 +6,7 @@
 use std::ffi::c_void;
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter};
 
 // ── Objective-C / macOS FFI ──
@@ -182,6 +183,67 @@ struct FnKeyState {
     event_count: AtomicU64,
 }
 
+/// Payload of `fnkey-pressed` / `fnkey-released`: the key's own time, so the
+/// frontend gesture interpreter stays exact even when its webview runs late.
+#[derive(Clone, serde::Serialize)]
+struct TriggerEvent {
+    at: u64,
+}
+
+fn wall_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0)
+}
+
+/// Wall-clock milliseconds of an NSEvent. Its `timestamp` counts seconds since
+/// boot on the mach clock (paused in sleep), the basis of CLOCK_UPTIME_RAW.
+/// Falls back to now when the event carries no usable time.
+unsafe fn event_wall_ms(event: *const c_void) -> u64 {
+    let now = wall_ms();
+    let sel = sel_registerName(b"timestamp\0".as_ptr());
+    let send: unsafe extern "C" fn(*const c_void, *const c_void) -> f64 =
+        std::mem::transmute(objc_msgSend as *const c_void);
+    let event_seconds = send(event, sel);
+    let mut uptime = libc::timespec {
+        tv_sec: 0,
+        tv_nsec: 0,
+    };
+    if event_seconds <= 0.0 || libc::clock_gettime(libc::CLOCK_UPTIME_RAW, &mut uptime) != 0 {
+        return now;
+    }
+    let uptime_seconds = uptime.tv_sec as f64 + uptime.tv_nsec as f64 / 1e9;
+    let age_ms = ((uptime_seconds - event_seconds) * 1000.0).round();
+    if !(0.0..=60_000.0).contains(&age_ms) {
+        return now;
+    }
+    now - age_ms as u64
+}
+
+/// Shared by both NSEvent monitors. The native dictation hooks run first (they
+/// never wait on a webview); the frontend event follows with the key's own time.
+unsafe fn trigger_changed(state: &FnKeyState, event: *const c_void, pressed: bool, local: bool) {
+    let at = event_wall_ms(event);
+    if pressed {
+        if local {
+            log::info!("[fnkey] fn PRESSED (local — app focused)");
+        } else {
+            log::info!("[fnkey] fn PRESSED — starting recording");
+        }
+        crate::dictation::trigger_pressed(&state.app, at);
+        let _ = state.app.emit("fnkey-pressed", TriggerEvent { at });
+    } else {
+        if local {
+            log::info!("[fnkey] fn RELEASED (local — app focused)");
+        } else {
+            log::info!("[fnkey] fn RELEASED — stopping recording");
+        }
+        crate::dictation::trigger_released(&state.app, at);
+        let _ = state.app.emit("fnkey-released", TriggerEvent { at });
+    }
+}
+
 // ── Local monitor block (returns NSEvent* to not consume the event) ──
 
 #[repr(C)]
@@ -219,8 +281,7 @@ unsafe extern "C" fn block_invoke(block: *mut FnKeyBlock, event: *const c_void) 
 
     if fn_pressed {
         if !state.fn_held.swap(true, Ordering::SeqCst) {
-            log::info!("[fnkey] fn PRESSED — starting recording");
-            let _ = state.app.emit("fnkey-pressed", ());
+            trigger_changed(state, event, true, false);
         }
     } else if state.fn_held.swap(false, Ordering::SeqCst) {
         if trigger_key_physically_down() {
@@ -231,8 +292,7 @@ unsafe extern "C" fn block_invoke(block: *mut FnKeyBlock, event: *const c_void) 
             state.fn_held.store(true, Ordering::SeqCst);
             log::info!("[fnkey] release ignored — trigger key physically still down");
         } else {
-            log::info!("[fnkey] fn RELEASED — stopping recording");
-            let _ = state.app.emit("fnkey-released", ());
+            trigger_changed(state, event, false, false);
         }
     }
 }
@@ -261,16 +321,14 @@ unsafe extern "C" fn local_block_invoke(
 
     if fn_pressed {
         if !state.fn_held.swap(true, Ordering::SeqCst) {
-            log::info!("[fnkey] fn PRESSED (local — app focused)");
-            let _ = state.app.emit("fnkey-pressed", ());
+            trigger_changed(state, event, true, true);
         }
     } else if state.fn_held.swap(false, Ordering::SeqCst) {
         if trigger_key_physically_down() {
             state.fn_held.store(true, Ordering::SeqCst);
             log::info!("[fnkey] release ignored — trigger key physically still down (local)");
         } else {
-            log::info!("[fnkey] fn RELEASED (local — app focused)");
-            let _ = state.app.emit("fnkey-released", ());
+            trigger_changed(state, event, false, true);
         }
     }
 

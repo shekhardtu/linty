@@ -76,3 +76,11 @@ test('a fresh take after completion or recovery has no time guard',t=>{
   trigger.press('accelerator',301); trigger.release('accelerator',601);
   assert.deepEqual(calls,['start','stop','start','stop']);
 });
+test('start receives the source that began the gesture',t=>{
+  t.mock.timers.enable({apis:['setTimeout']});
+  const sources=[];
+  const trigger=new DictationTrigger({start:source=>sources.push(source),stop:()=>{},latch:()=>{}});
+  trigger.press('modifier',0); trigger.release('modifier',500);
+  trigger.press('accelerator',1000); trigger.release('accelerator',1500);
+  assert.deepEqual(sources,['modifier','accelerator']);
+});

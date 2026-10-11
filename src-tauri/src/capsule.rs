@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Mutex, MutexGuard};
+use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_nspanel::cocoa::appkit::{NSApp, NSMainMenuWindowLevel, NSWindowCollectionBehavior};
 use tauri_nspanel::cocoa::base::nil;
@@ -192,6 +193,297 @@ pub fn get_capsule_state(app: AppHandle) -> Option<CapsuleState> {
         return None;
     }
     app.state::<CapsulePresentation>().latest().clone()
+}
+
+// ── Lifetime guard (issue #147) ──
+// A long-lived capsule page accumulated WebKit heap with every dictation until
+// the pill took seconds to paint. The page restores its state from
+// CapsulePresentation on load, so reloading it while idle and hidden is
+// invisible and bounds memory whatever the cause.
+
+const RELOAD_AFTER_TAKES: u64 = 25;
+const RELOAD_AFTER: Duration = Duration::from_secs(6 * 60 * 60);
+const RELOAD_ABOVE_BYTES: u64 = 300 * 1024 * 1024;
+const RELOAD_MIN_INTERVAL: Duration = Duration::from_secs(30);
+const RELOAD_BURST_WINDOW: Duration = Duration::from_secs(5 * 60);
+const RELOAD_BURST_LIMIT: usize = 3;
+
+pub struct CapsuleHealth {
+    takes: AtomicU64,
+    last_counted_generation: AtomicU64,
+    reload_pending: AtomicBool,
+    last_reload: Mutex<Instant>,
+    recent_reloads: Mutex<Vec<Instant>>,
+    throttle_logged: AtomicBool,
+}
+
+impl Default for CapsuleHealth {
+    fn default() -> Self {
+        Self {
+            takes: AtomicU64::new(0),
+            last_counted_generation: AtomicU64::new(0),
+            reload_pending: AtomicBool::new(false),
+            last_reload: Mutex::new(Instant::now()),
+            recent_reloads: Mutex::new(Vec::new()),
+            throttle_logged: AtomicBool::new(false),
+        }
+    }
+}
+
+fn reload_due(takes: u64, age: Duration, pending: bool) -> Option<&'static str> {
+    if pending {
+        Some("memory")
+    } else if takes >= RELOAD_AFTER_TAKES {
+        Some("takes")
+    } else if age >= RELOAD_AFTER {
+        Some("age")
+    } else {
+        None
+    }
+}
+
+/// One reload per RELOAD_MIN_INTERVAL and RELOAD_BURST_LIMIT per window. A page
+/// that terminates or is large right after loading must not reload in a loop.
+fn reload_allowed(recent: &[Instant], now: Instant) -> bool {
+    let in_window = recent
+        .iter()
+        .filter(|t| now.duration_since(**t) < RELOAD_BURST_WINDOW)
+        .count();
+    let since_last = recent.iter().max().map(|t| now.duration_since(*t));
+    in_window < RELOAD_BURST_LIMIT && since_last.is_none_or(|gap| gap >= RELOAD_MIN_INTERVAL)
+}
+
+impl CapsuleHealth {
+    fn note_take(&self, generation: u64) {
+        if self
+            .last_counted_generation
+            .swap(generation, Ordering::SeqCst)
+            != generation
+        {
+            self.takes.fetch_add(1, Ordering::Relaxed);
+        }
+    }
+    fn age(&self, now: Instant) -> Duration {
+        now.duration_since(*self.last_reload.lock().unwrap_or_else(|e| e.into_inner()))
+    }
+    fn due(&self, now: Instant) -> Option<&'static str> {
+        reload_due(
+            self.takes.load(Ordering::Relaxed),
+            self.age(now),
+            self.reload_pending.load(Ordering::SeqCst),
+        )
+    }
+    /// Reserve a reload slot; false when throttled. Resets the counters.
+    fn permit(&self, now: Instant) -> bool {
+        let mut recent = self
+            .recent_reloads
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        recent.retain(|t| now.duration_since(*t) < RELOAD_BURST_WINDOW);
+        if !reload_allowed(&recent, now) {
+            if !self.throttle_logged.swap(true, Ordering::SeqCst) {
+                log::error!(
+                    "[capsule] Page reload throttled after {} reloads within {} min",
+                    recent.len(),
+                    RELOAD_BURST_WINDOW.as_secs() / 60
+                );
+            }
+            return false;
+        }
+        self.throttle_logged.store(false, Ordering::SeqCst);
+        recent.push(now);
+        *self.last_reload.lock().unwrap_or_else(|e| e.into_inner()) = now;
+        self.takes.store(0, Ordering::Relaxed);
+        self.reload_pending.store(false, Ordering::SeqCst);
+        true
+    }
+}
+
+/// Nothing is presented and no capture could ask for presentation.
+fn capsule_idle(app: &AppHandle) -> bool {
+    !SHOWING_FEEDBACK.load(Ordering::SeqCst)
+        && app
+            .state::<CapsulePresentation>()
+            .latest()
+            .as_ref()
+            .is_none_or(|state| state.state == "idle")
+        && !app
+            .state::<crate::dictation::Coordinator>()
+            .capture_active()
+}
+
+/// Reload the capsule page. Callers check `capsule_idle` first: the page
+/// re-reads the presentation snapshot on load, so an idle reload is invisible.
+pub fn reload_capsule(app: &AppHandle, reason: &str, footprint: Option<u64>) -> bool {
+    let health = app.state::<CapsuleHealth>();
+    let now = Instant::now();
+    let takes = health.takes.load(Ordering::Relaxed);
+    let age_minutes = health.age(now).as_secs() / 60;
+    if !health.permit(now) {
+        return false;
+    }
+    let Some(window) = app.get_webview_window("capsule") else {
+        return false;
+    };
+    match window.reload() {
+        Ok(()) => {
+            log::info!(
+                "[capsule] Page reloaded (reason={reason}, takes={takes}, age={age_minutes}min, footprint={})",
+                footprint.map_or_else(|| "n/a".to_string(), |bytes| format!("{}MB", bytes >> 20))
+            );
+            true
+        }
+        Err(error) => {
+            log::warn!("[capsule] Could not reload page: {error}");
+            false
+        }
+    }
+}
+
+fn recycle_if_due(app: &AppHandle) {
+    let Some(reason) = app.state::<CapsuleHealth>().due(Instant::now()) else {
+        return;
+    };
+    if capsule_idle(app) {
+        reload_capsule(app, reason, None);
+    }
+}
+
+/// Physical footprint of the capsule's web content process, read on the main
+/// thread through WebKit's `_webProcessIdentifier`. `Some((0, 0))` when WebKit
+/// reports no process; `None` when the value is unavailable.
+pub async fn web_process_footprint(app: &AppHandle) -> Option<(i32, u64)> {
+    let window = app.get_webview_window("capsule")?;
+    let (reply, receive) = tokio::sync::oneshot::channel();
+    window
+        .with_webview(move |webview| {
+            let pid = unsafe {
+                let view = webview.inner() as tauri_nspanel::cocoa::base::id;
+                let responds: bool =
+                    msg_send![view, respondsToSelector: sel!(_webProcessIdentifier)];
+                if responds {
+                    let pid: i32 = msg_send![view, _webProcessIdentifier];
+                    Some(pid)
+                } else {
+                    None
+                }
+            };
+            let _ = reply.send(pid);
+        })
+        .ok()?;
+    let pid = tokio::time::timeout(Duration::from_secs(2), receive)
+        .await
+        .ok()?
+        .ok()??;
+    if pid <= 0 {
+        return Some((0, 0));
+    }
+    let mut info: libc::rusage_info_v4 = unsafe { std::mem::zeroed() };
+    let status = unsafe {
+        libc::proc_pid_rusage(
+            pid,
+            libc::RUSAGE_INFO_V4,
+            &mut info as *mut libc::rusage_info_v4 as *mut libc::rusage_info_t,
+        )
+    };
+    (status == 0).then_some((pid, info.ri_phys_footprint))
+}
+
+/// Watchdog hook. Bounds the page's memory even if a leak returns: a large page
+/// reloads as soon as it is idle, a terminated process reloads at once.
+pub async fn check_memory(app: &AppHandle) {
+    let Some((pid, bytes)) = web_process_footprint(app).await else {
+        return;
+    };
+    if pid == 0 {
+        log::warn!("[capsule] Web content process is gone — reloading page");
+        reload_capsule(app, "terminated", None);
+        return;
+    }
+    let health = app.state::<CapsuleHealth>();
+    log::debug!(
+        "[capsule] Web content footprint {}MB (takes since reload: {})",
+        bytes >> 20,
+        health.takes.load(Ordering::Relaxed)
+    );
+    if bytes <= RELOAD_ABOVE_BYTES {
+        return;
+    }
+    if !health.reload_pending.swap(true, Ordering::SeqCst) {
+        log::warn!(
+            "[capsule] Web content footprint {}MB exceeds {}MB — page reload scheduled",
+            bytes >> 20,
+            RELOAD_ABOVE_BYTES >> 20
+        );
+    }
+    if capsule_idle(app) {
+        reload_capsule(app, "memory", Some(bytes));
+    }
+}
+
+#[cfg(test)]
+mod lifetime_tests {
+    use super::*;
+
+    #[test]
+    fn a_reload_is_due_after_enough_takes_age_or_a_memory_flag() {
+        assert_eq!(reload_due(0, Duration::ZERO, false), None);
+        assert_eq!(
+            reload_due(
+                RELOAD_AFTER_TAKES - 1,
+                RELOAD_AFTER - Duration::from_secs(1),
+                false
+            ),
+            None
+        );
+        assert_eq!(
+            reload_due(RELOAD_AFTER_TAKES, Duration::ZERO, false),
+            Some("takes")
+        );
+        assert_eq!(reload_due(0, RELOAD_AFTER, false), Some("age"));
+        assert_eq!(reload_due(0, Duration::ZERO, true), Some("memory"));
+    }
+
+    #[test]
+    fn reloads_are_spaced_out_and_capped_per_window() {
+        let start = Instant::now();
+        assert!(reload_allowed(&[], start));
+        assert!(!reload_allowed(&[start], start + Duration::from_secs(10)));
+        assert!(reload_allowed(&[start], start + RELOAD_MIN_INTERVAL));
+        let burst: Vec<Instant> = (0..RELOAD_BURST_LIMIT)
+            .map(|i| start + RELOAD_MIN_INTERVAL * i as u32)
+            .collect();
+        let after_burst = *burst.last().unwrap() + RELOAD_MIN_INTERVAL;
+        assert!(
+            !reload_allowed(&burst, after_burst),
+            "A crash loop stops reloading"
+        );
+        assert!(reload_allowed(
+            &burst,
+            start + RELOAD_BURST_WINDOW + RELOAD_MIN_INTERVAL * 3
+        ));
+    }
+
+    #[test]
+    fn health_counts_each_capture_once_and_resets_on_reload() {
+        let health = CapsuleHealth::default();
+        health.note_take(7);
+        health.note_take(7);
+        health.note_take(8);
+        assert_eq!(health.takes.load(Ordering::Relaxed), 2);
+        let now = Instant::now();
+        assert_eq!(health.due(now), None);
+        health.reload_pending.store(true, Ordering::SeqCst);
+        assert_eq!(health.due(now), Some("memory"));
+        assert!(health.permit(now));
+        assert_eq!(health.takes.load(Ordering::Relaxed), 0);
+        assert!(!health.reload_pending.load(Ordering::SeqCst));
+        assert_eq!(health.due(now), None);
+        assert!(
+            !health.permit(now + Duration::from_secs(1)),
+            "Back-to-back reloads are throttled"
+        );
+    }
 }
 
 // ── Init ──
@@ -414,6 +706,8 @@ pub fn hide_capsule(
     SHOWING_FEEDBACK.store(false, Ordering::SeqCst);
     if !for_main_window.unwrap_or(false) {
         app.state::<CapsulePresentation>().clear();
+        // Hidden and idle: the only moment a page reload is invisible.
+        recycle_if_due(&app);
     }
 }
 
@@ -578,6 +872,11 @@ pub fn emit_capsule_state(
         payload.revision,
         payload.generation
     );
+    if payload.state == "recording" {
+        if let Some(generation) = payload.generation {
+            app.state::<CapsuleHealth>().note_take(generation);
+        }
+    }
     if payload.state != "idle" {
         let handle = app.clone();
         let revision = payload.revision;

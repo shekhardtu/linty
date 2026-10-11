@@ -54,7 +54,7 @@ export function useGlobalHotkey(enabled = true) {
     });
   }, []);
 
-  const handlePress = useCallback(async () => {
+  const handlePress = useCallback(async (source: string) => {
     if (!enabledRef.current || isRecordingRef.current || isRecoveringDictation()) {
       gestureRef.current?.reset();
       return;
@@ -70,7 +70,9 @@ export function useGlobalHotkey(enabled = true) {
       const focus = isDictationWindowActive();
       // Reserve startup before awaiting focus: a fast release must still wait
       // for this microphone and close it rather than start a second capture.
-      const starting = startRecordingRef.current();
+      // A modifier-hold press also lets the native session close the microphone
+      // on that press's release without waiting for this webview.
+      const starting = startRecordingRef.current({ stopOnTriggerRelease: source === "modifier" });
       session = currentDictation();
       const owner = session;
       const inFocus = await focus;
@@ -150,7 +152,7 @@ export function useGlobalHotkey(enabled = true) {
   }, []);
 
   if (!gestureRef.current) gestureRef.current = new DictationTrigger({
-    start: () => { void handlePress(); },
+    start: (source) => { void handlePress(source); },
     stop: () => { void finishRecording(); },
     latch: () => {
       useAppStore.getState().setHandsFree(true);
@@ -232,8 +234,11 @@ export function useGlobalHotkey(enabled = true) {
       modifier: triggerModifierName(triggerKey),
     }).catch((err) => console.error("Failed to set trigger modifier:", err));
 
-    const unlistenPress = listen("fnkey-pressed", () => gestureRef.current?.press("modifier"));
-    const unlistenRelease = listen("fnkey-released", () => gestureRef.current?.release("modifier"));
+    // The payload carries the key's own time, so a webview that processes
+    // events late cannot distort hold or double-press timing.
+    type TriggerEvent = { at?: number } | null;
+    const unlistenPress = listen<TriggerEvent>("fnkey-pressed", ({ payload }) => gestureRef.current?.press("modifier", payload?.at ?? Date.now()));
+    const unlistenRelease = listen<TriggerEvent>("fnkey-released", ({ payload }) => gestureRef.current?.release("modifier", payload?.at ?? Date.now()));
 
     return () => {
       unlistenPress.then((fn) => fn());

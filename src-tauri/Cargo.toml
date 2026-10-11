@@ -53,6 +53,7 @@ whatlang = "0.18"
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"          # NSEvent monitoring for fn/globe key
 block2 = "0.6"
+libc = "0.2"            # CLOCK_UPTIME_RAW for NSEvent timestamps; proc_pid_rusage for the capsule web process
 cocoa = "0.27"          # Activation policy (Dock/menu bar)
 objc = "0.2"
 security-framework = "3.7"
