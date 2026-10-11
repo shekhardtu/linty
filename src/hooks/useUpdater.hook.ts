@@ -13,9 +13,6 @@ import {
 } from "@/lib/force-update.util";
 
 const CHECK_DELAY_MS = 5_000;
-/// Short enough that a required update reaches running copies within the
-/// hour it is published.
-const CHECK_INTERVAL_MS = 15 * 60 * 1_000;
 /// A UI guard for an unresponsive native command. Native networking has its
 /// own connection, read and overall check timeouts.
 const CHECK_GUARD_MS = 40_000;
@@ -244,8 +241,8 @@ export function useUpdater() {
 }
 
 /**
- * Auto-check at launch, every 15 minutes and on wake. Failed checks retry
- * after 1, 2, 4, then 5 minutes until a check succeeds.
+ * Auto-check at launch, on the watchdog's 15-minute nudge and on wake. Failed
+ * checks retry after 1, 2, 4, then 5 minutes until a check succeeds.
  * Call this ONCE in App.tsx — not in every component that uses useUpdater().
  */
 export function useUpdaterAutoCheck() {
@@ -269,19 +266,19 @@ export function useUpdaterAutoCheck() {
     });
 
     const timeout = setTimeout(() => checkForUpdate(true), CHECK_DELAY_MS);
-    const interval = setInterval(() => checkForUpdate(true), CHECK_INTERVAL_MS);
     const unlistenWake = listen("system-wake", () => {
       void checkForUpdate(true);
     });
-    // The native watchdog also asks every 15 minutes. WebKit suspends a hidden
-    // window's timers (this interval included) and an event delivery resumes
-    // the page, so copies living in the menu bar still receive required updates.
+    // The periodic check is driven by the native watchdog (every 15 minutes),
+    // one clock for the whole app. Its event delivery also resumes this page if
+    // WebKit ever suspends it again; the install path (download, the 30 s quiet
+    // wait, install) still needs the window's own timers, which is why both
+    // windows run with backgroundThrottling disabled.
     const unlistenNudge = listen("updater-check", () => {
       void checkForUpdate(true);
     });
     return () => {
       clearTimeout(timeout);
-      clearInterval(interval);
       clearTimeout(retryTimer);
       unsubscribe();
       void unlistenWake.then((unlisten) => unlisten());

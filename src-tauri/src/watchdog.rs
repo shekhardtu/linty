@@ -13,9 +13,11 @@ const MONITOR_CHECK_EVERY_TICKS: u64 = 15;
 /// Read the capsule web process footprint every N ticks (30 × 2s = 60s).
 #[cfg(target_os = "macos")]
 const CAPSULE_MEMORY_CHECK_EVERY_TICKS: u64 = 30;
-/// Nudge the main window to check for updates every N ticks (450 × 2s = 15 min).
-/// WebKit suspends a hidden window's own timers, and an event delivery resumes
-/// the page, so a required update reaches copies that live in the menu bar.
+/// Ask the main window to check for updates every N ticks (450 × 2s = 15 min):
+/// the app's single periodic trigger, short enough that a required update
+/// reaches running copies within the hour it is published. The event delivery
+/// also resumes the page if WebKit ever suspends it; the install path itself
+/// relies on the windows' `backgroundThrottling: disabled`.
 const UPDATE_CHECK_EVERY_TICKS: u64 = 450;
 
 pub fn start(app: tauri::AppHandle) {
