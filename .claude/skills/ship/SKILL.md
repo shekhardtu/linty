@@ -116,17 +116,14 @@ If `cargo` is not on PATH (non-login shell), use the rustup toolchain directly:
 If currently on `main`, create a feature branch:
 
 ```bash
-git checkout -b {username}/{short-description}
+git checkout -b {type}/{short-description}
 ```
 
-**Branch naming**: `{username}/{short-description}` (lowercase, kebab-case)
-- Example: `hari/fix-audio-capture-silence`
-- Example: `hari/add-groq-fallback`
-
-Get username from git config:
-```bash
-git config user.name | tr '[:upper:]' '[:lower:]' | tr ' ' '-'
-```
+**Branch naming**: `{type}/{short-description}` (lowercase, kebab-case), matching the
+branches already on the remote (`feat/parakeet-ultra`, `feat/launch-at-login`,
+`release/v0.0.8-notes`). Check with `git branch -r --sort=-committerdate | head`.
+- Example: `fix/capsule-webview-leak`
+- Example: `feat/launch-at-login`
 
 **If already on a feature branch**: Stay on it. Do not create a new branch.
 
