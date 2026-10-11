@@ -228,7 +228,8 @@ const RELOAD_SETTLE: Duration = Duration::from_secs(2);
 pub struct CapsuleHealth {
     takes: AtomicU64,
     last_counted_generation: AtomicU64,
-    reload_pending: AtomicBool,
+    /// The over-threshold warning was logged; cleared by a relaunch or reload.
+    over_threshold_logged: AtomicBool,
     last_reload: Mutex<Instant>,
     reload_started: Mutex<Option<Instant>>,
     recent_reloads: Mutex<Vec<Instant>>,
@@ -240,7 +241,7 @@ impl Default for CapsuleHealth {
         Self {
             takes: AtomicU64::new(0),
             last_counted_generation: AtomicU64::new(0),
-            reload_pending: AtomicBool::new(false),
+            over_threshold_logged: AtomicBool::new(false),
             last_reload: Mutex::new(Instant::now()),
             reload_started: Mutex::new(None),
             recent_reloads: Mutex::new(Vec::new()),
@@ -253,15 +254,31 @@ impl Default for CapsuleHealth {
 /// the same throttle, so a page that crashes while loading cannot loop.
 static OTHER_WEBVIEW_RELOADS: Mutex<Vec<Instant>> = Mutex::new(Vec::new());
 
-fn reload_due(takes: u64, age: Duration, pending: bool) -> Option<&'static str> {
-    if pending {
-        Some("memory")
-    } else if takes >= RELOAD_AFTER_TAKES {
+fn reload_due(takes: u64, age: Duration) -> Option<&'static str> {
+    if takes >= RELOAD_AFTER_TAKES {
         Some("takes")
     } else if age >= RELOAD_AFTER {
         Some("age")
     } else {
         None
+    }
+}
+
+/// A page above the threshold is relaunched (its web process is terminated and
+/// WebKit's callback reloads it) once nothing is presented; a reload alone keeps
+/// process-level caches. Until then the watchdog keeps checking.
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum MemoryAction {
+    Relaunch,
+    Wait,
+}
+fn memory_action(bytes: u64, idle: bool) -> Option<MemoryAction> {
+    if bytes <= RELOAD_ABOVE_BYTES {
+        None
+    } else if idle {
+        Some(MemoryAction::Relaunch)
+    } else {
+        Some(MemoryAction::Wait)
     }
 }
 
@@ -290,11 +307,7 @@ impl CapsuleHealth {
         now.duration_since(*self.last_reload.lock().unwrap_or_else(|e| e.into_inner()))
     }
     fn due(&self, now: Instant) -> Option<&'static str> {
-        reload_due(
-            self.takes.load(Ordering::Relaxed),
-            self.age(now),
-            self.reload_pending.load(Ordering::SeqCst),
-        )
+        reload_due(self.takes.load(Ordering::Relaxed), self.age(now))
     }
     /// Reserve a reload slot; false when throttled. Resets the counters.
     fn permit(&self, now: Instant) -> bool {
@@ -321,7 +334,7 @@ impl CapsuleHealth {
             .lock()
             .unwrap_or_else(|e| e.into_inner()) = Some(now);
         self.takes.store(0, Ordering::Relaxed);
-        self.reload_pending.store(false, Ordering::SeqCst);
+        self.over_threshold_logged.store(false, Ordering::SeqCst);
         true
     }
     /// Time left before a page reloaded at most RELOAD_SETTLE ago can receive
@@ -456,7 +469,8 @@ pub async fn web_process_footprint(app: &AppHandle) -> Option<(i32, u64)> {
 }
 
 /// Watchdog hook. Bounds the page's memory even if a leak returns: a large page
-/// reloads as soon as it is idle, a terminated process reloads at once.
+/// has its web process relaunched as soon as it is idle (process-level caches
+/// survive a plain reload); a terminated process reloads at once.
 pub async fn check_memory(app: &AppHandle) {
     let Some((pid, bytes)) = web_process_footprint(app).await else {
         return;
@@ -472,19 +486,57 @@ pub async fn check_memory(app: &AppHandle) {
         bytes >> 20,
         health.takes.load(Ordering::Relaxed)
     );
-    if bytes <= RELOAD_ABOVE_BYTES {
-        return;
+    match memory_action(bytes, capsule_idle(app)) {
+        None => {}
+        Some(MemoryAction::Wait) => {
+            if !health.over_threshold_logged.swap(true, Ordering::SeqCst) {
+                log::warn!(
+                    "[capsule] Web content footprint {}MB exceeds {}MB — relaunch when idle",
+                    bytes >> 20,
+                    RELOAD_ABOVE_BYTES >> 20
+                );
+            }
+        }
+        Some(MemoryAction::Relaunch) => {
+            log::warn!(
+                "[capsule] Web content footprint {}MB exceeds {}MB — relaunching its web process",
+                bytes >> 20,
+                RELOAD_ABOVE_BYTES >> 20
+            );
+            if terminate_web_process(pid) {
+                health.over_threshold_logged.store(false, Ordering::SeqCst);
+            }
+        }
     }
-    if !health.reload_pending.swap(true, Ordering::SeqCst) {
-        log::warn!(
-            "[capsule] Web content footprint {}MB exceeds {}MB — page reload scheduled",
-            bytes >> 20,
-            RELOAD_ABOVE_BYTES >> 20
-        );
+}
+
+/// Terminate the capsule's web content process. WebKit then reports the
+/// termination and the page is reloaded (throttled) into a fresh process. The
+/// pid was read from WebKit moments ago; its image path is checked again so a
+/// recycled pid can never target another program.
+fn terminate_web_process(pid: i32) -> bool {
+    let mut path = [0u8; libc::PROC_PIDPATHINFO_MAXSIZE as usize];
+    let length = unsafe {
+        libc::proc_pidpath(
+            pid,
+            path.as_mut_ptr() as *mut std::ffi::c_void,
+            path.len() as u32,
+        )
+    };
+    let image = if length > 0 {
+        String::from_utf8_lossy(&path[..length as usize]).into_owned()
+    } else {
+        String::new()
+    };
+    if !image.contains("com.apple.WebKit.WebContent") {
+        log::warn!("[capsule] Not terminating pid {pid}: it is no longer a web content process");
+        return false;
     }
-    if capsule_idle(app) {
-        reload_capsule(app, "memory", Some(bytes));
+    if unsafe { libc::kill(pid, libc::SIGKILL) } != 0 {
+        log::warn!("[capsule] Could not terminate web content process {pid}");
+        return false;
     }
+    true
 }
 
 #[cfg(test)]
@@ -492,22 +544,29 @@ mod lifetime_tests {
     use super::*;
 
     #[test]
-    fn a_reload_is_due_after_enough_takes_age_or_a_memory_flag() {
-        assert_eq!(reload_due(0, Duration::ZERO, false), None);
+    fn a_reload_is_due_after_enough_takes_or_age_and_memory_relaunches_when_idle() {
+        assert_eq!(reload_due(0, Duration::ZERO), None);
         assert_eq!(
             reload_due(
                 RELOAD_AFTER_TAKES - 1,
-                RELOAD_AFTER - Duration::from_secs(1),
-                false
+                RELOAD_AFTER - Duration::from_secs(1)
             ),
             None
         );
         assert_eq!(
-            reload_due(RELOAD_AFTER_TAKES, Duration::ZERO, false),
+            reload_due(RELOAD_AFTER_TAKES, Duration::ZERO),
             Some("takes")
         );
-        assert_eq!(reload_due(0, RELOAD_AFTER, false), Some("age"));
-        assert_eq!(reload_due(0, Duration::ZERO, true), Some("memory"));
+        assert_eq!(reload_due(0, RELOAD_AFTER), Some("age"));
+        assert_eq!(memory_action(RELOAD_ABOVE_BYTES, true), None);
+        assert_eq!(
+            memory_action(RELOAD_ABOVE_BYTES + 1, false),
+            Some(MemoryAction::Wait)
+        );
+        assert_eq!(
+            memory_action(RELOAD_ABOVE_BYTES + 1, true),
+            Some(MemoryAction::Relaunch)
+        );
     }
 
     #[test]
@@ -539,11 +598,12 @@ mod lifetime_tests {
         assert_eq!(health.takes.load(Ordering::Relaxed), 2);
         let now = Instant::now();
         assert_eq!(health.due(now), None);
-        health.reload_pending.store(true, Ordering::SeqCst);
-        assert_eq!(health.due(now), Some("memory"));
+        health.takes.store(RELOAD_AFTER_TAKES, Ordering::Relaxed);
+        assert_eq!(health.due(now), Some("takes"));
+        health.over_threshold_logged.store(true, Ordering::SeqCst);
         assert!(health.permit(now));
         assert_eq!(health.takes.load(Ordering::Relaxed), 0);
-        assert!(!health.reload_pending.load(Ordering::SeqCst));
+        assert!(!health.over_threshold_logged.load(Ordering::SeqCst));
         assert_eq!(health.due(now), None);
         assert!(
             !health.permit(now + Duration::from_secs(1)),

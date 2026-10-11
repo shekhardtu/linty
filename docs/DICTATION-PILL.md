@@ -12,12 +12,17 @@ uses the middle of the 20 px display; loud input has room to move. The maximum
 bar height is 18.2 px, leaving space at both edges. An eased attack and longer
 release soften small fluctuations. This display curve also drives the favicon;
 it does not change recorded audio, speech detection, or the inactivity deadline.
-There is no continuous canvas draw loop. Each native amplitude frame writes the
-bar transforms and the three stroke heights directly onto the elements, with no
-React state and no CSS transition on those values: the smoothing comes from the
-display curve itself. WebKit allocates a new animation object every time a CSS
-transition is retargeted, and at 15 frames a second across 41 values that leaked
-about 20 MB of heap per dictation until the pill took seconds to paint (#147).
+There is no continuous canvas draw loop. While listening, the pill polls the
+microphone level about 15 times a second through the `input_level` command,
+which reads a value the audio thread publishes every sixth callback. Each frame
+writes the bar transforms and the three stroke heights directly onto the
+elements, with no React state and no CSS transition on those values: the
+smoothing comes from the display curve itself. Two mechanisms were removed
+because they grew the capsule's web process with every frame: WebKit allocates a
+new animation object every time a CSS transition is retargeted (about 20 MB of
+heap per dictation, #147), and every pushed Tauri event is a script evaluation
+that WebKit caches per unique payload (about 7 MB per dictation, part of it at
+the process level, #150). Polling goes over Tauri's request channel instead.
 Transitions remain only on mode changes (listening, processing, done).
 
 The in-app Microphone Test shares this response curve in an 80-bar, full-width
@@ -74,11 +79,15 @@ Its drag surface and Reset position control let you try placement as well.
 
 The capsule is its own WebKit content process. As a safety net against any
 future growth, Linty reloads the capsule page while it is hidden and idle after
-25 dictations or 6 hours, when the watchdog measures its process above 300 MB,
-or when the process has terminated (also on WebKit's termination callback).
-Reloads are throttled to one per 30 seconds and three per five minutes, so a
-page that stays large or crashes right after loading cannot loop; the log line
-is `[capsule] Page reloaded (reason=…)`. A reload is invisible because the page
+25 dictations or 6 hours, and reloads it at once when the process has
+terminated (WebKit's termination callback, and the watchdog's check every
+minute). When the watchdog measures the process above 300 MB it terminates that
+web process as soon as the capsule is idle and hidden; WebKit reports the
+termination and the page is reloaded into a fresh process, which also drops
+process-level caches that a plain reload keeps. Reloads are throttled to one per
+30 seconds and three per five minutes, so a page that stays large or crashes
+right after loading cannot loop; the log lines are `[capsule] Page reloaded
+(reason=…)` and `[capsule] … relaunching its web process`. A reload is invisible because the page
 re-reads the current dictation state on load (`get_capsule_state`), and it never
 happens while a capture is open or draining; idleness is re-checked immediately
 before the reload. A press that lands within milliseconds of a hide can still

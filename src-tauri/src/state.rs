@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::atomic::AtomicU64;
+use std::sync::atomic::{AtomicU32, AtomicU64};
 use std::sync::{mpsc, Arc, Mutex};
 
 /// Default idle time before the local speech model is unloaded (15 minutes).
@@ -174,6 +174,10 @@ pub struct AppState {
     pub audio_callback_count: Arc<AtomicU64>,
     /// Invalidates callbacks and pending startup from an abandoned recording.
     pub audio_generation: Arc<AtomicU64>,
+    /// Latest input RMS (f32 bits) for the waveforms, which poll it over IPC.
+    /// Per-frame Tauri events were script evaluations that WebKit cached per
+    /// unique payload, growing the capsule's web process with every frame.
+    pub input_level: Arc<AtomicU32>,
 }
 
 impl AppState {
@@ -197,6 +201,7 @@ impl AppState {
             app_icon_cache: Mutex::new(HashMap::new()),
             audio_callback_count: Arc::new(AtomicU64::new(0)),
             audio_generation: Arc::new(AtomicU64::new(0)),
+            input_level: Arc::new(AtomicU32::new(0)),
         }
     }
 

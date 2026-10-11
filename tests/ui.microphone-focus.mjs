@@ -65,9 +65,11 @@ try {
     assert.ok(wave.width / section.width >= .7, 'Waveform covers at least 70% of the component');
     assert.ok((last.x + last.width - first.x) / wave.width > .98, 'The bars fill the waveform, not just its container');
   };
-  const feedWave = () => page.evaluate(() => {
-    for (let i = 0; i < 100; i++) window.__QA__.emit('audio-amplitude', [.001, .004, .02, .07, .12, .03, .007, 0][i % 8]);
-  });
+  // The waveform polls `input_level` every 65 ms; one queued value per poll.
+  const feedWave = async () => {
+    await page.evaluate(() => { window.__QA__.levelQueue.push(...Array.from({ length: 100 }, (_, i) => [.001, .004, .02, .07, .12, .03, .007, 0][i % 8])); });
+    for (let i = 0; i < 101; i++) await page.clock.runFor(65);
+  };
   const focus = page.getByRole('dialog', { name: 'Focused dictation', exact: true });
   const press = () => page.evaluate(() => window.__QA__.emit('fnkey-pressed'));
   const release = () => page.evaluate(() => window.__QA__.emit('fnkey-released'));

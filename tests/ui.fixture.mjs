@@ -441,6 +441,10 @@ export const fixture = ({
     history,
     calls: [],
     emittedEvents: [],
+    // Microphone level as the app now reads it: polled through `input_level`.
+    // Tests queue a sequence (one value per poll) or set a steady level.
+    levelQueue: [],
+    inputLevel: 0,
     correctionFeedback: [],
     clipboard: "",
     audioInputs: { selected: null, defaultDevice: "Built-in Microphone", devices: [
@@ -477,6 +481,8 @@ export const fixture = ({
       window.__QA__.calls.push(command);
       if (window.__QA__.failures[command])
         throw new Error(window.__QA__.failures[command]);
+      if (command === "input_level")
+        return window.__QA__.levelQueue.length ? window.__QA__.levelQueue.shift() : window.__QA__.inputLevel;
       const dictationWindowActive = () => (window.__QA__.windowFocused ?? document.hasFocus())
         && (window.__QA__.windowVisible ?? true) && !(window.__QA__.windowMinimized ?? false)
         && (window.__QA__.appActive ?? true) && (window.__QA__.windowOnActiveSpace ?? true);
