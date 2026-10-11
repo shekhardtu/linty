@@ -26,7 +26,8 @@
         "alwaysOnTop": false,
         "visible": false,
         "center": true,
-        "shadow": true
+        "shadow": true,
+        "backgroundThrottling": "disabled"
       },
       {
         "title": "",
@@ -41,7 +42,8 @@
         "visible": false,
         "shadow": false,
         "skipTaskbar": true,
-        "focus": false
+        "focus": false,
+        "backgroundThrottling": "disabled"
       }
     ],
     "trayIcon": {

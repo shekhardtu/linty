@@ -273,12 +273,19 @@ export function useUpdaterAutoCheck() {
     const unlistenWake = listen("system-wake", () => {
       void checkForUpdate(true);
     });
+    // The native watchdog also asks every 15 minutes. WebKit suspends a hidden
+    // window's timers (this interval included) and an event delivery resumes
+    // the page, so copies living in the menu bar still receive required updates.
+    const unlistenNudge = listen("updater-check", () => {
+      void checkForUpdate(true);
+    });
     return () => {
       clearTimeout(timeout);
       clearInterval(interval);
       clearTimeout(retryTimer);
       unsubscribe();
       void unlistenWake.then((unlisten) => unlisten());
+      void unlistenNudge.then((unlisten) => unlisten());
       autoCheckActive = false;
     };
   }, [checkForUpdate]);

@@ -70,6 +70,10 @@ try {
     await page.evaluate(() => { delete window.__QA__.failures['check_for_update']; });
     await check(page);
     await dialog.getByText('You’re up to date.', { exact: true }).waitFor();
+    // The native watchdog's nudge runs a silent check too (hidden windows have no live timers).
+    const checksBeforeNudge = await page.evaluate(() => window.__QA__.calls.filter(command => command === 'check_for_update').length);
+    await page.evaluate(() => window.__QA__.emit('updater-check'));
+    await page.waitForFunction(count => window.__QA__.calls.filter(command => command === 'check_for_update').length > count, checksBeforeNudge);
     await page.screenshot({ path: `${output}/updated-${theme}.png`, animations: 'disabled' });
     const audit = await new AxeBuilder({ page }).analyze();
     assert.deepEqual(audit.violations.map(v => `${v.id}: ${v.help}`), []);
