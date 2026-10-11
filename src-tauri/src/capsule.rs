@@ -337,6 +337,20 @@ impl CapsuleHealth {
         self.over_threshold_logged.store(false, Ordering::SeqCst);
         true
     }
+    /// Whether a reload would be permitted right now. A web process is only
+    /// terminated when the reload that brings it back will not be throttled.
+    fn relaunch_allowed(&self, now: Instant) -> bool {
+        let recent = self
+            .recent_reloads
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let recent: Vec<Instant> = recent
+            .iter()
+            .copied()
+            .filter(|t| now.duration_since(*t) < RELOAD_BURST_WINDOW)
+            .collect();
+        reload_allowed(&recent, now)
+    }
     /// Time left before a page reloaded at most RELOAD_SETTLE ago can receive
     /// transient events; `None` once it has settled.
     fn reload_settling(&self, now: Instant) -> Option<Duration> {
@@ -498,6 +512,19 @@ pub async fn check_memory(app: &AppHandle) {
             }
         }
         Some(MemoryAction::Relaunch) => {
+            // The termination callback reloads through the throttle. Never
+            // kill a process whose reload would be refused: a blank panel is
+            // worse than a large one.
+            if !health.relaunch_allowed(Instant::now()) {
+                if !health.over_threshold_logged.swap(true, Ordering::SeqCst) {
+                    log::warn!(
+                        "[capsule] Web content footprint {}MB exceeds {}MB — relaunch waits for the reload throttle",
+                        bytes >> 20,
+                        RELOAD_ABOVE_BYTES >> 20
+                    );
+                }
+                return;
+            }
             log::warn!(
                 "[capsule] Web content footprint {}MB exceeds {}MB — relaunching its web process",
                 bytes >> 20,
@@ -616,6 +643,11 @@ mod lifetime_tests {
             "Transient notices wait for the reloaded page"
         );
         assert_eq!(health.reload_settling(now + RELOAD_SETTLE), None);
+        assert!(
+            !health.relaunch_allowed(now + Duration::from_secs(1)),
+            "A web process is not killed while its reload would be throttled"
+        );
+        assert!(health.relaunch_allowed(now + RELOAD_MIN_INTERVAL));
     }
 }
 
