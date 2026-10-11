@@ -154,10 +154,9 @@ button:not(:disabled):active { filter: none; }
   transform-origin: left center;
   transition: transform var(--motion-surface) linear;
 }
-.waveform-bar {
-  transform-origin: center;
-  transition: transform 70ms linear, opacity 70ms linear;
-}
+/* Live waveforms are canvases (no per-frame style writes or transitions). */
+.waveform-canvas { display: block; color: var(--color-accent); }
+.waveform-canvas.is-idle { color: var(--color-border); }
 .button-label-stack { display: grid; }
 .button-label-stack > span { grid-area: 1 / 1; }
 .button-label-stack > [aria-hidden="true"] { visibility: hidden; }

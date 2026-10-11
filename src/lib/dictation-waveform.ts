@@ -16,7 +16,7 @@ export function advanceWaveform(previous: number[], rms: number): number[] {
 }
 
 /** A canvas that also exposes what it last drew, for tests and previews. */
-export type LevelCanvas = HTMLCanvasElement & { levels?: number[]; heights?: number[]; strokes?: number[] };
+export type LevelCanvas = HTMLCanvasElement & { levels?: number[]; heights?: number[]; strokes?: number[]; span?: [number, number] };
 
 function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
   const r = Math.min(radius, width / 2, height / 2);
@@ -47,25 +47,31 @@ function fitBackingStore(canvas: HTMLCanvasElement, fallbackWidth: number, fallb
  * WebKit retained memory for every per-frame inline style or custom property
  * write (about 10 MB a minute of recording), while canvas drawing stays flat.
  */
-export function drawWaveform(canvas: LevelCanvas, levels: number[]) {
+export function drawWaveform(canvas: LevelCanvas, levels: number[], options: { fill?: boolean; idle?: boolean } = {}) {
   const { width, height, scale } = fitBackingStore(canvas, levels.length * 4 - 2, 20);
   const context = canvas.getContext("2d");
   if (!context) return;
   context.clearRect(0, 0, width, height);
-  context.fillStyle = getComputedStyle(canvas).color;
-  const bar = 2 * scale;
-  const gap = 2 * scale;
-  let x = Math.round((width - (levels.length * bar + (levels.length - 1) * gap)) / 2);
+  const style = getComputedStyle(canvas);
+  context.fillStyle = style.color;
+  // The gap comes from CSS (`gap` on the canvas), default 2 px.
+  const gap = (Number.parseFloat(style.columnGap) || 2) * scale;
+  const count = levels.length;
+  // `fill` stretches the bars across the full width; otherwise they are 2 px.
+  const bar = options.fill ? Math.max(scale, (width - gap * (count - 1)) / count) : 2 * scale;
+  const start = options.fill ? 0 : Math.round((width - (count * bar + (count - 1) * gap)) / 2);
+  let x = start;
   const heights: number[] = [];
   for (const level of levels) {
     const barHeight = height * (0.1 + level * 0.9);
     heights.push(barHeight / height);
-    context.globalAlpha = 0.4 + level * 0.6;
+    context.globalAlpha = options.idle ? 0.2 : 0.4 + level * 0.6;
     roundedRect(context, x, (height - barHeight) / 2, bar, barHeight, bar / 2);
     x += bar + gap;
   }
   context.globalAlpha = 1;
   canvas.levels = levels;
+  canvas.span = [start / width, (x - gap) / width];
   // What was actually drawn, as a fraction of the canvas height.
   canvas.heights = heights;
 }

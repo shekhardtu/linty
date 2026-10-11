@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useDocumentVisible } from "@/hooks/useDocumentVisible.hook";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { ChevronDown, Download, Loader2 } from "lucide-react";
@@ -58,11 +59,14 @@ export function Reformatting({ disabled: languagePreparing = false }: { disabled
     const unlisten = listen<number>("s1-download-progress", (event) => setProgress(event.payload));
     return () => { void unlisten.then((stop) => stop()).catch(() => {}); };
   }, [refresh]);
+  // Progress also arrives as events; the status poll only runs while visible.
+  const visible = useDocumentVisible();
   useEffect(() => {
-    if (!downloading) return;
+    if (!downloading || !visible) return;
+    void refresh().catch(() => {});
     const timer = setInterval(() => void refresh().catch(() => {}), 2000);
     return () => clearInterval(timer);
-  }, [downloading, refresh]);
+  }, [downloading, visible, refresh]);
 
   const choose = async (mode: CleanupMode) => {
     setSaving(true); setError(null);

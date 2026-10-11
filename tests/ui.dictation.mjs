@@ -296,11 +296,12 @@ try {
   const microphoneTest=focus.locator('.microphone-test');
   const startTest=focus.getByRole('button',{name:'Try again',exact:true});
   const stopTest=focus.getByRole('button',{name:'Stop & transcribe',exact:true});
-  await page.waitForFunction(()=>document.querySelectorAll('.microphone-test .waveform-bar').length===80);
+  await page.waitForFunction(()=>document.querySelector('.microphone-test .waveform-canvas')?.heights?.length===80);
   await page.clock.runFor(100);
   const liveControl=await stopTest.boundingBox();
   assert.ok(liveControl.width >= 154,'The microphone control has a readable action label');
-  const testLevels=()=>microphoneTest.locator('.waveform-bar').evaluateAll(bars=>bars.map(bar=>new DOMMatrix(bar.style.transform).d));
+  // The waveform is a canvas; it exposes the bar heights it drew, as a fraction of its height.
+  const testLevels=()=>microphoneTest.locator('.waveform-canvas').evaluate(canvas=>canvas.heights);
   // The waveform polls `input_level` every 65 ms; one queued value per poll.
   // One queued value per poll. The extra tick covers timer phase; it holds the
   // last value, and the queue must be fully drained before asserting.
@@ -324,7 +325,7 @@ try {
   }
   await stopTest.click(); await status('idle');
   await startTest.waitFor();
-  assert.equal(await microphoneTest.locator('.waveform-bar').count(),0);
+  assert.equal(await microphoneTest.locator('.waveform-canvas').count(),0);
   const polls=await count('input_level');
   await page.clock.runFor(650);
   assert.equal(await count('input_level'),polls,'Stopping ends the level polling');

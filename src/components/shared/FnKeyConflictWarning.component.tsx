@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useDocumentVisible } from "@/hooks/useDocumentVisible.hook";
 import { AlertCircle, ExternalLink } from "lucide-react";
 import {
   checkFnKeyConflict,
@@ -29,9 +30,11 @@ export function FnKeyConflictWarning({ className }: { className?: string }) {
   const [conflict, setConflict] = useState<FnKeyConflict | null>(null);
 
   const isFnTrigger = triggerKey === TRIGGER_KEY_FN;
+  // Re-checks immediately when the window returns; never polls while hidden.
+  const visible = useDocumentVisible();
 
   useEffect(() => {
-    if (!isFnTrigger) return;
+    if (!isFnTrigger || !visible) return;
 
     const poll = async () => {
       const result = await checkFnKeyConflict().catch(() => null);
@@ -40,7 +43,7 @@ export function FnKeyConflictWarning({ className }: { className?: string }) {
     poll();
     const interval = setInterval(poll, 3000);
     return () => clearInterval(interval);
-  }, [isFnTrigger]);
+  }, [isFnTrigger, visible]);
 
   if (!isFnTrigger || !conflict?.conflict) return null;
 
