@@ -60,7 +60,8 @@ export function CapsulePanel() {
   const levelsRef = useRef<number[]>(flatWaveform());
   const waveRef = useRef<LevelCanvas | null>(null);
   const strokesRef = useRef<LevelCanvas | null>(null);
-  const reducedMotionRef = useRef(typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  // Read live: the capsule page outlives a change to the accessibility setting.
+  const reducedMotionRef = useRef(typeof window.matchMedia === "function" ? window.matchMedia("(prefers-reduced-motion: reduce)") : null);
   const [speaking, setSpeaking] = useState(false);
   const speakingRef = useRef(false);
   const quietRef = useRef(0);
@@ -91,11 +92,22 @@ export function CapsulePanel() {
     // The three favicon strokes keep their staggered, centered movement from
     // recent microphone input while listening; a quiet warning rests them low.
     // Reduced motion and every other mode keep the artwork's own height.
-    const live = modeRef.current === "recording" && !reducedMotionRef.current;
+    const live = modeRef.current === "recording" && !reducedMotionRef.current?.matches;
     const brand = live && quietRef.current < 20
       ? [levels[WAVEFORM_BAR_COUNT - 3], levels[WAVEFORM_BAR_COUNT - 1], levels[WAVEFORM_BAR_COUNT - 2]] : [0, 0, 0];
     drawBrandStrokes(strokes, brand.map(level => (live ? 0.35 + level * 0.65 : 1)));
   }, []);
+
+  // Stable callbacks: a re-render (for example the speaking class) must not
+  // detach and re-attach the canvases.
+  const waveCanvasRef = useCallback((element: LevelCanvas | null) => {
+    waveRef.current = element;
+    if (element) paintWave();
+  }, [paintWave]);
+  const strokesCanvasRef = useCallback((element: LevelCanvas | null) => {
+    strokesRef.current = element;
+    if (element) paintWave();
+  }, [paintWave]);
 
   const dismiss = useCallback(() => {
     if (exitTimerRef.current !== null) return;
@@ -250,7 +262,9 @@ export function CapsulePanel() {
     const levels = advanceWaveform(levelsRef.current, rms);
     levelsRef.current = levels;
     paintWave();
-    const talking = levels.slice(-3).some(level => level > 0.02);
+    // Hysteresis keeps the class from flickering around a single threshold.
+    const loudest = Math.max(...levels.slice(-3));
+    const talking = speakingRef.current ? loudest > 0.012 : loudest > 0.02;
     if (talking !== speakingRef.current) {
       speakingRef.current = talking;
       setSpeaking(talking);
@@ -299,14 +313,13 @@ export function CapsulePanel() {
           <span
             className={`capsule-favicon${isRecording ? " is-listening" : ""}${isSpeaking ? " is-speaking" : ""}`}
             role="img" aria-label="Linty" aria-hidden={isCompact || isProcessing}
-            // The same generated favicon artwork; while listening its strokes are
-            // hidden and redrawn on the canvas below from recent input.
-            dangerouslySetInnerHTML={{ __html: lintyFavicon }}
-          />
-          {isRecording && <canvas
-            className="capsule-strokes" aria-hidden="true"
-            ref={element => { strokesRef.current = element; if (element) paintWave(); }}
-          />}
+          >
+            {/* The same generated favicon artwork; while listening its strokes are
+                hidden and redrawn on the canvas from recent input. The canvas sits
+                inside the favicon so it shares its fade and scale transitions. */}
+            <span className="capsule-favicon-art" dangerouslySetInnerHTML={{ __html: lintyFavicon }} />
+            {isRecording && <canvas className="capsule-strokes" aria-hidden="true" ref={strokesCanvasRef} />}
+          </span>
           <span className="capsule-spinner" aria-hidden="true">
             <svg className="capsule-orbit" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
               <circle className="capsule-orbit-track" cx="12" cy="12" r="8" />
@@ -321,7 +334,7 @@ export function CapsulePanel() {
           <span className="capsule-divider" aria-hidden="true" />
           <div className="capsule-content" key={expandedQuiet ? "quiet" : expandedMode}>
             {expandedMode === "recording" && (expandedQuiet ? <span className="capsule-quiet-message" aria-hidden="true">Stopping…</span> : <>
-              <canvas className="capsule-wave" aria-hidden="true" ref={element => { waveRef.current = element; if (element) paintWave(); }} />
+              <canvas className="capsule-wave" aria-hidden="true" ref={waveCanvasRef} />
               <span className="capsule-time" aria-hidden="true">{handsFree && <LockKeyhole size={10} strokeWidth={1.6} />}{formatDuration(duration)}</span>
             </>)}
             {expandedMode === "preparing" && <span className="capsule-message" aria-hidden="true">Getting ready…</span>}

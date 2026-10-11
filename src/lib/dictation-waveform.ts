@@ -16,7 +16,7 @@ export function advanceWaveform(previous: number[], rms: number): number[] {
 }
 
 /** A canvas that also exposes what it last drew, for tests and previews. */
-export type LevelCanvas = HTMLCanvasElement & { levels?: number[]; strokes?: number[] };
+export type LevelCanvas = HTMLCanvasElement & { levels?: number[]; heights?: number[]; strokes?: number[] };
 
 function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
   const r = Math.min(radius, width / 2, height / 2);
@@ -56,14 +56,18 @@ export function drawWaveform(canvas: LevelCanvas, levels: number[]) {
   const bar = 2 * scale;
   const gap = 2 * scale;
   let x = Math.round((width - (levels.length * bar + (levels.length - 1) * gap)) / 2);
+  const heights: number[] = [];
   for (const level of levels) {
     const barHeight = height * (0.1 + level * 0.9);
+    heights.push(barHeight / height);
     context.globalAlpha = 0.4 + level * 0.6;
     roundedRect(context, x, (height - barHeight) / 2, bar, barHeight, bar / 2);
     x += bar + gap;
   }
   context.globalAlpha = 1;
   canvas.levels = levels;
+  // What was actually drawn, as a fraction of the canvas height.
+  canvas.heights = heights;
 }
 
 /** The three strokes of `src-tauri/icons/icon.svg`, in its inner 14 × 16 viewBox. */

@@ -302,11 +302,12 @@ try {
   assert.ok(liveControl.width >= 154,'The microphone control has a readable action label');
   const testLevels=()=>microphoneTest.locator('.waveform-bar').evaluateAll(bars=>bars.map(bar=>new DOMMatrix(bar.style.transform).d));
   // The waveform polls `input_level` every 65 ms; one queued value per poll.
-  // One queued value per poll; a poll past the end repeats the last value so
-  // the newest bar never dips toward the idle level.
+  // One queued value per poll. The extra tick covers timer phase; it holds the
+  // last value, and the queue must be fully drained before asserting.
   const feedTest=async levels=>{
     await page.evaluate(levels=>{window.__QA__.levelQueue.push(...levels); window.__QA__.inputLevel=levels.at(-1);},levels);
     for(let i=0;i<levels.length+1;i++) await page.clock.runFor(65);
+    assert.equal(await page.evaluate(()=>{const left=window.__QA__.levelQueue.length; window.__QA__.inputLevel=0; return left;}),0,'Every queued level was polled');
   };
   await feedTest(Array(100).fill(.003));
   assert.ok((await testLevels()).every(height=>height<.2),'The app test keeps background noise close to the baseline');
@@ -422,9 +423,10 @@ try {
     const feed=async levels=>{
       await pill.evaluate(levels=>{window.__QA__.levelQueue.push(...levels); window.__QA__.inputLevel=levels.at(-1);},levels);
       for(let i=0;i<levels.length+1;i++) await pill.clock.runFor(65);
+      assert.equal(await pill.evaluate(()=>{const left=window.__QA__.levelQueue.length; window.__QA__.inputLevel=0; return left;}),0,'Every queued level was polled');
     };
-    // The bars are drawn on a canvas; it exposes the drawn levels (bar height = 10 % + level × 90 %).
-    const waveLevels=()=>pill.locator('.capsule-wave').evaluate(canvas=>canvas.levels.map(level=>0.1+level*0.9));
+    // The bars are drawn on a canvas; it exposes the heights it drew, as a fraction of its height.
+    const waveLevels=()=>pill.locator('.capsule-wave').evaluate(canvas=>canvas.heights);
     await feed(Array(24).fill(.001));
     const quietVoice=(await waveLevels()).at(-1);
     assert.ok(quietVoice*20<3,'Low room noise stays under 3 px in the 20 px display');

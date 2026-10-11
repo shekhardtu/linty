@@ -38,7 +38,7 @@ try {
   await page.locator('.capsule-recording.is-draggable').waitFor();
   assert.equal(await page.evaluate(() => window.__mic.requests), 0, 'The preview never requests the microphone automatically');
   await page.getByRole('button', { name: 'Background noise Low movement' }).click();
-  await page.waitForFunction(() => (document.querySelector('.capsule-wave')?.levels ?? []).every(level => (0.1 + level * 0.9) * 20 < 4));
+  await page.waitForFunction(() => { const heights = document.querySelector('.capsule-wave')?.heights; return heights?.length === 19 && heights.every(height => height * 20 < 4); });
   await page.getByRole('button', { name: 'Quiet room Almost still' }).click();
   await page.waitForFunction(() => Number(document.getElementById('wave-height').textContent) <= 2.1);
   await page.getByRole('button', { name: 'Conversation Varied, mid-height' }).click();

@@ -1,4 +1,4 @@
 ## What's new
 
-- The recording overlay's memory now stays flat while you dictate. Its waveform and the moving logo strokes are drawn differently, which removes the last source of growth, so long sessions no longer rely on the overlay refreshing itself.
+- The recording overlay's waveform and moving logo strokes are now drawn on a canvas. This removes the last known cause of the overlay's memory growing while you dictate, so it should no longer need to refresh itself during long sessions.
 - No change to dictation, shortcuts or your settings.
