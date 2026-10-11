@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { advanceWaveform, WAVEFORM_BAR_COUNT } from "@/lib/dictation-waveform";
+import { useCallback, useEffect, useRef } from "react";
+import { advanceWaveform, drawWaveform, WAVEFORM_BAR_COUNT } from "@/lib/dictation-waveform";
+import type { LevelCanvas } from "@/lib/dictation-waveform";
 import { useInputLevel } from "@/hooks/useInputLevel.hook";
 import { cn } from "@/lib/utils";
 
@@ -10,29 +11,41 @@ interface WaveformVisualizerProps {
   fillWidth?: boolean;
 }
 
+/**
+ * Live input waveform, drawn on a canvas. Per-frame DOM style writes (and CSS
+ * transitions on them) retain memory in WebKit for as long as the page lives;
+ * canvas drawing does not (#154, #156).
+ */
 export function WaveformVisualizer({ isActive, className, barCount = WAVEFORM_BAR_COUNT, fillWidth = false }: WaveformVisualizerProps) {
-  const [levels, setLevels] = useState(() => Array<number>(barCount).fill(0));
+  const canvasRef = useRef<LevelCanvas | null>(null);
+  const levelsRef = useRef<number[]>(Array<number>(barCount).fill(0));
+
+  const paint = useCallback(() => {
+    if (canvasRef.current) drawWaveform(canvasRef.current, levelsRef.current, { fill: fillWidth, idle: !isActive });
+  }, [fillWidth, isActive]);
+
+  const attach = useCallback((element: LevelCanvas | null) => {
+    canvasRef.current = element;
+    if (element) paint();
+  }, [paint]);
 
   useEffect(() => {
-    setLevels(Array<number>(barCount).fill(0));
-  }, [isActive, barCount]);
+    levelsRef.current = Array<number>(barCount).fill(0);
+    paint();
+  }, [isActive, barCount, paint]);
+
   // Every polled frame advances the history, including repeated zeroes, so old
   // speech never stays visible during silence.
-  useInputLevel(isActive, rms => setLevels(previous => advanceWaveform(previous, rms)));
+  useInputLevel(isActive, rms => {
+    levelsRef.current = advanceWaveform(levelsRef.current, rms);
+    paint();
+  });
 
   return (
-    <div className={cn("flex items-center justify-center gap-[2px]", className)} aria-hidden="true">
-      {levels.map((level, i) => (
-        <div
-          key={i}
-          className={cn("waveform-bar h-full rounded-full", fillWidth ? "flex-1 min-w-0" : "w-[2px] shrink-0")}
-          style={{
-            background: isActive ? "var(--color-accent)" : "var(--color-border)",
-            transform: `scaleY(${0.1 + level * 0.9})`,
-            opacity: isActive ? 0.4 + level * 0.6 : 0.2,
-          }}
-        />
-      ))}
-    </div>
+    <canvas
+      ref={attach}
+      className={cn("waveform-canvas", !isActive && "is-idle", className)}
+      aria-hidden="true"
+    />
   );
 }

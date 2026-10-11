@@ -27,7 +27,7 @@ writes (#154, about 10 MB per minute of recording; a canvas draw stays flat).
 Transitions remain only on mode changes (listening, processing, done).
 
 The in-app Microphone Test shares this response curve in an 80-bar, full-width
-display. Each native amplitude frame advances the history, including repeated
+display, drawn on a canvas with the same helper. Each native amplitude frame advances the history, including repeated
 silence. Its level listener exists only while recording. The last three results
 remain readable and copyable until the user leaves the screen, independently of
 the shared dictation reset timers. Empty results and errors preserve earlier text.

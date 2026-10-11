@@ -22,6 +22,7 @@ import { formatTriggerLabel } from "@/lib/trigger.util";
 import { useAppStore } from "@/store/app.store";
 import { FnKeyConflictWarning } from "@/components/shared/FnKeyConflictWarning.component";
 import { cn } from "@/lib/utils";
+import { useDocumentVisible } from "@/hooks/useDocumentVisible.hook";
 import "@/styles/system-check.css";
 import {
   PageLayout,
@@ -53,16 +54,18 @@ function usePermissions() {
     });
   }, []);
 
+  // Polls only while visible (hidden windows keep running); focus re-checks too.
+  const visible = useDocumentVisible();
   useEffect(() => {
     poll();
     window.addEventListener("focus", poll);
     // Stop polling once both permissions are granted
-    if (permissions.microphone === "authorized" && permissions.accessibility) {
+    if (!visible || (permissions.microphone === "authorized" && permissions.accessibility)) {
       return () => window.removeEventListener("focus", poll);
     }
     const interval = setInterval(poll, 3000);
     return () => { clearInterval(interval); window.removeEventListener("focus", poll); };
-  }, [poll, permissions.microphone, permissions.accessibility]);
+  }, [poll, visible, permissions.microphone, permissions.accessibility]);
 
   // Reinit fn key monitor when accessibility becomes granted
   useEffect(() => {

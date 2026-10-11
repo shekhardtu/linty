@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useDocumentVisible, useOnReturnVisible } from "@/hooks/useDocumentVisible.hook";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "@/store/app.store";
 import { initializeHistory } from "@/services/history.service";
@@ -51,10 +52,14 @@ export function useUsagePeriod(view: UsageView = "dashboard") {
   useEffect(() => {
     setData({ ...EMPTY, comparison: null, comparisonDays: null });
   }, [cacheEpoch]);
+  // Rolls the window forward once a minute while visible, and at once on return.
+  const visible = useDocumentVisible();
+  useOnReturnVisible(visible, () => setNow(Date.now()));
   useEffect(() => {
+    if (!visible) return;
     const timer = setInterval(() => setNow(Date.now()), 60_000);
     return () => clearInterval(timer);
-  }, []);
+  }, [visible]);
   useEffect(() => {
     let stale = false;
     const asOf = Math.max(now, Date.now());

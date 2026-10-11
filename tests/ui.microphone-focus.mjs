@@ -60,10 +60,9 @@ try {
   const waveWidth = async root => {
     const section = await root.boundingBox();
     const wave = await root.locator('.microphone-test-waveform').boundingBox();
-    const bars = root.locator('.waveform-bar');
-    const first = await bars.first().boundingBox(), last = await bars.last().boundingBox();
     assert.ok(wave.width / section.width >= .7, 'Waveform covers at least 70% of the component');
-    assert.ok((last.x + last.width - first.x) / wave.width > .98, 'The bars fill the waveform, not just its container');
+    const [from, to] = await root.locator('.microphone-test-waveform').evaluate(canvas => canvas.span);
+    assert.ok(from >= 0 && to <= 1.001 && to - from > .98, 'The bars fill the waveform without overflowing it');
   };
   // The waveform polls `input_level` every 65 ms; one queued value per poll.
   const feedWave = async () => {
