@@ -1427,14 +1427,16 @@ pub fn run() {
     let builder = builder
         .manage(capsule::CapsuleHealth::default())
         // A webview whose content process died shows nothing until reloaded.
-        // Both pages restore their state from native snapshots and stores.
+        // The capsule restores its presentation snapshot; the main window
+        // reloads settings and history from the stores (an in-flight take still
+        // finishes natively, but its dialog state is not kept).
         .on_web_content_process_terminate(|webview| {
             let label = webview.label().to_string();
             log::warn!("[webview] Web content process terminated for '{label}' — reloading");
             if label == "capsule" {
                 capsule::reload_capsule(webview.app_handle(), "terminated", None);
-            } else if let Err(error) = webview.reload() {
-                log::warn!("[webview] Could not reload '{label}': {error}");
+            } else {
+                capsule::reload_webview_throttled(webview);
             }
         });
     let mut app = builder

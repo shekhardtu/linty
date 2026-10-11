@@ -80,8 +80,12 @@ Reloads are throttled to one per 30 seconds and three per five minutes, so a
 page that stays large or crashes right after loading cannot loop; the log line
 is `[capsule] Page reloaded (reason=…)`. A reload is invisible because the page
 re-reads the current dictation state on load (`get_capsule_state`), and it never
-happens while a capture is open or draining. Tauri keeps the previous page's
-event-listener ids registered after a reload; the dispatcher ignores them.
+happens while a capture is open or draining; idleness is re-checked immediately
+before the reload. A press that lands within milliseconds of a hide can still
+coincide with a reload, which only delays that pill by the reload time. A
+correction notice arriving during the two seconds after a reload is delivered
+once the page has loaded. Tauri keeps the previous page's event-listener ids
+registered after a reload; the dispatcher ignores them.
 
 ## Placement
 

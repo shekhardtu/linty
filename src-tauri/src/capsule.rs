@@ -49,6 +49,21 @@ pub fn show_correction_feedback(
     let window = app
         .get_webview_window("capsule")
         .ok_or("Correction panel unavailable")?;
+    // The notice is transient: a page that is still reloading has no listener
+    // yet. Deliver it once the page has settled instead of losing it.
+    if let Some(delay) = app.state::<CapsuleHealth>().reload_settling(Instant::now()) {
+        let app = app.clone();
+        tauri::async_runtime::spawn(async move {
+            tokio::time::sleep(delay).await;
+            if let Some(window) = app.get_webview_window("capsule") {
+                let _ = window.eval("/* wake */");
+            }
+            if let Err(error) = app.emit_to("capsule", "correction-feedback", feedback) {
+                log::warn!("[capsule] Could not deliver a delayed correction notice: {error}");
+            }
+        });
+        return Ok(());
+    }
     // Resume a hidden WKWebView before delivering the notice. The webview waits
     // for any active dictation to finish before showing the nonactivating panel.
     window.eval("/* wake */").map_err(|e| e.to_string())?;
@@ -207,12 +222,15 @@ const RELOAD_ABOVE_BYTES: u64 = 300 * 1024 * 1024;
 const RELOAD_MIN_INTERVAL: Duration = Duration::from_secs(30);
 const RELOAD_BURST_WINDOW: Duration = Duration::from_secs(5 * 60);
 const RELOAD_BURST_LIMIT: usize = 3;
+/// A reloaded page needs this long before transient events reach its listeners.
+const RELOAD_SETTLE: Duration = Duration::from_secs(2);
 
 pub struct CapsuleHealth {
     takes: AtomicU64,
     last_counted_generation: AtomicU64,
     reload_pending: AtomicBool,
     last_reload: Mutex<Instant>,
+    reload_started: Mutex<Option<Instant>>,
     recent_reloads: Mutex<Vec<Instant>>,
     throttle_logged: AtomicBool,
 }
@@ -224,11 +242,16 @@ impl Default for CapsuleHealth {
             last_counted_generation: AtomicU64::new(0),
             reload_pending: AtomicBool::new(false),
             last_reload: Mutex::new(Instant::now()),
+            reload_started: Mutex::new(None),
             recent_reloads: Mutex::new(Vec::new()),
             throttle_logged: AtomicBool::new(false),
         }
     }
 }
+
+/// Other webviews (the main window) reload after a content-process death with
+/// the same throttle, so a page that crashes while loading cannot loop.
+static OTHER_WEBVIEW_RELOADS: Mutex<Vec<Instant>> = Mutex::new(Vec::new());
 
 fn reload_due(takes: u64, age: Duration, pending: bool) -> Option<&'static str> {
     if pending {
@@ -293,9 +316,45 @@ impl CapsuleHealth {
         self.throttle_logged.store(false, Ordering::SeqCst);
         recent.push(now);
         *self.last_reload.lock().unwrap_or_else(|e| e.into_inner()) = now;
+        *self
+            .reload_started
+            .lock()
+            .unwrap_or_else(|e| e.into_inner()) = Some(now);
         self.takes.store(0, Ordering::Relaxed);
         self.reload_pending.store(false, Ordering::SeqCst);
         true
+    }
+    /// Time left before a page reloaded at most RELOAD_SETTLE ago can receive
+    /// transient events; `None` once it has settled.
+    fn reload_settling(&self, now: Instant) -> Option<Duration> {
+        let started = (*self
+            .reload_started
+            .lock()
+            .unwrap_or_else(|e| e.into_inner()))?;
+        RELOAD_SETTLE
+            .checked_sub(now.duration_since(started))
+            .filter(|remaining| !remaining.is_zero())
+    }
+}
+
+pub fn reload_webview_throttled(webview: &tauri::Webview) {
+    let now = Instant::now();
+    let mut recent = OTHER_WEBVIEW_RELOADS
+        .lock()
+        .unwrap_or_else(|e| e.into_inner());
+    recent.retain(|t| now.duration_since(*t) < RELOAD_BURST_WINDOW);
+    if !reload_allowed(&recent, now) {
+        log::error!(
+            "[webview] Reload of '{}' throttled after {} reloads within {} min",
+            webview.label(),
+            recent.len(),
+            RELOAD_BURST_WINDOW.as_secs() / 60
+        );
+        return;
+    }
+    recent.push(now);
+    if let Err(error) = webview.reload() {
+        log::warn!("[webview] Could not reload '{}': {error}", webview.label());
     }
 }
 
@@ -312,9 +371,16 @@ fn capsule_idle(app: &AppHandle) -> bool {
             .capture_active()
 }
 
-/// Reload the capsule page. Callers check `capsule_idle` first: the page
-/// re-reads the presentation snapshot on load, so an idle reload is invisible.
+/// Reload the capsule page. The page re-reads the presentation snapshot on
+/// load, so an idle reload is invisible. A dead process reloads regardless;
+/// every other reason re-checks idleness here, as late as possible, because a
+/// new take can begin between a caller's check and this call. The residual
+/// window (a press within milliseconds of a hide) only delays that pill by the
+/// reload time.
 pub fn reload_capsule(app: &AppHandle, reason: &str, footprint: Option<u64>) -> bool {
+    if reason != "terminated" && !capsule_idle(app) {
+        return false;
+    }
     let health = app.state::<CapsuleHealth>();
     let now = Instant::now();
     let takes = health.takes.load(Ordering::Relaxed);
@@ -483,6 +549,13 @@ mod lifetime_tests {
             !health.permit(now + Duration::from_secs(1)),
             "Back-to-back reloads are throttled"
         );
+        assert!(
+            health
+                .reload_settling(now + Duration::from_secs(1))
+                .is_some(),
+            "Transient notices wait for the reloaded page"
+        );
+        assert_eq!(health.reload_settling(now + RELOAD_SETTLE), None);
     }
 }
 

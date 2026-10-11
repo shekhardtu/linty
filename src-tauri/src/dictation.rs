@@ -68,8 +68,12 @@ struct Gesture {
 #[derive(Default)]
 struct TriggerState {
     seq: u64,
-    last_press_at: Option<u64>,
     gesture: Option<Gesture>,
+}
+/// The trigger paths run inside the NSEvent monitor's `extern "C"` block, where
+/// a panic aborts the process. A poisoned lock degrades to the UI-driven stop.
+fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
+    mutex.lock().unwrap_or_else(|e| e.into_inner())
 }
 struct Session {
     id: u64,
@@ -126,7 +130,7 @@ impl Session {
     /// Move from Recording to Stopping exactly once. The caller that wins
     /// closes the microphone; everyone else waits for its stored result.
     fn begin_stop(&self) -> bool {
-        let mut phase = self.phase.lock().unwrap();
+        let mut phase = lock(&self.phase);
         if *phase != Phase::Recording {
             return false;
         }
@@ -290,57 +294,56 @@ impl Coordinator {
         self.processing.lock().unwrap().replace(session)
     }
     fn active_session(&self) -> Option<Arc<Session>> {
-        self.sessions
-            .lock()
-            .unwrap()
+        lock(&self.sessions)
             .iter()
             .rev()
-            .find(|s| matches!(*s.phase.lock().unwrap(), Phase::Starting | Phase::Recording))
+            .find(|s| matches!(*lock(&s.phase), Phase::Starting | Phase::Recording))
             .cloned()
     }
     /// A capture is open or draining. The capsule page must not reload while
     /// it could be asked to present this capture.
     pub(crate) fn capture_active(&self) -> bool {
-        self.sessions.lock().unwrap().iter().any(|s| {
+        lock(&self.sessions).iter().any(|s| {
             matches!(
-                *s.phase.lock().unwrap(),
+                *lock(&s.phase),
                 Phase::Starting | Phase::Recording | Phase::Stopping
             )
         })
     }
     /// A trigger key went down at `at` (wall-clock ms). The first press of a
-    /// gesture is remembered until a capture binds to it; a second press within
-    /// the double-press window belongs to that same gesture, and presses during
-    /// an open capture never start one.
+    /// gesture is remembered until a capture binds to it. Like the frontend,
+    /// which anchors its double-press window on the press that started the
+    /// gesture, a second press within that window belongs to the pending
+    /// gesture; presses during an open capture never start one.
     fn trigger_pressed(&self, at: u64) {
         let capturing = self.active_session().is_some();
-        let mut trigger = self.trigger.lock().unwrap();
+        let mut trigger = lock(&self.trigger);
         trigger.seq += 1;
         let double_press = trigger
-            .last_press_at
-            .is_some_and(|previous| at.saturating_sub(previous) <= DOUBLE_PRESS_MS);
+            .gesture
+            .is_some_and(|pending| at.saturating_sub(pending.at) <= DOUBLE_PRESS_MS);
         if !double_press && !capturing {
             trigger.gesture = Some(Gesture {
                 start_seq: trigger.seq,
                 at,
             });
         }
-        trigger.last_press_at = Some(at);
     }
     /// Bind a capture to the gesture that started it. The gesture is consumed,
     /// so a later capture can never inherit a stale press.
     fn bind_trigger(&self, session: &Session) {
-        let gesture = self.trigger.lock().unwrap().gesture.take();
-        *session.trigger.lock().unwrap() = gesture;
+        let gesture = lock(&self.trigger).gesture.take();
+        *lock(&session.trigger) = gesture;
     }
     /// A trigger key came up at `at`. Returns the recording session to stop
     /// natively, with the hold duration, when this release ends a hold of the
     /// press that started it. A qualifying release before the microphone opened
-    /// is remembered on the session instead.
+    /// is remembered on the session, under the phase lock that `start_dictation`
+    /// reads it with, so the request cannot fall between the two.
     fn trigger_released(&self, at: u64) -> Option<(Arc<Session>, u64)> {
-        let seq = self.trigger.lock().unwrap().seq;
+        let seq = lock(&self.trigger).seq;
         let session = self.active_session()?;
-        let gesture = (*session.trigger.lock().unwrap())?;
+        let gesture = (*lock(&session.trigger))?;
         if gesture.start_seq != seq {
             return None;
         }
@@ -348,15 +351,18 @@ impl Coordinator {
         if held < TAP_MS {
             return None;
         }
-        let phase = *session.phase.lock().unwrap();
-        match phase {
-            Phase::Recording => Some((session, held)),
-            Phase::Starting => {
-                session.stop_requested.store(true, Ordering::SeqCst);
-                None
+        let recording = {
+            let phase = lock(&session.phase);
+            match *phase {
+                Phase::Recording => true,
+                Phase::Starting => {
+                    session.stop_requested.store(true, Ordering::SeqCst);
+                    false
+                }
+                _ => false,
             }
-            _ => None,
-        }
+        };
+        recording.then_some((session, held))
     }
     pub fn cancel(&self) {
         for s in self.sessions.lock().unwrap().iter() {
@@ -393,9 +399,14 @@ pub async fn start_dictation(app: tauri::AppHandle, options: Options) -> Result<
                 return Err(error);
             }
             *phase = Phase::Recording;
+            // The trigger was already released while the microphone opened. Read
+            // the request under the lock the release path stored it with.
+            let stop_now = session.stop_requested.swap(false, Ordering::SeqCst);
+            if stop_now {
+                *phase = Phase::Stopping;
+            }
             drop(phase);
-            // The trigger was already released while the microphone opened.
-            if session.stop_requested.swap(false, Ordering::SeqCst) && session.begin_stop() {
+            if stop_now {
                 log::info!(
                     "[dictation] Capture {} stopped on trigger release before capture opened",
                     generation
@@ -975,6 +986,23 @@ mod tests {
         c.trigger_pressed(2_000);
         assert!(c.trigger.lock().unwrap().gesture.is_none());
         assert!(c.trigger_released(2_600).is_none());
+    }
+    #[test]
+    fn a_press_soon_after_finishing_hands_free_starts_a_fresh_gesture() {
+        let c = Coordinator::default();
+        c.trigger_pressed(0);
+        let latched = recording(&c, true);
+        // The press that finishes a latched session starts no gesture...
+        c.trigger_pressed(5_000);
+        latched.finish(Ok(Outcome::default()));
+        // ...and the next press 300 ms later is a new take for the frontend too,
+        // not the second tap of a double press anchored on the finishing press.
+        c.trigger_pressed(5_300);
+        let next = recording(&c, true);
+        assert_eq!(
+            c.trigger_released(5_700).map(|(s, held)| (s.id, held)),
+            Some((next.id, 400))
+        );
     }
     #[test]
     fn a_release_before_capture_opens_requests_a_deferred_stop() {

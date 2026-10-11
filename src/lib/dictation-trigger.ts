@@ -28,7 +28,10 @@ export class DictationTrigger {
       this.actions.stop();
       return;
     }
-    if (this.first?.source === source && now - this.first.at <= DOUBLE_PRESS_MS) {
+    // Wall-clock gaps are clamped: a backward clock step must not turn a hold
+    // into a tap or stretch the double-press window.
+    const sinceFirst = this.first ? now - this.first.at : -1;
+    if (this.first?.source === source && sinceFirst >= 0 && sinceFirst <= DOUBLE_PRESS_MS) {
       clearTimeout(this.releaseTimer);
       this.first = null;
       this.held = null;
@@ -46,11 +49,11 @@ export class DictationTrigger {
 
   release(source: string, now = Date.now()) {
     if (!this.down.delete(source) || this.latched || this.held?.source !== source) return;
-    const pressedAt = this.held.at;
+    const held = Math.max(0, now - this.held.at);
     this.held = null;
     const finish = () => { this.reset(true); this.actions.stop(); };
-    if (now - pressedAt >= TAP_MS) finish();
-    else this.releaseTimer = setTimeout(finish, Math.max(0, DOUBLE_PRESS_MS - (now - pressedAt)));
+    if (held >= TAP_MS) finish();
+    else this.releaseTimer = setTimeout(finish, Math.min(DOUBLE_PRESS_MS, DOUBLE_PRESS_MS - held));
   }
 
   reset(keepPressed = false) {
