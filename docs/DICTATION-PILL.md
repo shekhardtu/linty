@@ -12,7 +12,13 @@ uses the middle of the 20 px display; loud input has room to move. The maximum
 bar height is 18.2 px, leaving space at both edges. An eased attack and longer
 release soften small fluctuations. This display curve also drives the favicon;
 it does not change recorded audio, speech detection, or the inactivity deadline.
-There is no continuous canvas draw loop.
+There is no continuous canvas draw loop. Each native amplitude frame writes the
+bar transforms and the three stroke heights directly onto the elements, with no
+React state and no CSS transition on those values: the smoothing comes from the
+display curve itself. WebKit allocates a new animation object every time a CSS
+transition is retargeted, and at 15 frames a second across 41 values that leaked
+about 20 MB of heap per dictation until the pill took seconds to paint (#147).
+Transitions remain only on mode changes (listening, processing, done).
 
 The in-app Microphone Test shares this response curve in an 80-bar, full-width
 display. Each native amplitude frame advances the history, including repeated
@@ -63,6 +69,23 @@ quiet-room, background-noise, soft-speech, conversation and emphasis presets.
 The preview renders the actual capsule, supports input-strength adjustment and
 optional local microphone metering, and includes the complete state sequence.
 Its drag surface and Reset position control let you try placement as well.
+
+## Page lifetime
+
+The capsule is its own WebKit content process. As a safety net against any
+future growth, Linty reloads the capsule page while it is hidden and idle after
+25 dictations or 6 hours, when the watchdog measures its process above 300 MB,
+or when the process has terminated (also on WebKit's termination callback).
+Reloads are throttled to one per 30 seconds and three per five minutes, so a
+page that stays large or crashes right after loading cannot loop; the log line
+is `[capsule] Page reloaded (reason=…)`. A reload is invisible because the page
+re-reads the current dictation state on load (`get_capsule_state`), and it never
+happens while a capture is open or draining; idleness is re-checked immediately
+before the reload. A press that lands within milliseconds of a hide can still
+coincide with a reload, which only delays that pill by the reload time. A
+correction notice arriving during the two seconds after a reload is delivered
+once the page has loaded. Tauri keeps the previous page's event-listener ids
+registered after a reload; the dispatcher ignores them.
 
 ## Placement
 

@@ -32,7 +32,10 @@ export function useRecording() {
   const isRecording = useAppStore((s) => s.isRecording);
   const recordingDuration = useAppStore((s) => s.recordingDuration);
 
-  const startRecording = useCallback(() => {
+  // `stopOnTriggerRelease` marks a capture begun by a modifier-hold press: the
+  // native session may then close the microphone on that press's release.
+  // Accelerator shortcuts and the microphone test keep the UI-driven stop.
+  const startRecording = useCallback((capture?: { stopOnTriggerRelease?: boolean }) => {
     if (starting && isStartingRecording()) return starting.promise;
     const state = useAppStore.getState();
     if (state.updateStatus === "installing" || isRecoveringDictation() || state.isRecording) return Promise.resolve(false);
@@ -50,7 +53,8 @@ export function useRecording() {
             return invoke("emit_capsule_state", { state: "preparing" });
           }
         }).catch(() => {});
-        const generation = await session.run(() => invoke<number>("start_dictation", { options: dictationOptions() }), 10_000, "Microphone did not start. Check your input and try again.");
+        const options = { ...dictationOptions(), stopOnTriggerRelease: capture?.stopOnTriggerRelease ?? false };
+        const generation = await session.run(() => invoke<number>("start_dictation", { options }), 10_000, "Microphone did not start. Check your input and try again.");
         session.generation = generation;
         if (ownsDictation(session)) {
           useAppStore.getState().setRecordingGeneration(generation);

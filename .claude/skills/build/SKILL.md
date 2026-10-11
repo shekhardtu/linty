@@ -206,7 +206,7 @@ During plan mode:
 
 ### 4.2 Task Breakdown
 
-**For L-sized or larger tasks**, create sub-tasks using `TaskCreate`:
+**For L-sized or larger tasks**, create sub-tasks using `TaskCreate` (when the session exposes task tools; otherwise track the ordered steps in the plan file):
 
 Sub-task ordering rules for Linty:
 - Types/interfaces first (`src/types/`)
@@ -380,7 +380,7 @@ Throughout the entire workflow, maintain awareness of:
 - **Files changed** (running list of all modifications)
 - **Decisions made** (running list for documentation)
 
-Use `TaskCreate`/`TaskUpdate` to track all tasks and sub-tasks throughout the workflow.
+Use `TaskCreate`/`TaskUpdate` to track all tasks and sub-tasks throughout the workflow when those tools are available; they are not present in every session.
 
 ---
 

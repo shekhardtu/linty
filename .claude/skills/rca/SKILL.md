@@ -109,10 +109,10 @@ codesign -d --entitlements - /Applications/Linty.app 2>&1
 **Check source entitlements:**
 ```bash
 # Read the entitlements file
-cat /Users/hari/2025/mp/linty/src-tauri/Entitlements.plist
+cat /Users/hari/2026/linty/src-tauri/Entitlements.plist
 
 # Read Info.plist for LSUIElement
-cat /Users/hari/2025/mp/linty/src-tauri/Info.plist
+cat /Users/hari/2026/linty/src-tauri/Info.plist
 ```
 
 **Important TCC notes:**
@@ -151,7 +151,7 @@ Investigate `AppState` and the Tauri command handlers:
 
 ```bash
 # Check Rust code compiles
-cd /Users/hari/2025/mp/linty/src-tauri && cargo check --features local-stt
+cd /Users/hari/2026/linty/src-tauri && cargo check --features local-stt
 ```
 
 **Key state to verify in code:**
@@ -217,11 +217,11 @@ ls ~/Library/Logs/DiagnosticReports/ | grep -i linty
 
 ```bash
 # Recent commits
-git -C /Users/hari/2025/mp/linty log --oneline -20
+git -C /Users/hari/2026/linty log --oneline -20
 
 # Changes in specific area
-git -C /Users/hari/2025/mp/linty log --oneline --since="3 days ago" -- "src-tauri/src/"
-git -C /Users/hari/2025/mp/linty log --oneline --since="3 days ago" -- "src/"
+git -C /Users/hari/2026/linty log --oneline --since="3 days ago" -- "src-tauri/src/"
+git -C /Users/hari/2026/linty log --oneline --since="3 days ago" -- "src/"
 
 # Check recent PRs
 gh pr list --repo shekhardtu/linty --state merged --limit 10
@@ -236,10 +236,10 @@ gh pr diff <pr_number> --repo shekhardtu/linty
 
 ```bash
 # Frontend build
-cd /Users/hari/2025/mp/linty && yarn build
+cd /Users/hari/2026/linty && yarn build
 
 # Rust build
-cd /Users/hari/2025/mp/linty/src-tauri && cargo check --features local-stt
+cd /Users/hari/2026/linty/src-tauri && cargo check --features local-stt
 
 # Check Metal GPU support
 system_profiler SPDisplaysDataType | grep -i metal
@@ -332,6 +332,7 @@ EOF
 | `src/components/` | Capsule, sidebar, waveform components |
 | `src-tauri/` | Rust backend |
 | `src-tauri/src/lib.rs` | App setup, Tauri command definitions (sync commands run on the MAIN thread — keep them light) |
+| `src-tauri/src/dictation.rs` | Native dictation sessions (capture → inference → paste), owns generations; `src/hooks/useGlobalHotkey.hook.ts` only observes |
 | `src-tauri/src/state.rs` | AppState struct (recording, audio buffer, whisper ctx, watchdog counters) |
 | `src-tauri/src/tray.rs` | Tray icon menu, engine selector, status tooltip |
 | `src-tauri/src/audio.rs` | cpal audio capture (16kHz mono) |
@@ -387,6 +388,7 @@ EOF
 ### General
 - For heat/overload/slowness reports, FIRST check whether Linty is actually the consumer: `ps -eo pid,pcpu,etime,comm | sort -rk2 | head` — users attribute system-wide symptoms to whichever app they just interacted with. Sample Linty (`sample <pid> 10`) to confirm or rule out before reading code.
 - When user provides a screenshot, analyze what IS visible vs what ISN'T to narrow scope
+- "Slow until I restart Linty" = something grows with uptime. Check the real footprint of the app AND its WebKit helpers (`ps -eo pid,comm | grep -E "linty|WebKit.WebContent"`, then `vmmap -summary <pid> | grep -E "Physical footprint|WebKit Malloc|swapped"`; `ps` RSS hides swapped pages). The capsule and main webviews are separate WebContent processes; a multi-GB "WebKit Malloc" region in one of them is a DOM/JS heap leak in that page. Correlate growth with takes in `linty.log` (the `Rendered state=...` line is the capsule webview acknowledging a paint; a gap after `State=recording` means the capsule page is slow, not the fn-key path).
 - `yarn tauri dev` gives the richest debug output — use it for reproduction
 - Check `src-tauri/Cargo.toml` for feature flags — `local-stt` gates whisper-rs
 

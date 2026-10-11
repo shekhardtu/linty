@@ -76,3 +76,21 @@ test('a fresh take after completion or recovery has no time guard',t=>{
   trigger.press('accelerator',301); trigger.release('accelerator',601);
   assert.deepEqual(calls,['start','stop','start','stop']);
 });
+test('start receives the source that began the gesture',t=>{
+  t.mock.timers.enable({apis:['setTimeout']});
+  const sources=[];
+  const trigger=new DictationTrigger({start:source=>sources.push(source),stop:()=>{},latch:()=>{}});
+  trigger.press('modifier',0); trigger.release('modifier',500);
+  trigger.press('accelerator',1000); trigger.release('accelerator',1500);
+  assert.deepEqual(sources,['modifier','accelerator']);
+});
+test('a backward clock step neither shortens a hold nor stretches the double-press window',t=>{
+  const {calls,trigger}=setup(t);
+  trigger.press('modifier',10_000); trigger.release('modifier',9_000);
+  assert.deepEqual(calls,['start'],'A negative gap counts as a tap, not a hold');
+  t.mock.timers.tick(400);
+  assert.deepEqual(calls,['start','stop'],'The deferred finish is capped at the double-press window');
+  trigger.press('modifier',20_000); trigger.release('modifier',20_050);
+  trigger.press('modifier',19_900);
+  assert.deepEqual(calls,['start','stop','start'],'A press that appears earlier than the first one is not a double press');
+});
