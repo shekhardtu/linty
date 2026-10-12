@@ -1547,6 +1547,8 @@ pub fn run() {
             // Init NSPanel capsule overlay (macOS only)
             #[cfg(target_os = "macos")]
             capsule::init_capsule_panel(app.handle());
+            #[cfg(target_os = "macos")]
+            capsule::register_space_observer(app.handle());
 
             // Start fn key monitor (macOS only — uses NSEvent)
             #[cfg(target_os = "macos")]

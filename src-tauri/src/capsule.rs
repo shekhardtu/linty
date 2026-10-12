@@ -109,6 +109,156 @@ fn visible_origin(saved: Option<CapsulePosition>, screens: &[NSRect], main: NSRe
     )
 }
 
+fn overlap(a: NSRect, b: NSRect) -> f64 {
+    let width =
+        (a.origin.x + a.size.width).min(b.origin.x + b.size.width) - a.origin.x.max(b.origin.x);
+    let height =
+        (a.origin.y + a.size.height).min(b.origin.y + b.size.height) - a.origin.y.max(b.origin.y);
+    width.max(0.0) * height.max(0.0)
+}
+
+/// The display showing most of `rect`.
+fn screen_for_rect(rect: NSRect, screens: &[NSRect]) -> Option<usize> {
+    screens
+        .iter()
+        .enumerate()
+        .map(|(index, screen)| (index, overlap(rect, *screen)))
+        .filter(|(_, area)| *area > 0.0)
+        .max_by(|a, b| a.1.total_cmp(&b.1))
+        .map(|(index, _)| index)
+}
+
+fn screen_for_point(point: NSPoint, screens: &[NSRect]) -> Option<usize> {
+    screens.iter().position(|screen| {
+        point.x >= screen.origin.x
+            && point.x < screen.origin.x + screen.size.width
+            && point.y >= screen.origin.y
+            && point.y < screen.origin.y + screen.size.height
+    })
+}
+
+/// The same place on another display: the horizontal centre as a fraction of
+/// the width, and the distance to the nearer of the top and bottom edges.
+fn origin_on_screen(origin: NSPoint, from: NSRect, to: NSRect) -> NSPoint {
+    let centre =
+        ((origin.x + PANEL_WIDTH / 2.0 - from.origin.x) / from.size.width.max(1.0)).clamp(0.0, 1.0);
+    let x = to.origin.x + centre * to.size.width - PANEL_WIDTH / 2.0;
+    let below = origin.y - from.origin.y;
+    let above = from.origin.y + from.size.height - (origin.y + PANEL_HEIGHT);
+    let y = if below <= above {
+        to.origin.y + below.max(0.0)
+    } else {
+        to.origin.y + to.size.height - PANEL_HEIGHT - above.max(0.0)
+    };
+    NSPoint::new(
+        x.clamp(
+            to.origin.x,
+            to.origin.x + (to.size.width - PANEL_WIDTH).max(0.0),
+        ),
+        y.clamp(
+            to.origin.y,
+            to.origin.y + (to.size.height - PANEL_HEIGHT).max(0.0),
+        ),
+    )
+}
+
+/// The display of the window the user is working in: the frontmost
+/// application's topmost window (WindowServer's list, no Accessibility round
+/// trip to another app on the main thread), else the display under the pointer.
+/// `frames` are full display frames in Cocoa coordinates, the primary first.
+#[allow(unexpected_cfgs)]
+fn focused_screen(frames: &[NSRect]) -> Option<usize> {
+    focused_window_frame(frames)
+        .and_then(|window| screen_for_rect(window, frames))
+        .or_else(|| {
+            let pointer: NSPoint =
+                unsafe { msg_send![tauri_nspanel::objc::class!(NSEvent), mouseLocation] };
+            screen_for_point(pointer, frames)
+        })
+}
+
+#[allow(unexpected_cfgs)]
+fn focused_window_frame(frames: &[NSRect]) -> Option<NSRect> {
+    use std::ffi::c_void;
+    #[repr(C)]
+    #[derive(Default)]
+    struct CGRect {
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+    }
+    #[link(name = "CoreGraphics", kind = "framework")]
+    extern "C" {
+        fn CGWindowListCopyWindowInfo(option: u32, relative_to: u32) -> *const c_void;
+        fn CGRectMakeWithDictionaryRepresentation(dict: *const c_void, rect: *mut CGRect) -> bool;
+        static kCGWindowOwnerPID: *const c_void;
+        static kCGWindowLayer: *const c_void;
+        static kCGWindowBounds: *const c_void;
+    }
+    extern "C" {
+        fn CFArrayGetCount(array: *const c_void) -> isize;
+        fn CFArrayGetValueAtIndex(array: *const c_void, index: isize) -> *const c_void;
+        fn CFDictionaryGetValue(dict: *const c_void, key: *const c_void) -> *const c_void;
+        fn CFNumberGetValue(number: *const c_void, kind: i64, out: *mut c_void) -> bool;
+        fn CFRelease(cf: *const c_void);
+    }
+    const ON_SCREEN_ONLY: u32 = 1 << 0;
+    const EXCLUDE_DESKTOP: u32 = 1 << 4;
+    const SINT32: i64 = 3;
+
+    let primary = frames.first()?;
+    let pid: i32 = unsafe {
+        let workspace: tauri_nspanel::cocoa::base::id =
+            msg_send![tauri_nspanel::objc::class!(NSWorkspace), sharedWorkspace];
+        let front: tauri_nspanel::cocoa::base::id = msg_send![workspace, frontmostApplication];
+        if front == nil {
+            return None;
+        }
+        msg_send![front, processIdentifier]
+    };
+    unsafe {
+        let list = CGWindowListCopyWindowInfo(ON_SCREEN_ONLY | EXCLUDE_DESKTOP, 0);
+        if list.is_null() {
+            return None;
+        }
+        let number = |dict: *const c_void, key: *const c_void| -> Option<i32> {
+            let value = CFDictionaryGetValue(dict, key);
+            let mut out = 0i32;
+            (!value.is_null() && CFNumberGetValue(value, SINT32, &mut out as *mut _ as *mut c_void))
+                .then_some(out)
+        };
+        // Front to back: the first sizeable normal-level window is the one in use.
+        let found = (0..CFArrayGetCount(list)).find_map(|index| {
+            let window = CFArrayGetValueAtIndex(list, index);
+            if number(window, kCGWindowOwnerPID) != Some(pid)
+                || number(window, kCGWindowLayer) != Some(0)
+            {
+                return None;
+            }
+            let mut bounds = CGRect::default();
+            let bounds_dict = CFDictionaryGetValue(window, kCGWindowBounds);
+            if bounds_dict.is_null()
+                || !CGRectMakeWithDictionaryRepresentation(bounds_dict, &mut bounds)
+                || bounds.width < 100.0
+                || bounds.height < 100.0
+            {
+                return None;
+            }
+            // WindowServer measures from the primary display's top-left corner.
+            Some(NSRect::new(
+                NSPoint::new(
+                    bounds.x,
+                    primary.origin.y + primary.size.height - bounds.y - bounds.height,
+                ),
+                NSSize::new(bounds.width, bounds.height),
+            ))
+        });
+        CFRelease(list);
+        found
+    }
+}
+
 fn saved_position(app: &AppHandle) -> Option<CapsulePosition> {
     app.store(POSITION_STORE)
         .ok()?
@@ -675,21 +825,44 @@ pub fn reinit_capsule_properties(app: &AppHandle) {
         return;
     };
     apply_panel_properties(&panel);
+    // AppKit ignores an unchanged collection behaviour, so only a change makes
+    // WindowServer recompute the panel's Space membership.
+    panel.set_collection_behaviour(NSWindowCollectionBehavior::NSWindowCollectionBehaviorDefault);
+    panel.set_collection_behaviour(panel_collection_behaviour());
     log::info!("[capsule] NSPanel properties re-applied after wake");
+}
+
+fn panel_collection_behaviour() -> NSWindowCollectionBehavior {
+    NSWindowCollectionBehavior::NSWindowCollectionBehaviorCanJoinAllSpaces
+        | NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary
+        | NSWindowCollectionBehavior::NSWindowCollectionBehaviorStationary
+        | NSWindowCollectionBehavior::NSWindowCollectionBehaviorIgnoresCycle
+}
+
+/// WindowServer can drop the panel's all-Spaces membership and pin it to the
+/// Space it was last on (seen after ~18 h with sleep/wake and full-screen
+/// Spaces): AppKit then reports it visible while it is on no Space the user can
+/// see. Re-setting the same collection behaviour is a no-op in AppKit, so the
+/// panel is moved to the active Space and the behaviour is set again, which
+/// makes WindowServer recompute its membership.
+fn rejoin_active_space(panel: &tauri_nspanel::raw_nspanel::RawNSPanel) {
+    panel.set_collection_behaviour(
+        NSWindowCollectionBehavior::NSWindowCollectionBehaviorMoveToActiveSpace
+            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary,
+    );
+    panel.order_front_regardless();
+    panel.set_collection_behaviour(panel_collection_behaviour());
 }
 
 fn apply_panel_properties(panel: &tauri_nspanel::raw_nspanel::RawNSPanel) {
     // No delegate — avoids null-pointer crash when windowDidBecomeKey: fires
     // with an unset listener. We don't need delegate callbacks.
-    panel.set_level(PANEL_LEVEL);
     panel.set_style_mask(NS_BORDERLESS_WINDOW_MASK | NS_NONACTIVATING_PANEL_MASK);
-    panel.set_collection_behaviour(
-        NSWindowCollectionBehavior::NSWindowCollectionBehaviorCanJoinAllSpaces
-            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary
-            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorStationary
-            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorIgnoresCycle,
-    );
+    panel.set_collection_behaviour(panel_collection_behaviour());
+    // setFloatingPanel: resets the level to NSFloatingWindowLevel, so the level
+    // is set after it.
     panel.set_floating_panel(true);
+    panel.set_level(PANEL_LEVEL);
     panel.set_hides_on_deactivate(false);
     panel.set_becomes_key_only_if_needed(true);
     panel.set_opaque(false);
@@ -772,6 +945,8 @@ pub fn show_capsule(app: AppHandle, feedback: Option<bool>) -> Result<(), String
         "Recording panel unavailable".to_string()
     })?;
 
+    let was_visible: bool = unsafe { msg_send![&*panel, isVisible] };
+
     // Re-apply critical properties every show — macOS may reset them after
     // sleep/wake, display reconfiguration, or space changes.
     apply_panel_properties(&panel);
@@ -796,13 +971,15 @@ pub fn show_capsule(app: AppHandle, feedback: Option<bool>) -> Result<(), String
         let visible_frame: NSRect = msg_send![main_screen, visibleFrame];
         let screen_list = tauri_nspanel::cocoa::appkit::NSScreen::screens(nil);
         let count: usize = msg_send![screen_list, count];
-        let screens: Vec<NSRect> = (0..count)
+        let (frames, screens): (Vec<NSRect>, Vec<NSRect>) = (0..count)
             .map(|i| {
                 let screen: tauri_nspanel::cocoa::base::id =
                     msg_send![screen_list, objectAtIndex: i];
-                msg_send![screen, visibleFrame]
+                let frame: NSRect = msg_send![screen, frame];
+                let visible: NSRect = msg_send![screen, visibleFrame];
+                (frame, visible)
             })
-            .collect();
+            .unzip();
         let saved = if POSITIONED.load(Ordering::Relaxed) {
             let frame: NSRect = msg_send![&*panel, frame];
             Some(CapsulePosition {
@@ -812,7 +989,21 @@ pub fn show_capsule(app: AppHandle, feedback: Option<bool>) -> Result<(), String
         } else {
             saved_position(&app)
         };
-        let origin = visible_origin(saved, &screens, visible_frame);
+        // A hidden pill opens on the display the user is working on, at its
+        // usual place there; a showing pill stays put for the rest of the take.
+        let focus = if was_visible {
+            None
+        } else {
+            focused_screen(&frames)
+        };
+        let main = focus.map_or(visible_frame, |index| screens[index]);
+        let mut origin = visible_origin(saved, &screens, main);
+        if let Some(target) = focus {
+            let rect = NSRect::new(origin, NSSize::new(PANEL_WIDTH, PANEL_HEIGHT));
+            if let Some(from) = screen_for_rect(rect, &screens).filter(|from| *from != target) {
+                origin = origin_on_screen(origin, screens[from], screens[target]);
+            }
+        }
         panel.set_content_size(PANEL_WIDTH, PANEL_HEIGHT);
         let frame = NSRect {
             origin,
@@ -825,12 +1016,95 @@ pub fn show_capsule(app: AppHandle, feedback: Option<bool>) -> Result<(), String
     // order_front_regardless avoids making the panel key (no focus steal)
     panel.order_front_regardless();
     let visible: bool = unsafe { msg_send![&*panel, isVisible] };
+    let on_active_space = ensure_on_active_space(&app, &panel, "show");
     log::info!(
-        "[capsule] Show requested: panel_visible={visible} feedback={}",
+        "[capsule] Show requested: panel_visible={visible} on_active_space={on_active_space} feedback={}",
         feedback.unwrap_or(false)
     );
     SHOWING_FEEDBACK.store(feedback.unwrap_or(false), Ordering::SeqCst);
     Ok(())
+}
+
+/// Returns whether the panel was on the active Space; rejoins it when a visible
+/// panel was not.
+fn ensure_on_active_space(
+    app: &AppHandle,
+    panel: &tauri_nspanel::raw_nspanel::RawNSPanel,
+    trigger: &str,
+) -> bool {
+    let visible: bool = unsafe { msg_send![panel, isVisible] };
+    let on_active_space: bool = unsafe { msg_send![panel, isOnActiveSpace] };
+    if visible && !on_active_space {
+        rejoin_active_space(panel);
+        log::warn!("[capsule] Panel was off the active Space on {trigger} — rejoined all Spaces");
+        confirm_on_active_space(app.clone());
+    }
+    on_active_space
+}
+
+/// A visible pill follows the user to a Space they switch to mid-dictation,
+/// including full-screen Spaces created after launch, which an all-Spaces
+/// window does not always join.
+pub fn register_space_observer(app: &AppHandle) {
+    use block2::RcBlock;
+    use objc2::runtime::{AnyClass, AnyObject};
+    use std::ptr::NonNull;
+
+    let handle = app.clone();
+    let block = RcBlock::new(move |_notification: NonNull<AnyObject>| {
+        if let Ok(panel) = handle.get_webview_panel("capsule") {
+            ensure_on_active_space(&handle, &panel, "space change");
+        }
+    });
+    let (Some(workspace_class), Some(string_class), Some(queue_class)) = (
+        AnyClass::get(c"NSWorkspace"),
+        AnyClass::get(c"NSString"),
+        AnyClass::get(c"NSOperationQueue"),
+    ) else {
+        log::warn!("[capsule] AppKit classes unavailable — Space observer not registered");
+        return;
+    };
+    unsafe {
+        let workspace: *mut AnyObject = objc2::msg_send![workspace_class, sharedWorkspace];
+        let center: *mut AnyObject = objc2::msg_send![workspace, notificationCenter];
+        let name: *mut AnyObject = objc2::msg_send![
+            string_class,
+            stringWithUTF8String: c"NSWorkspaceActiveSpaceDidChangeNotification".as_ptr()
+        ];
+        // The main queue keeps the AppKit calls on the main thread.
+        let queue: *mut AnyObject = objc2::msg_send![queue_class, mainQueue];
+        let _observer: *mut AnyObject = objc2::msg_send![
+            center,
+            addObserverForName: name,
+            object: std::ptr::null_mut::<AnyObject>(),
+            queue: queue,
+            usingBlock: &*block
+        ];
+    }
+    // The observer lives for the whole process.
+    std::mem::forget(block);
+    log::debug!("[capsule] Registered active Space observer");
+}
+
+// WindowServer applies the new Space membership after the current run-loop
+// pass, so the outcome is read a moment later.
+fn confirm_on_active_space(app: AppHandle) {
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(Duration::from_millis(300)).await;
+        let handle = app.clone();
+        let _ = app.run_on_main_thread(move || {
+            let Ok(panel) = handle.get_webview_panel("capsule") else {
+                return;
+            };
+            let visible: bool = unsafe { msg_send![&*panel, isVisible] };
+            let on_active_space: bool = unsafe { msg_send![&*panel, isOnActiveSpace] };
+            if visible && !on_active_space {
+                log::error!("[capsule] Panel is still off the active Space after rejoining");
+            } else {
+                log::info!("[capsule] Panel back on the active Space (visible={visible})");
+            }
+        });
+    });
 }
 
 #[tauri::command]
@@ -929,6 +1203,46 @@ mod placement_tests {
         let small = screen(0.0, 0.0, 300.0, 40.0);
         let origin = visible_origin(Some(CapsulePosition { x: 0.0, y: 0.0 }), &[small], small);
         assert_eq!((origin.x, origin.y), (0.0, 0.0));
+    }
+
+    #[test]
+    fn the_pill_keeps_its_place_on_the_display_in_use() {
+        let laptop = screen(0.0, 0.0, 1512.0, 945.0);
+        let wide = screen(1512.0, -200.0, 2560.0, 1415.0);
+        // Bottom centre, 32 pt above the bottom edge.
+        let origin = origin_on_screen(NSPoint::new(566.0, 32.0), laptop, wide);
+        assert_eq!((origin.x, origin.y), (1512.0 + 1280.0 - 190.0, -168.0));
+        // Top right keeps its distance from the top edge.
+        let top_right = NSPoint::new(1512.0 - 380.0 - 20.0, 945.0 - 52.0 - 40.0);
+        let origin = origin_on_screen(top_right, laptop, wide);
+        assert_eq!(origin.y, -200.0 + 1415.0 - 52.0 - 40.0);
+        assert!(origin.x + PANEL_WIDTH <= wide.origin.x + wide.size.width);
+        // And maps back to where it was.
+        let back = origin_on_screen(origin, wide, laptop);
+        assert!((back.x - top_right.x).abs() < 1.0 && (back.y - top_right.y).abs() < 1e-9);
+    }
+
+    #[test]
+    fn a_window_belongs_to_the_display_showing_most_of_it() {
+        let left = screen(-1920.0, 0.0, 1920.0, 1080.0);
+        let main = screen(0.0, 0.0, 1512.0, 982.0);
+        let right = screen(1512.0, 0.0, 2560.0, 1440.0);
+        let screens = [main, left, right];
+        let straddling = screen(1300.0, 100.0, 800.0, 600.0);
+        assert_eq!(screen_for_rect(straddling, &screens), Some(2));
+        assert_eq!(
+            screen_for_rect(screen(-500.0, 10.0, 200.0, 200.0), &screens),
+            Some(1)
+        );
+        assert_eq!(
+            screen_for_rect(screen(9000.0, 0.0, 10.0, 10.0), &screens),
+            None
+        );
+        assert_eq!(
+            screen_for_point(NSPoint::new(1512.0, 5.0), &screens),
+            Some(2)
+        );
+        assert_eq!(screen_for_point(NSPoint::new(-1.0, 5.0), &screens), Some(1));
     }
 }
 

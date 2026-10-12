@@ -97,6 +97,35 @@ correction notice arriving during the two seconds after a reload is delivered
 once the page has loaded. Tauri keeps the previous page's event-listener ids
 registered after a reload; the dispatcher ignores them.
 
+## Spaces and full-screen apps
+
+The pill must appear on whichever Space is active: the desktop, a full-screen
+app or a split-screen pair. The panel is a non-activating `NSPanel` (showing it
+never activates Linty, which would pull a full-screen app out of its Space)
+with `canJoinAllSpaces | fullScreenAuxiliary | stationary | ignoresCycle`, at
+`NSMainMenuWindowLevel + 2`. The level is set after `setFloatingPanel:`,
+because that call resets it to the floating level (3), where other floating
+windows can cover the pill; before 0.0.15 the pill was always at level 3.
+
+WindowServer can drop the panel's all-Spaces membership and pin it to one Space
+(seen on 0.0.13 after 18 hours with sleep/wake and full-screen Chrome and Warp
+Spaces created after launch). AppKit still reports the panel visible and Linty
+logged every pill as rendered, but it was drawn on no Space the user could see.
+Setting the same collection behaviour again does nothing (AppKit skips an
+unchanged value), so Linty:
+
+- checks `isOnActiveSpace` after every show; a visible panel off the active
+  Space is moved there (`moveToActiveSpace`, order front) and its all-Spaces
+  behaviour is set again, which makes WindowServer recompute its membership.
+  The log shows `Panel was off the active Space on show — rejoined all
+  Spaces`, then `Panel back on the active Space` (or an error if it is still
+  off);
+- runs the same check on `NSWorkspaceActiveSpaceDidChangeNotification`, so a
+  pill that is showing follows the user to another Space mid-dictation;
+- clears and sets the collection behaviour after every wake.
+
+`Show requested` log lines include `on_active_space`.
+
 ## Placement
 
 Drag the pill background or icon to move it **only during hands-free listening**,
@@ -107,6 +136,15 @@ keeps its position between dictations and saves it when hidden for restoration
 after relaunch. Placement uses Cocoa screen points across Retina scales; on show,
 it is kept inside a connected display's work area, with a bottom-center fallback
 if its previous display is no longer connected. No position polling is used.
+
+With several displays, a hidden pill opens on the display of the window in use:
+the frontmost application's topmost normal window in WindowServer's list (read on
+show, without an Accessibility round trip to that app), or the display under the
+pointer when there is none. It keeps its place there: the same horizontal
+position as a fraction of the display width and the same distance from the
+nearer of the top and bottom edges, so a pill dragged to the top right of one
+display opens at the top right of another. A pill that is already showing stays
+where it is for the rest of the dictation.
 
 The surface uses 84% of Linty's own background color with a restrained 18 px blur.
 Text and icons stay opaque. Reduced-transparency preferences restore an opaque
