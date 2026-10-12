@@ -137,6 +137,15 @@ after relaunch. Placement uses Cocoa screen points across Retina scales; on show
 it is kept inside a connected display's work area, with a bottom-center fallback
 if its previous display is no longer connected. No position polling is used.
 
+With several displays, a hidden pill opens on the display of the window in use:
+the frontmost application's topmost normal window in WindowServer's list (read on
+show, without an Accessibility round trip to that app), or the display under the
+pointer when there is none. It keeps its place there: the same horizontal
+position as a fraction of the display width and the same distance from the
+nearer of the top and bottom edges, so a pill dragged to the top right of one
+display opens at the top right of another. A pill that is already showing stays
+where it is for the rest of the dictation.
+
 The surface uses 84% of Linty's own background color with a restrained 18 px blur.
 Text and icons stay opaque. Reduced-transparency preferences restore an opaque
 surface and remove the blur. The preview's textured background makes this visible.
