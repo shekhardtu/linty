@@ -97,6 +97,35 @@ correction notice arriving during the two seconds after a reload is delivered
 once the page has loaded. Tauri keeps the previous page's event-listener ids
 registered after a reload; the dispatcher ignores them.
 
+## Spaces and full-screen apps
+
+The pill must appear on whichever Space is active: the desktop, a full-screen
+app or a split-screen pair. The panel is a non-activating `NSPanel` (showing it
+never activates Linty, which would pull a full-screen app out of its Space)
+with `canJoinAllSpaces | fullScreenAuxiliary | stationary | ignoresCycle`, at
+`NSMainMenuWindowLevel + 2`. The level is set after `setFloatingPanel:`,
+because that call resets it to the floating level (3), where other floating
+windows can cover the pill; before 0.0.15 the pill was always at level 3.
+
+WindowServer can drop the panel's all-Spaces membership and pin it to one Space
+(seen on 0.0.13 after 18 hours with sleep/wake and full-screen Chrome and Warp
+Spaces created after launch). AppKit still reports the panel visible and Linty
+logged every pill as rendered, but it was drawn on no Space the user could see.
+Setting the same collection behaviour again does nothing (AppKit skips an
+unchanged value), so Linty:
+
+- checks `isOnActiveSpace` after every show; a visible panel off the active
+  Space is moved there (`moveToActiveSpace`, order front) and its all-Spaces
+  behaviour is set again, which makes WindowServer recompute its membership.
+  The log shows `Panel was off the active Space on show — rejoined all
+  Spaces`, then `Panel back on the active Space` (or an error if it is still
+  off);
+- runs the same check on `NSWorkspaceActiveSpaceDidChangeNotification`, so a
+  pill that is showing follows the user to another Space mid-dictation;
+- clears and sets the collection behaviour after every wake.
+
+`Show requested` log lines include `on_active_space`.
+
 ## Placement
 
 Drag the pill background or icon to move it **only during hands-free listening**,

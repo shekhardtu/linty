@@ -675,21 +675,44 @@ pub fn reinit_capsule_properties(app: &AppHandle) {
         return;
     };
     apply_panel_properties(&panel);
+    // AppKit ignores an unchanged collection behaviour, so only a change makes
+    // WindowServer recompute the panel's Space membership.
+    panel.set_collection_behaviour(NSWindowCollectionBehavior::NSWindowCollectionBehaviorDefault);
+    panel.set_collection_behaviour(panel_collection_behaviour());
     log::info!("[capsule] NSPanel properties re-applied after wake");
+}
+
+fn panel_collection_behaviour() -> NSWindowCollectionBehavior {
+    NSWindowCollectionBehavior::NSWindowCollectionBehaviorCanJoinAllSpaces
+        | NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary
+        | NSWindowCollectionBehavior::NSWindowCollectionBehaviorStationary
+        | NSWindowCollectionBehavior::NSWindowCollectionBehaviorIgnoresCycle
+}
+
+/// WindowServer can drop the panel's all-Spaces membership and pin it to the
+/// Space it was last on (seen after ~18 h with sleep/wake and full-screen
+/// Spaces): AppKit then reports it visible while it is on no Space the user can
+/// see. Re-setting the same collection behaviour is a no-op in AppKit, so the
+/// panel is moved to the active Space and the behaviour is set again, which
+/// makes WindowServer recompute its membership.
+fn rejoin_active_space(panel: &tauri_nspanel::raw_nspanel::RawNSPanel) {
+    panel.set_collection_behaviour(
+        NSWindowCollectionBehavior::NSWindowCollectionBehaviorMoveToActiveSpace
+            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary,
+    );
+    panel.order_front_regardless();
+    panel.set_collection_behaviour(panel_collection_behaviour());
 }
 
 fn apply_panel_properties(panel: &tauri_nspanel::raw_nspanel::RawNSPanel) {
     // No delegate — avoids null-pointer crash when windowDidBecomeKey: fires
     // with an unset listener. We don't need delegate callbacks.
-    panel.set_level(PANEL_LEVEL);
     panel.set_style_mask(NS_BORDERLESS_WINDOW_MASK | NS_NONACTIVATING_PANEL_MASK);
-    panel.set_collection_behaviour(
-        NSWindowCollectionBehavior::NSWindowCollectionBehaviorCanJoinAllSpaces
-            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary
-            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorStationary
-            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorIgnoresCycle,
-    );
+    panel.set_collection_behaviour(panel_collection_behaviour());
+    // setFloatingPanel: resets the level to NSFloatingWindowLevel, so the level
+    // is set after it.
     panel.set_floating_panel(true);
+    panel.set_level(PANEL_LEVEL);
     panel.set_hides_on_deactivate(false);
     panel.set_becomes_key_only_if_needed(true);
     panel.set_opaque(false);
@@ -825,12 +848,95 @@ pub fn show_capsule(app: AppHandle, feedback: Option<bool>) -> Result<(), String
     // order_front_regardless avoids making the panel key (no focus steal)
     panel.order_front_regardless();
     let visible: bool = unsafe { msg_send![&*panel, isVisible] };
+    let on_active_space = ensure_on_active_space(&app, &panel, "show");
     log::info!(
-        "[capsule] Show requested: panel_visible={visible} feedback={}",
+        "[capsule] Show requested: panel_visible={visible} on_active_space={on_active_space} feedback={}",
         feedback.unwrap_or(false)
     );
     SHOWING_FEEDBACK.store(feedback.unwrap_or(false), Ordering::SeqCst);
     Ok(())
+}
+
+/// Returns whether the panel was on the active Space; rejoins it when a visible
+/// panel was not.
+fn ensure_on_active_space(
+    app: &AppHandle,
+    panel: &tauri_nspanel::raw_nspanel::RawNSPanel,
+    trigger: &str,
+) -> bool {
+    let visible: bool = unsafe { msg_send![panel, isVisible] };
+    let on_active_space: bool = unsafe { msg_send![panel, isOnActiveSpace] };
+    if visible && !on_active_space {
+        rejoin_active_space(panel);
+        log::warn!("[capsule] Panel was off the active Space on {trigger} — rejoined all Spaces");
+        confirm_on_active_space(app.clone());
+    }
+    on_active_space
+}
+
+/// A visible pill follows the user to a Space they switch to mid-dictation,
+/// including full-screen Spaces created after launch, which an all-Spaces
+/// window does not always join.
+pub fn register_space_observer(app: &AppHandle) {
+    use block2::RcBlock;
+    use objc2::runtime::{AnyClass, AnyObject};
+    use std::ptr::NonNull;
+
+    let handle = app.clone();
+    let block = RcBlock::new(move |_notification: NonNull<AnyObject>| {
+        if let Ok(panel) = handle.get_webview_panel("capsule") {
+            ensure_on_active_space(&handle, &panel, "space change");
+        }
+    });
+    let (Some(workspace_class), Some(string_class), Some(queue_class)) = (
+        AnyClass::get(c"NSWorkspace"),
+        AnyClass::get(c"NSString"),
+        AnyClass::get(c"NSOperationQueue"),
+    ) else {
+        log::warn!("[capsule] AppKit classes unavailable — Space observer not registered");
+        return;
+    };
+    unsafe {
+        let workspace: *mut AnyObject = objc2::msg_send![workspace_class, sharedWorkspace];
+        let center: *mut AnyObject = objc2::msg_send![workspace, notificationCenter];
+        let name: *mut AnyObject = objc2::msg_send![
+            string_class,
+            stringWithUTF8String: c"NSWorkspaceActiveSpaceDidChangeNotification".as_ptr()
+        ];
+        // The main queue keeps the AppKit calls on the main thread.
+        let queue: *mut AnyObject = objc2::msg_send![queue_class, mainQueue];
+        let _observer: *mut AnyObject = objc2::msg_send![
+            center,
+            addObserverForName: name,
+            object: std::ptr::null_mut::<AnyObject>(),
+            queue: queue,
+            usingBlock: &*block
+        ];
+    }
+    // The observer lives for the whole process.
+    std::mem::forget(block);
+    log::debug!("[capsule] Registered active Space observer");
+}
+
+// WindowServer applies the new Space membership after the current run-loop
+// pass, so the outcome is read a moment later.
+fn confirm_on_active_space(app: AppHandle) {
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(Duration::from_millis(300)).await;
+        let handle = app.clone();
+        let _ = app.run_on_main_thread(move || {
+            let Ok(panel) = handle.get_webview_panel("capsule") else {
+                return;
+            };
+            let visible: bool = unsafe { msg_send![&*panel, isVisible] };
+            let on_active_space: bool = unsafe { msg_send![&*panel, isOnActiveSpace] };
+            if visible && !on_active_space {
+                log::error!("[capsule] Panel is still off the active Space after rejoining");
+            } else {
+                log::info!("[capsule] Panel back on the active Space (visible={visible})");
+            }
+        });
+    });
 }
 
 #[tauri::command]
