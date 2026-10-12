@@ -1,5 +1,6 @@
 ## What's new
 
-- Linty uses less memory and battery while it sits in the menu bar. Background checks in the Linty window, such as the fn key conflict check and the usage chart's refresh, now pause while the window is hidden and catch up as soon as you open it.
-- The Microphone Test waveform is now drawn the same efficient way as the recording overlay, so it no longer adds to Linty's memory while you test your microphone.
-- No change to dictation, shortcuts or your settings.
+- The recording pill now always appears where you're working: on your desktop, over full-screen apps and in split view. After a long session with sleep and full-screen apps, it could stop appearing anywhere even though dictation kept working. Linty now notices this and brings the pill back right away.
+- If a dictation is running when you switch Spaces, the pill follows you.
+- With more than one display, the pill opens on the display you're working on, in the same spot you placed it.
+- The pill now stays above other floating windows, so they can't cover it.
