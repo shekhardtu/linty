@@ -4,7 +4,7 @@ import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, sy
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { appDigest, cleanupPublishedArtifacts, fileDigest, preservePreviousBundle, releaseTargetDirectory } from '../scripts/release-artifacts.mjs';
+import { appDigest, cleanupPublishedArtifacts, fileDigest, preservePreviousBundle, pruneReleaseTargetCache, releaseTargetDirectory } from '../scripts/release-artifacts.mjs';
 import { prepareMacosDmg } from '../scripts/prepare-macos-dmg.mjs';
 
 function fixture(t) {
@@ -64,6 +64,39 @@ function publication(t) {
   const installed = write('Applications/Linty.app/Contents/Info.plist', 'installed app');
   return { storage, write, buildDir, release, files, appFile, dmg, installed };
 }
+
+test('cache pruning removes only workspace artifacts and incremental data', t => {
+  const { storage, write } = fixture(t);
+  const target = path.join(storage, 'cache/target.noindex');
+  const hash = '0123456789abcdef';
+  const removed = [
+    `aarch64-apple-darwin/debug/deps/linty-${hash}`,
+    `aarch64-apple-darwin/debug/deps/linty-${hash}.d`,
+    `aarch64-apple-darwin/debug/deps/liblinty_lib-${hash}.rlib`,
+    `aarch64-apple-darwin/debug/deps/linty_lib-${hash}.linty_lib.1a2b-cgu.0.rcgu.o`,
+    `aarch64-apple-darwin/debug/build/linty-${hash}/output`,
+    `aarch64-apple-darwin/debug/.fingerprint/linty-${hash}/lib-linty_lib`,
+    `aarch64-apple-darwin/debug/examples/stt_bench-${hash}`,
+    'aarch64-apple-darwin/debug/incremental/linty_lib-1abc/s-1/query-cache.bin',
+    `x86_64-apple-darwin/release/deps/logging_smoke-${hash}`,
+    `debug/deps/linty-${hash}`,
+    'release/incremental/linty-2def/s-1/dep-graph.bin',
+  ];
+  const kept = [
+    `aarch64-apple-darwin/debug/deps/libtauri-${hash}.rlib`,
+    `aarch64-apple-darwin/debug/deps/tauri_plugin_shell-${hash}.d`,
+    `aarch64-apple-darwin/debug/build/tauri-plugin-store-${hash}/output`,
+    `aarch64-apple-darwin/debug/deps/liblinty_extra-${hash}.rlib`,
+    'aarch64-apple-darwin/debug/linty',
+    'universal-apple-darwin/release/bundle/macos/Linty.app.tar.gz',
+  ];
+  for (const file of [...removed, ...kept]) write(`cache/target.noindex/${file}`);
+  pruneReleaseTargetCache(target, ['linty', 'linty_lib', 'logging_smoke', 'stt_bench', 'build-script-build']);
+  for (const file of removed) assert.equal(existsSync(path.join(target, file)), false, file);
+  for (const file of kept) assert.equal(existsSync(path.join(target, file)), true, file);
+  assert.equal(existsSync(path.join(target, 'aarch64-apple-darwin/debug/incremental')), false);
+  assert.throws(() => pruneReleaseTargetCache(target, []), /crate names/);
+});
 
 test('rebuilding preserves unknown prior bundle contents by renaming without copying', t => {
   const f = publication(t);
