@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, opendirSync, openSync, readFileSync, readlinkSync, readSync, realpathSync, renameSync, rmSync, symlinkSync } from 'node:fs';
+import { closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, opendirSync, openSync, readFileSync, readdirSync, readlinkSync, readSync, realpathSync, renameSync, rmSync, symlinkSync } from 'node:fs';
 import path from 'node:path';
 
 export function fileDigest(file, buffer = Buffer.allocUnsafe(64 * 1024)) {
@@ -78,6 +78,42 @@ export function releaseTargetDirectory(storage) {
     symlinkSync('target.noindex', previous, 'dir');
   }
   return target;
+}
+
+// Cargo hashes a path package's source location into its artifact names, and
+// every release builds from a new worktree. Outputs of this repository's own
+// crates (and all incremental data) are therefore never reused by a later
+// release; only registry dependencies are. Remove them so the cache keeps
+// third-party builds without growing by every past release's test binaries.
+export function pruneReleaseTargetCache(targetDir, crateNames) {
+  targetDir = realpathSync(targetDir);
+  const normalize = name => name.replaceAll('-', '_');
+  const names = new Set(crateNames.map(normalize));
+  if (!names.size) throw new Error('Pruning requires the workspace crate names.');
+  const isDirectory = file => lstatSync(file, { throwIfNoEntry: false })?.isDirectory() ?? false;
+  const profiles = [];
+  for (const entry of readdirSync(targetDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const directory = path.join(targetDir, entry.name);
+    if (['debug', 'release'].includes(entry.name)) profiles.push(directory);
+    else for (const profile of ['debug', 'release']) if (isDirectory(path.join(directory, profile))) profiles.push(path.join(directory, profile));
+  }
+  const artifact = /^(?:lib)?([A-Za-z0-9_-]+?)-[0-9a-f]{16}(?:\..+)?$/;
+  const removed = [];
+  for (const profile of profiles) {
+    const incremental = path.join(profile, 'incremental');
+    if (isDirectory(incremental)) removed.push(incremental);
+    for (const kind of ['deps', 'build', '.fingerprint', 'examples']) {
+      const directory = path.join(profile, kind);
+      if (!isDirectory(directory)) continue;
+      for (const name of readdirSync(directory)) {
+        const match = artifact.exec(name);
+        if (match && names.has(normalize(match[1]))) removed.push(path.join(directory, name));
+      }
+    }
+  }
+  for (const file of removed) rmSync(file, { recursive: true, force: true });
+  return removed;
 }
 
 export function preservePreviousBundle(buildDir) {

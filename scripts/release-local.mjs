@@ -9,7 +9,7 @@ import { findReusableChecks } from './reuse-pr-checks.mjs';
 import { runCommand, runTasks } from './run-tasks.mjs';
 import { runUiChecks } from './run-ui-checks.mjs';
 import { prepareMacosDmg } from './prepare-macos-dmg.mjs';
-import { appDigest, cleanupPublishedArtifacts, fileDigest, preservePreviousBundle, releaseTargetDirectory } from './release-artifacts.mjs';
+import { appDigest, cleanupPublishedArtifacts, fileDigest, preservePreviousBundle, pruneReleaseTargetCache, releaseTargetDirectory } from './release-artifacts.mjs';
 
 const repository = 'shekhardtu/linty';
 const target = 'universal-apple-darwin';
@@ -301,8 +301,14 @@ async function main(options) {
     const targetDir = releaseTargetDirectory(storage);
     const swiftDir = path.join(cache, 'swift-bridge');
     const venv = path.join(cache, 'python');
-    const env = { ...baseEnv, CARGO_TARGET_DIR: targetDir };
+    // Incremental data only helps rebuilds of the same worktree; each release
+    // uses a new one, so it would only accumulate in the shared target cache.
+    const env = { ...baseEnv, CARGO_TARGET_DIR: targetDir, CARGO_INCREMENTAL: '0' };
     const build = (command, args, extra = {}) => run(command, args, { cwd: buildDir, env, ...extra });
+    const metadata = JSON.parse(build('cargo', ['metadata', '--no-deps', '--format-version', '1', '--manifest-path', 'src-tauri/Cargo.toml'], { capture: true }));
+    const crateNames = metadata.packages.flatMap(item => [item.name, ...item.targets.map(target => target.name)]);
+    const pruneCache = () => console.log(`Pruned ${pruneReleaseTargetCache(targetDir, crateNames).length} unreusable workspace artifacts from the release cache.`);
+    pruneCache();
     console.log(`Preparing ${releaseType} v${version} (${options.initialRelease ? 'initial release' : `${options.bump} bump`}) from main ${sourceSha}. Saved worktree: ${buildDir}`);
     releaseChecks = releaseCheckReporter({ gh, sourceSha });
     releaseChecks.start();
@@ -398,6 +404,7 @@ async function main(options) {
       cleanupPublishedArtifacts({ buildDir, release,
         unregister: app => build('/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister', ['-u', app]) });
       console.log('Verified published assets; removed generated DMGs and the temporary app bundle. Caches and updater archives retained.');
+      pruneCache();
     } catch (error) {
       // Publication succeeded. Preserve anything unverified for diagnosis, and
       // never report this as a failed release that should be published again.
