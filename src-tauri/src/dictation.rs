@@ -431,16 +431,29 @@ pub async fn start_dictation(app: tauri::AppHandle, options: Options) -> Result<
         }
     }
 }
+// Preparation runs on its own task. `Session::guard` drops its future when the
+// capture stops or times out; dropping a load mid-flight would release
+// `local_model_load_lock` while the blocking load continues, and the next
+// caller would start a second Parakeet load. Detached, the load keeps the lock
+// until it finishes and later callers reuse the engine it publishes.
 async fn prepare(app: &tauri::AppHandle, options: &Options) -> Result<(), String> {
-    crate::prepare_dictation(
-        app.clone(),
-        app.state(),
-        options.filename.clone(),
-        !options.vocabulary.is_empty(),
-        false,
-        Some(options.language.clone()),
-    )
+    let app = app.clone();
+    let filename = options.filename.clone();
+    let vocabulary = !options.vocabulary.is_empty();
+    let language = Some(options.language.clone());
+    tauri::async_runtime::spawn(async move {
+        crate::prepare_dictation(
+            app.clone(),
+            app.state(),
+            filename,
+            vocabulary,
+            false,
+            language,
+        )
+        .await
+    })
     .await
+    .map_err(|e| format!("Task join error: {}", e))?
 }
 
 #[tauri::command]

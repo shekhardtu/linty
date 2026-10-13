@@ -150,17 +150,9 @@ async fn load_local_engine(
             let ctc_dir = model_store::vocabulary_path(&models_dir(app)?)?;
             log::info!("[stt] Loading Parakeet bundle from: {}", dir.display());
             let started = std::time::Instant::now();
-            let engine = tokio::task::spawn_blocking(move || {
-                let engine = parakeet::ParakeetEngine::load(&dir)?;
-                // Installed vocabulary models belong to this instance too.
-                // Publish it only after their inference warm-up has completed.
-                if ctc_dir.is_dir() {
-                    engine.load_ctc(&ctc_dir)?;
-                }
-                Ok::<_, String>(engine)
-            })
-            .await
-            .map_err(|e| format!("Task join error: {}", e))??;
+            let engine = tokio::task::spawn_blocking(move || parakeet::ParakeetEngine::load(&dir))
+                .await
+                .map_err(|e| format!("Task join error: {}", e))??;
             log::info!(
                 "[stt] Parakeet loaded in {:.0}ms",
                 started.elapsed().as_millis()
@@ -171,6 +163,11 @@ async fn load_local_engine(
             let previous = state.whisper_ctx.lock().map_err(|e| e.to_string())?.take();
             *state.parakeet_engine.lock().map_err(|e| e.to_string())? = Some(Arc::clone(&engine));
             drop(previous);
+            // Installed vocabulary models load after publishing, so a cold
+            // load does not hold up dictation (~14 s on the Neural Engine).
+            if ctc_dir.is_dir() {
+                load_parakeet_vocabulary_in_background(Arc::clone(&engine), ctc_dir);
+            }
             return Ok(LocalEngine::Parakeet(engine));
         }
         #[cfg(not(feature = "parakeet"))]
@@ -190,6 +187,30 @@ async fn load_local_engine(
     #[cfg(feature = "parakeet")]
     drop(previous);
     Ok(LocalEngine::Whisper(ctx))
+}
+
+/// Load the CTC vocabulary models on a blocking thread without awaiting them.
+/// Until they are ready, transcribe_buffer transcribes without dictionary
+/// rescoring; dictionary replacements before paste still apply. `load_ctc` is
+/// idempotent and serialized per engine, so overlapping requests load once.
+#[cfg(feature = "parakeet")]
+fn load_parakeet_vocabulary_in_background(
+    engine: Arc<parakeet::ParakeetEngine>,
+    dir: std::path::PathBuf,
+) {
+    if engine.has_vocabulary_models() {
+        return;
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        let started = std::time::Instant::now();
+        match engine.load_ctc(&dir) {
+            Ok(()) => log::info!(
+                "[stt] Parakeet vocabulary models loaded in {}ms",
+                started.elapsed().as_millis()
+            ),
+            Err(e) => log::warn!("[stt] Parakeet vocabulary models failed to load: {}", e),
+        }
+    });
 }
 
 /// Resolve the engine for the selected local model, transparently reloading it
@@ -1061,9 +1082,7 @@ async fn prepare_dictation(
             if vocabulary {
                 if let LocalEngine::Parakeet(engine) = engine {
                     let dir = model_store::vocabulary_path(&models_dir(&app)?)?;
-                    tokio::task::spawn_blocking(move || engine.load_ctc(&dir))
-                        .await
-                        .map_err(|e| e.to_string())??;
+                    load_parakeet_vocabulary_in_background(engine, dir);
                 }
             }
             #[cfg(not(feature = "parakeet"))]
