@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, opendirSync, openSync, readFileSync, readdirSync, readlinkSync, readSync, realpathSync, renameSync, rmSync, symlinkSync } from 'node:fs';
+import { closeSync, constants, copyFileSync, existsSync, fstatSync, lstatSync, mkdirSync, opendirSync, openSync, readFileSync, readdirSync, readlinkSync, readSync, realpathSync, renameSync, rmSync, symlinkSync } from 'node:fs';
 import path from 'node:path';
 
 export function fileDigest(file, buffer = Buffer.allocUnsafe(64 * 1024)) {
@@ -114,6 +114,17 @@ export function pruneReleaseTargetCache(targetDir, crateNames) {
   }
   for (const file of removed) rmSync(file, { recursive: true, force: true });
   return removed;
+}
+
+// Keep the small build record of a published release once its worktree is
+// removed: version, source and built commits, checksums and browser checks.
+export function archiveBuildRecord({ buildDir, storage, version }) {
+  if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error('Archiving requires a release version.');
+  const records = path.join(realpathSync(storage), 'records');
+  mkdirSync(records, { recursive: true });
+  const destination = path.join(records, `v${version}.json`);
+  copyFileSync(path.join(realpathSync(buildDir), 'release/build.json'), destination, constants.COPYFILE_EXCL);
+  return destination;
 }
 
 export function preservePreviousBundle(buildDir) {
