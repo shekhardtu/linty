@@ -141,8 +141,9 @@ pub fn start(app: tauri::AppHandle) {
                         .map(|recording| recording.is_recording)
                         .unwrap_or(true);
                     if should_unload_model(recording, unload_secs, last_used, now) {
-                        // Preparation owns this lock until every linked model
-                        // is warm. Never evict an instance while publishing it.
+                        // Preparation owns this lock while it loads and publishes
+                        // the speech engine. Never evict an instance mid-publish.
+                        // Background vocabulary loads hold their own Arc clone.
                         let Ok(_load_guard) = state.local_model_load_lock.try_lock() else {
                             continue;
                         };
