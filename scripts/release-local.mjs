@@ -9,7 +9,7 @@ import { findReusableChecks } from './reuse-pr-checks.mjs';
 import { runCommand, runTasks } from './run-tasks.mjs';
 import { runUiChecks } from './run-ui-checks.mjs';
 import { prepareMacosDmg } from './prepare-macos-dmg.mjs';
-import { appDigest, cleanupPublishedArtifacts, fileDigest, preservePreviousBundle, pruneReleaseTargetCache, releaseTargetDirectory } from './release-artifacts.mjs';
+import { appDigest, archiveBuildRecord, cleanupPublishedArtifacts, fileDigest, preservePreviousBundle, pruneReleaseTargetCache, releaseTargetDirectory } from './release-artifacts.mjs';
 
 const repository = 'shekhardtu/linty';
 const target = 'universal-apple-darwin';
@@ -398,17 +398,22 @@ async function main(options) {
     }
     publishBuiltRelease({ git, gh, sourceSha, builtSha, version, buildDir, initialRelease: options.initialRelease, requireLocalPublisher,
       upload: tag => run('bash', ['scripts/publish-release.sh', tag], { cwd: buildDir, env: ghEnv }) });
-    console.log(`Published https://github.com/${repository}/releases/tag/v${version}\nBuild record: ${buildDir}/release/build.json`);
+    console.log(`Published https://github.com/${repository}/releases/tag/v${version}`);
     try {
       const release = JSON.parse(gh(['api', `repos/${repository}/releases/tags/v${version}`]));
       cleanupPublishedArtifacts({ buildDir, release,
         unregister: app => build('/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister', ['-u', app]) });
-      console.log('Verified published assets; removed generated DMGs and the temporary app bundle. Caches and updater archives retained.');
+      console.log('Verified published assets; removed generated DMGs and the temporary app bundle.');
       pruneCache();
+      // The release is tagged and verified; nothing in the worktree is needed
+      // again. Failed or unverified builds above keep theirs for diagnosis.
+      const record = archiveBuildRecord({ buildDir, storage, version });
+      git(['worktree', 'remove', '--force', buildDir]);
+      console.log(`Removed the build worktree. Build record: ${record}`);
     } catch (error) {
       // Publication succeeded. Preserve anything unverified for diagnosis, and
       // never report this as a failed release that should be published again.
-      console.warn(`Release published, but local artifact cleanup was skipped: ${error.message}`);
+      console.warn(`Release published, but local artifact cleanup was skipped: ${error.message}\nBuild worktree and record retained: ${buildDir}/release/build.json`);
     }
   } catch (error) {
     releaseChecks?.fail();

@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, truncateSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, truncateSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { appDigest, cleanupPublishedArtifacts, fileDigest, preservePreviousBundle, pruneReleaseTargetCache, releaseTargetDirectory } from '../scripts/release-artifacts.mjs';
+import { appDigest, archiveBuildRecord, cleanupPublishedArtifacts, fileDigest, preservePreviousBundle, pruneReleaseTargetCache, releaseTargetDirectory } from '../scripts/release-artifacts.mjs';
 import { prepareMacosDmg } from '../scripts/prepare-macos-dmg.mjs';
 
 function fixture(t) {
@@ -96,6 +96,20 @@ test('cache pruning removes only workspace artifacts and incremental data', t =>
   for (const file of kept) assert.equal(existsSync(path.join(target, file)), true, file);
   assert.equal(existsSync(path.join(target, 'aarch64-apple-darwin/debug/incremental')), false);
   assert.throws(() => pruneReleaseTargetCache(target, []), /crate names/);
+});
+
+test('published build records outlive their worktree and are never overwritten', t => {
+  const { storage, write } = fixture(t);
+  write('build-abc/release/build.json', '{"version":"0.0.17"}');
+  const buildDir = path.join(storage, 'build-abc');
+  const record = archiveBuildRecord({ buildDir, storage, version: '0.0.17' });
+  assert.equal(record, path.join(realpathSync(storage), 'records/v0.0.17.json'));
+  rmSync(buildDir, { recursive: true });
+  assert.equal(readFileSync(record, 'utf8'), '{"version":"0.0.17"}');
+  write('build-def/release/build.json', '{"version":"other"}');
+  assert.throws(() => archiveBuildRecord({ buildDir: path.join(storage, 'build-def'), storage, version: '0.0.17' }), /EEXIST/);
+  assert.equal(readFileSync(record, 'utf8'), '{"version":"0.0.17"}');
+  assert.throws(() => archiveBuildRecord({ buildDir: path.join(storage, 'build-def'), storage, version: '../x' }), /release version/);
 });
 
 test('rebuilding preserves unknown prior bundle contents by renaming without copying', t => {

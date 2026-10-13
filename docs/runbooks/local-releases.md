@@ -149,9 +149,12 @@ main is synchronized. It does not change Git, build, or publish. The second:
 8. Verifies the published release's asset digests against the saved build record
    and local files, then automatically removes its staged DMGs, cached DMG, and
    expanded build copy of `Linty.app`. It unregisters only that build app from
-   Launch Services before removal. The installed application, signed updater
-   archives, signatures, manifest, source bundle, build record, and compilation
-   caches remain. Failed/draft releases and build-only runs retain their artifacts.
+   Launch Services before removal. It then prunes this repository's crate
+   outputs and incremental data from the Cargo cache, copies the build record to
+   `release/local/records/vVERSION.json`, and removes the build worktree (the
+   release tag preserves the built commit). The installed application, the
+   cached signed updater archive and signature, and the compilation caches
+   remain. Failed/draft releases and build-only runs retain their artifacts.
    If verification or cleanup fails after publication, the command reports the
    cleanup failure separately; do not publish another version to retry cleanup.
 
@@ -223,8 +226,9 @@ Builds are retained under `release/local/build-*` beside the repository's common
 Git directory. The command prints the exact path. `release/build.json` records
 the source commit, version commit, release type, version bump, browser validation
 evidence, and artifact SHA-256 hashes;
-`release/release-source.bundle` preserves the built commit. Failed commands retain
-the worktree. Package-manager, Rust and Swift caches are under `release/local/cache`.
+`release/release-source.bundle` preserves the built commit. Failed commands, and
+publications whose verification or cleanup fails, retain the worktree; a verified
+publication removes it and keeps `release/local/records/vVERSION.json`. Package-manager, Rust and Swift caches are under `release/local/cache`.
 
 Cargo output lives in `cache/target.noindex`, which Spotlight excludes. The first
 run migrates the previous `cache/target` directory without discarding compiled
@@ -256,8 +260,8 @@ assets of an already published release. Rebuild if the source or artifacts diffe
 
 Only one local release may run at a time. After a killed process, check that no
 release process is still running before removing its `release/local/.lock`
-directory. Remove obsolete build worktrees with `git worktree remove` after
-publication and any retry needs are finished; keep the shared caches.
+directory. Remove retained build worktrees with `git worktree remove` once any
+retry needs are finished; keep the shared caches.
 
 ## Re-enable hosted releases
 
