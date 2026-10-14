@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager};
@@ -11,6 +11,10 @@ use tauri_nspanel::objc::{msg_send, sel, sel_impl};
 use tauri_nspanel::{ManagerExt, WebviewWindowExt};
 use tauri_plugin_store::StoreExt;
 
+#[path = "capsule_recovery.rs"]
+mod recovery;
+use recovery::SpaceRecovery;
+
 // Panel level above menu bar (Status level = 25)
 const PANEL_LEVEL: i32 = NSMainMenuWindowLevel + 2;
 
@@ -21,8 +25,89 @@ const PANEL_WIDTH: f64 = 380.0;
 const PANEL_HEIGHT: f64 = 52.0;
 const POSITION_STORE: &str = "linty-window-state.json";
 static POSITIONED: AtomicBool = AtomicBool::new(false);
+// Preserve the actual runtime class (including any KVO subclass). WebKit's
+// window observers and Tao's teardown need it restored before destruction.
+static ORIGINAL_PANEL_CLASS: AtomicUsize = AtomicUsize::new(0);
+// If teardown times out, the old registry entry is an NSWindow again, not an
+// NSPanel. Keep NSPanel-only messages deferred until a replacement is ready.
+static PANEL_DETACHED: AtomicBool = AtomicBool::new(false);
 // Dictation fallback timers must not hide a newer correction acknowledgment.
 static SHOWING_FEEDBACK: AtomicBool = AtomicBool::new(false);
+
+#[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
+static SIMULATED_OFF_SPACE_WINDOW: AtomicU64 = AtomicU64::new(0);
+#[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
+static REHEARSAL_RENDERED_GENERATION: AtomicU64 = AtomicU64::new(0);
+
+#[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
+#[allow(dead_code)]
+pub fn rehearsal_rendered_generation() -> u64 {
+    REHEARSAL_RENDERED_GENERATION.load(Ordering::SeqCst)
+}
+
+fn panel_on_active_space(panel: &tauri_nspanel::raw_nspanel::RawNSPanel) -> bool {
+    #[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
+    {
+        let number: u64 = unsafe { msg_send![panel, windowNumber] };
+        if SIMULATED_OFF_SPACE_WINDOW.load(Ordering::SeqCst) == number {
+            return false;
+        }
+    }
+    unsafe { msg_send![panel, isOnActiveSpace] }
+}
+
+/// Deterministic simulation of the observed boundary failure: AppKit considers
+/// the original panel visible, while the user sees nothing and Space recovery
+/// checks fail. Only that window is affected; the replacement is measured
+/// normally. No IPC command exposes this opt-in development hook.
+#[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
+#[allow(dead_code)]
+pub fn simulate_failed_panel(app: &AppHandle) {
+    let panel = app.get_webview_panel("capsule").expect("Rehearsal panel");
+    let number: u64 = unsafe { msg_send![&*panel, windowNumber] };
+    SIMULATED_OFF_SPACE_WINDOW.store(number, Ordering::SeqCst);
+    panel.set_alpha_value(0.0);
+}
+
+/// Exercise the real hide command after a simulated teardown timeout, without
+/// destroying a second native window. The old revision must remain rejected.
+#[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
+#[allow(dead_code)]
+pub fn rehearse_detached_dismissal(app: &AppHandle) -> Result<(), String> {
+    let health = app.state::<CapsuleHealth>();
+    let now = Instant::now();
+    {
+        let mut recovery = health.space_recovery();
+        let epoch = recovery.begin_probe().ok_or("Probe unavailable")?;
+        recovery.finish(epoch, false);
+        if !recovery.begin_rebuild(true, now) {
+            return Err("Initial simulated rebuild unavailable".into());
+        }
+        recovery.rebuilt(false);
+    }
+    PANEL_DETACHED.store(true, Ordering::SeqCst);
+    let terminal = app.state::<CapsulePresentation>().update(CapsuleState {
+        revision: 0,
+        state: "done".into(),
+        hands_free: None,
+        generation: Some(499),
+        error: None,
+    });
+    hide_capsule(app.clone(), None, Some(terminal.revision - 1), None);
+    let stale_rejected = app
+        .state::<CapsulePresentation>()
+        .is_current(terminal.revision);
+    hide_capsule(app.clone(), None, Some(terminal.revision), None);
+    let retry = health
+        .space_recovery()
+        .begin_rebuild(capsule_idle(app), now + Duration::from_secs(31));
+    PANEL_DETACHED.store(false, Ordering::SeqCst);
+    *health.space_recovery() = SpaceRecovery::default();
+    if !stale_rejected || !retry {
+        return Err("Terminal dismissal after timeout did not permit a safe retry".into());
+    }
+    Ok(())
+}
 
 #[derive(Clone, Deserialize, Serialize)]
 pub struct CorrectionFeedback {
@@ -46,24 +131,27 @@ pub fn show_correction_feedback(
     app: AppHandle,
     feedback: CorrectionFeedback,
 ) -> Result<(), String> {
-    let window = app
-        .get_webview_window("capsule")
-        .ok_or("Correction panel unavailable")?;
     // The notice is transient: a page that is still reloading has no listener
     // yet. Deliver it once the page has settled instead of losing it.
-    if let Some(delay) = app.state::<CapsuleHealth>().reload_settling(Instant::now()) {
+    let health = app.state::<CapsuleHealth>();
+    let delay = if panel_replacing(&app) {
+        Some(Duration::from_millis(200))
+    } else {
+        health.reload_settling(Instant::now())
+    };
+    if let Some(delay) = delay {
         let app = app.clone();
         tauri::async_runtime::spawn(async move {
             tokio::time::sleep(delay).await;
-            if let Some(window) = app.get_webview_window("capsule") {
-                let _ = window.eval("/* wake */");
-            }
-            if let Err(error) = app.emit_to("capsule", "correction-feedback", feedback) {
+            if let Err(error) = show_correction_feedback(app, feedback) {
                 log::warn!("[capsule] Could not deliver a delayed correction notice: {error}");
             }
         });
         return Ok(());
     }
+    let window = app
+        .get_webview_window("capsule")
+        .ok_or("Correction panel unavailable")?;
     // Resume a hidden WKWebView before delivering the notice. The webview waits
     // for any active dictation to finish before showing the nonactivating panel.
     window.eval("/* wake */").map_err(|e| e.to_string())?;
@@ -376,6 +464,7 @@ const RELOAD_BURST_LIMIT: usize = 3;
 const RELOAD_SETTLE: Duration = Duration::from_secs(2);
 
 pub struct CapsuleHealth {
+    space_recovery: Mutex<SpaceRecovery>,
     takes: AtomicU64,
     last_counted_generation: AtomicU64,
     /// The over-threshold warning was logged; cleared by a relaunch or reload.
@@ -389,6 +478,7 @@ pub struct CapsuleHealth {
 impl Default for CapsuleHealth {
     fn default() -> Self {
         Self {
+            space_recovery: Mutex::new(SpaceRecovery::default()),
             takes: AtomicU64::new(0),
             last_counted_generation: AtomicU64::new(0),
             over_threshold_logged: AtomicBool::new(false),
@@ -444,6 +534,12 @@ fn reload_allowed(recent: &[Instant], now: Instant) -> bool {
 }
 
 impl CapsuleHealth {
+    fn space_recovery(&self) -> MutexGuard<'_, SpaceRecovery> {
+        self.space_recovery
+            .lock()
+            .unwrap_or_else(|error| error.into_inner())
+    }
+
     fn note_take(&self, generation: u64) {
         if self
             .last_counted_generation
@@ -514,6 +610,11 @@ impl CapsuleHealth {
     }
 }
 
+fn panel_replacing(app: &AppHandle) -> bool {
+    PANEL_DETACHED.load(Ordering::SeqCst)
+        || app.state::<CapsuleHealth>().space_recovery().rebuilding()
+}
+
 pub fn reload_webview_throttled(webview: &tauri::Webview) {
     let now = Instant::now();
     let mut recent = OTHER_WEBVIEW_RELOADS
@@ -555,6 +656,9 @@ fn capsule_idle(app: &AppHandle) -> bool {
 /// window (a press within milliseconds of a hide) only delays that pill by the
 /// reload time.
 pub fn reload_capsule(app: &AppHandle, reason: &str, footprint: Option<u64>) -> bool {
+    if panel_replacing(app) {
+        return false;
+    }
     if reason != "terminated" && !capsule_idle(app) {
         return false;
     }
@@ -809,17 +913,45 @@ pub fn init_capsule_panel(app: &AppHandle) {
         return;
     };
 
-    let panel = capsule_window
-        .to_panel()
-        .expect("Failed to convert capsule to NSPanel");
+    let panel = owned_capsule_panel(&capsule_window).expect("Failed to convert capsule to NSPanel");
 
     apply_panel_properties(&panel);
     log::info!("[capsule] NSPanel initialized");
 }
 
+fn owned_capsule_panel(window: &tauri::WebviewWindow) -> tauri::Result<tauri_nspanel::Panel> {
+    // tauri-nspanel adopts ns_window with Id::from_retained_ptr without
+    // retaining it. Tao also owns that window. Give the plugin its own +1 so
+    // destroying Tao's window cannot leave its registry with a dangling panel;
+    // replacing the registry entry releases this reference.
+    let native = window.ns_window()? as tauri_nspanel::cocoa::base::id;
+    unsafe {
+        ORIGINAL_PANEL_CLASS.store(
+            tauri_nspanel::objc::runtime::object_getClass(native) as usize,
+            Ordering::SeqCst,
+        );
+        let _: tauri_nspanel::cocoa::base::id = msg_send![native, retain];
+    }
+    match window.to_panel() {
+        Ok(panel) => {
+            PANEL_DETACHED.store(false, Ordering::SeqCst);
+            Ok(panel)
+        }
+        Err(error) => {
+            unsafe {
+                let _: () = msg_send![native, release];
+            }
+            Err(error)
+        }
+    }
+}
+
 /// Re-apply all native NSPanel properties. Called on init and after system wake
 /// to ensure the panel remains visible above all windows.
 pub fn reinit_capsule_properties(app: &AppHandle) {
+    if panel_replacing(app) {
+        return;
+    }
     let Ok(panel) = app.get_webview_panel("capsule") else {
         log::warn!("[capsule] reinit_properties: panel not found — cannot refresh");
         return;
@@ -922,8 +1054,16 @@ pub fn is_dictation_window_active(app: AppHandle) -> Result<bool, String> {
 #[tauri::command]
 pub fn capsule_state_rendered(app: AppHandle, revision: u64, state: String) {
     let current = app.state::<CapsulePresentation>().latest().clone();
-    if current.is_some_and(|current| current.revision == revision && current.state == state) {
+    if current
+        .as_ref()
+        .is_some_and(|current| current.revision == revision && current.state == state)
+    {
         log::info!("[capsule] Rendered state={state} revision={revision}");
+        #[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
+        REHEARSAL_RENDERED_GENERATION.store(
+            current.and_then(|current| current.generation).unwrap_or(0),
+            Ordering::SeqCst,
+        );
     }
 }
 
@@ -939,6 +1079,12 @@ pub fn show_capsule(app: AppHandle, feedback: Option<bool>) -> Result<(), String
             Ok(_) => {}
             Err(error) => log::warn!("[capsule] Could not check main window focus: {error}"),
         }
+    }
+    // A capture can start between destroying the idle window and creating its
+    // replacement. Its presentation stays in Rust and the new page restores
+    // that snapshot; never call AppKit on the plugin's old panel during this gap.
+    if panel_replacing(&app) {
+        return Ok(());
     }
     let panel = app.get_webview_panel("capsule").map_err(|error| {
         log::warn!("[capsule] show_capsule: panel not found: {error:?}");
@@ -1033,11 +1179,16 @@ fn ensure_on_active_space(
     trigger: &str,
 ) -> bool {
     let visible: bool = unsafe { msg_send![panel, isVisible] };
-    let on_active_space: bool = unsafe { msg_send![panel, isOnActiveSpace] };
+    let on_active_space = panel_on_active_space(panel);
     if visible && !on_active_space {
-        rejoin_active_space(panel);
-        log::warn!("[capsule] Panel was off the active Space on {trigger} — rejoined all Spaces");
-        confirm_on_active_space(app.clone());
+        let epoch = app.state::<CapsuleHealth>().space_recovery().begin_probe();
+        if let Some(epoch) = epoch {
+            rejoin_active_space(panel);
+            log::warn!(
+                "[capsule] Panel was off the active Space on {trigger} — trying Space rejoin"
+            );
+            confirm_on_active_space(app.clone(), epoch, false);
+        }
     }
     on_active_space
 }
@@ -1088,23 +1239,186 @@ pub fn register_space_observer(app: &AppHandle) {
 
 // WindowServer applies the new Space membership after the current run-loop
 // pass, so the outcome is read a moment later.
-fn confirm_on_active_space(app: AppHandle) {
+fn confirm_on_active_space(app: AppHandle, epoch: u64, reshown: bool) {
     tauri::async_runtime::spawn(async move {
         tokio::time::sleep(Duration::from_millis(300)).await;
         let handle = app.clone();
         let _ = app.run_on_main_thread(move || {
+            let health = handle.state::<CapsuleHealth>();
+            if !health.space_recovery().current(epoch) {
+                return;
+            }
             let Ok(panel) = handle.get_webview_panel("capsule") else {
+                health.space_recovery().finish(epoch, false);
                 return;
             };
             let visible: bool = unsafe { msg_send![&*panel, isVisible] };
-            let on_active_space: bool = unsafe { msg_send![&*panel, isOnActiveSpace] };
-            if visible && !on_active_space {
-                log::error!("[capsule] Panel is still off the active Space after rejoining");
+            let on_active_space = panel_on_active_space(&panel);
+            if !visible {
+                health.space_recovery().cancel_probe();
+            } else if on_active_space {
+                health.space_recovery().finish(epoch, true);
+                log::info!(
+                    "[capsule] Space recovery confirmed: panel_visible=true on_active_space=true"
+                );
+            } else if !reshown {
+                // Ordering a window that AppKit already considers visible can
+                // leave its stale Space association unchanged. Hide first so
+                // the next order-in performs a real presentation transition.
+                panel.order_out(None);
+                rejoin_active_space(&panel);
+                log::warn!("[capsule] Space rejoin failed — trying one hide/show");
+                confirm_on_active_space(handle.clone(), epoch, true);
             } else {
-                log::info!("[capsule] Panel back on the active Space (visible={visible})");
+                health.space_recovery().finish(epoch, false);
+                log::error!("[capsule] Space recovery failed — panel rebuild queued until idle");
             }
         });
     });
+}
+
+/// Retry a queued repair from the watchdog as well as the hide path: a rebuild
+/// refused by the throttle must not wait forever for another dictation.
+pub fn rebuild_panel_if_needed(app: &AppHandle) {
+    let health = app.state::<CapsuleHealth>();
+    let hidden = app
+        .get_webview_panel("capsule")
+        .map_or(true, |panel| !panel.is_visible());
+    let idle = hidden && capsule_idle(app);
+    if !health.space_recovery().begin_rebuild(idle, Instant::now()) {
+        return;
+    }
+    let Some(config) = app
+        .config()
+        .app
+        .windows
+        .iter()
+        .find(|window| window.label == "capsule")
+        .cloned()
+    else {
+        health.space_recovery().rebuilt(false);
+        log::error!("[capsule] Cannot rebuild panel: capsule configuration missing");
+        return;
+    };
+    if let Some(window) = app.get_webview_window("capsule") {
+        // to_panel changes the Objective-C class in place. Closing that object
+        // as RawNSPanel makes WebKit remove KVO observers from the wrong class
+        // (native rehearsal: contentLayoutRect observer exception). Restore
+        // the exact original class before handing teardown back to Tao.
+        let original = ORIGINAL_PANEL_CLASS.load(Ordering::SeqCst);
+        let Ok(native) = window.ns_window() else {
+            health.space_recovery().rebuilt(false);
+            log::error!("[capsule] Cannot rebuild panel: native window unavailable");
+            return;
+        };
+        if original == 0 {
+            health.space_recovery().rebuilt(false);
+            log::error!("[capsule] Cannot rebuild panel: original native class unavailable");
+            return;
+        }
+        let native = native as tauri_nspanel::cocoa::base::id;
+        PANEL_DETACHED.store(true, Ordering::SeqCst);
+        let panel_class = unsafe {
+            tauri_nspanel::raw_nspanel::object_setClass(
+                native,
+                original as tauri_nspanel::cocoa::base::id,
+            )
+        };
+        if let Err(error) = window.destroy() {
+            unsafe {
+                tauri_nspanel::raw_nspanel::object_setClass(native, panel_class);
+            }
+            PANEL_DETACHED.store(false, Ordering::SeqCst);
+            health.space_recovery().rebuilt(false);
+            log::error!("[capsule] Cannot destroy failed panel: {error}");
+            return;
+        }
+    }
+    log::warn!("[capsule] Rebuilding idle panel after failed Space recovery");
+    let handle = app.clone();
+    tauri::async_runtime::spawn(async move {
+        // Tauri removes the old label when the native Destroyed event arrives.
+        // Creating the replacement before that event would duplicate the label.
+        for attempt in 0..20 {
+            tokio::time::sleep(Duration::from_millis(100)).await;
+            let handle = handle.clone();
+            let config = config.clone();
+            let (reply, receive) = tokio::sync::oneshot::channel();
+            let dispatch = app_dispatch_rebuild(&handle, config, attempt == 19, reply);
+            if dispatch.is_err() {
+                handle
+                    .state::<CapsuleHealth>()
+                    .space_recovery()
+                    .rebuilt(false);
+                return;
+            }
+            match receive.await {
+                Ok(true) => return,
+                Ok(false) => {}
+                Err(_) => return,
+            }
+        }
+    });
+}
+
+fn app_dispatch_rebuild(
+    app: &AppHandle,
+    config: tauri::utils::config::WindowConfig,
+    last_attempt: bool,
+    reply: tokio::sync::oneshot::Sender<bool>,
+) -> tauri::Result<()> {
+    let handle = app.clone();
+    app.run_on_main_thread(move || {
+        let health = handle.state::<CapsuleHealth>();
+        if handle.get_webview_window("capsule").is_some() {
+            if last_attempt {
+                health.space_recovery().rebuilt(false);
+                log::error!("[capsule] Panel rebuild timed out waiting for window destruction");
+            }
+            let _ = reply.send(last_attempt);
+            return;
+        }
+        let rebuilt = tauri::WebviewWindowBuilder::from_config(&handle, &config)
+            .and_then(|builder| builder.visible(false).focused(false).build())
+            .and_then(|window| {
+                let panel = owned_capsule_panel(&window)?;
+                apply_panel_properties(&panel);
+                Ok(())
+            });
+        match rebuilt {
+            Ok(()) => {
+                POSITIONED.store(false, Ordering::Relaxed);
+                *health
+                    .reload_started
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner()) = Some(Instant::now());
+                health.space_recovery().rebuilt(true);
+                log::info!(
+                    "[capsule] Native panel rebuilt; active-Space visibility awaits the next show"
+                );
+                // A new capture can start in the destruction gap. Its earlier
+                // show was intentionally deferred; replaying the snapshot in
+                // JS renders content but does not order in a native window.
+                let needs_show = handle
+                    .state::<CapsulePresentation>()
+                    .latest()
+                    .as_ref()
+                    .is_some_and(|state| state.state != "idle");
+                if needs_show {
+                    if let Err(error) = show_capsule(handle.clone(), None) {
+                        log::error!(
+                            "[capsule] Could not restore replacement panel visibility: {error}"
+                        );
+                    }
+                }
+            }
+            Err(error) => {
+                health.space_recovery().rebuilt(false);
+                log::error!("[capsule] Panel rebuild failed: {error}");
+            }
+        }
+        let _ = reply.send(true);
+    })
 }
 
 #[tauri::command]
@@ -1131,13 +1445,17 @@ pub fn hide_capsule(
     if revision.is_some_and(|revision| !app.state::<CapsulePresentation>().is_current(revision)) {
         return;
     }
-    let Ok(panel) = app.get_webview_panel("capsule") else {
-        return;
-    };
-    // Save on hide, not on every mouse move. The panel retains its frame in memory.
-    let frame: NSRect = unsafe { msg_send![&*panel, frame] };
-    save_position(&app, frame);
-    panel.order_out(None);
+    if panel_replacing(&app) {
+        // Native teardown may outlive its timeout. Still accept a valid logical
+        // dismissal so a terminal snapshot cannot block the watchdog's retry.
+        log::info!("[capsule] Native hide deferred during panel replacement");
+    } else if let Ok(panel) = app.get_webview_panel("capsule") {
+        // Save on hide, not on every mouse move. The panel retains its frame in memory.
+        let frame: NSRect = unsafe { msg_send![&*panel, frame] };
+        save_position(&app, frame);
+        panel.order_out(None);
+    }
+    app.state::<CapsuleHealth>().space_recovery().cancel_probe();
     log::info!(
         "[capsule] Hidden: revision={revision:?} for_main_window={}",
         for_main_window.unwrap_or(false)
@@ -1146,7 +1464,10 @@ pub fn hide_capsule(
     if !for_main_window.unwrap_or(false) {
         app.state::<CapsulePresentation>().clear();
         // Hidden and idle: the only moment a page reload is invisible.
-        recycle_if_due(&app);
+        rebuild_panel_if_needed(&app);
+        if !panel_replacing(&app) {
+            recycle_if_due(&app);
+        }
     }
 }
 

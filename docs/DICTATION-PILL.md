@@ -116,15 +116,98 @@ unchanged value), so Linty:
 
 - checks `isOnActiveSpace` after every show; a visible panel off the active
   Space is moved there (`moveToActiveSpace`, order front) and its all-Spaces
-  behaviour is set again, which makes WindowServer recompute its membership.
-  The log shows `Panel was off the active Space on show — rejoined all
-  Spaces`, then `Panel back on the active Space` (or an error if it is still
-  off);
+  behaviour is set again, which asks WindowServer to recompute its membership.
+  One delayed check confirms the outcome. Repeated show/Space notifications
+  share that check instead of spawning another recovery for every state;
 - runs the same check on `NSWorkspaceActiveSpaceDidChangeNotification`, so a
   pill that is showing follows the user to another Space mid-dictation;
 - clears and sets the collection behaviour after every wake.
 
 `Show requested` log lines include `on_active_space`.
+
+Rejoining alone failed on 0.0.16: the panel stayed `panel_visible=true` and
+`on_active_space=false` while recording and transcription continued. Recovery
+now escalates once to ordering the panel out and showing it again. If it still
+does not join the active Space after another 300 ms, Linty queues a native
+window rebuild. A hidden panel is never logged as recovered; hiding cancels
+outstanding checks, so an old timer cannot validate a later dictation.
+
+The rebuild waits until the panel is hidden, capture/processing are idle, and
+no correction notice is showing. It destroys only the capsule window, waits for
+Tauri to release its label, and recreates it from the same configuration. The
+Rust presentation cache, dictation coordinator, audio and models are retained;
+the new page reads the latest snapshot even if a capture starts during the
+replacement. Saved placement is restored on its next show. Correction notices
+wait for the replacement page to settle. Rebuilds are limited to one per 30
+seconds and three per five minutes; the watchdog retries queued work every 30
+seconds after the throttle expires. Rebuilding the window is not itself proof
+that the pill is visible: only a visible panel on the active Space logs
+`Space recovery confirmed: panel_visible=true on_active_space=true`.
+
+This design borrows bounded escalation and explicit recovery outcomes from a
+static inspection of Wispr Flow 1.6.1147. Its compositor probe/rebuild ladder is
+Windows-only and is not evidence of a working macOS fix. Linty keeps its own
+window level; a higher level alone cannot repair Space membership. This change
+does not recover a hung macOS main thread.
+
+### Native recovery verification
+
+`yarn test:capsule-native` builds an isolated, locally signed **Linty Recovery
+Test.app** with its own app identifier and settings. It uses the real capsule
+code and WebKit renderer, with a synthetic dictation coordinator: no microphone,
+trigger monitoring, model load, paste, updater, or installed-app replacement.
+It runs 200 presentation cycles (including the existing page recycling), then
+makes the original panel transparent and forces only that window's Space check
+to fail. This deterministically exercises rejoin → hide/show → queued rebuild.
+The hook requires both a debug build and the opt-in `capsule-recovery-test`
+feature; it has no production IPC endpoint and is absent from releases.
+
+The rehearsal confirms that replacement waits for idle, then deliberately sends
+a fresh recording state during the destruction gap. It checks that a different
+native window renders that generation, is visible and opaque, and actually
+reports active-Space membership (the replacement's check is not simulated).
+It saves a success report only after all assertions pass; an early normal exit
+without the report also fails the runner. Failed test bundles are retained for
+diagnosis, successful ones are removed while their reports remain. Set
+`LINTY_RECOVERY_INSPECT=1` to hold the repaired pill for 30 seconds and keep its
+isolated test bundle for visual inspection. `LINTY_CAPSULE_RECOVERY_CYCLES` can
+choose 1–400 cycles; the default is 200.
+
+It also simulates the recovery policy after a teardown timeout and runs the
+actual hide command against a terminal snapshot while native calls are deferred.
+A stale dismissal must be rejected, a current dismissal must clear the snapshot,
+and the next throttled recovery attempt must be eligible. This guards against a
+finished dictation permanently blocking the watchdog's idle-only retry.
+
+This test caught a WebKit `contentLayoutRect` observer exception when closing a
+window whose class had been replaced by tauri-nspanel. Conversion now gives the
+plugin its own retained reference and records the actual original class,
+including any KVO subclass. Rebuild restores that class before Tauri destruction;
+NSPanel-specific calls are deferred until its replacement exists. It also
+caught a replacement that rendered the current state but remained hidden: the
+rebuild now explicitly restores native visibility when a new state arrived
+during the gap.
+
+Build and launch a macOS `.app`, then exercise desktop, full-screen, split-screen,
+multiple displays, display unplug/replug and sleep/wake. Confirm the visible
+pill on the display in use and check `on_active_space=true` while it is showing.
+For a forced failed-Space scenario in a development debugger, confirm one
+rejoin, one hide/show, then a queued rebuild after dictation finishes. Verify
+capture/transcription/paste are not repeated, the typing app keeps focus, saved
+placement survives, and rapid presses during replacement restore the latest
+revision. Force repeated failures to confirm the rebuild limit and watchdog
+retry. Rust policy tests and browser snapshot tests cannot establish actual
+WindowServer behavior; keep that native verification separate.
+
+Before publishing a Required release, use the candidate build for at least 50
+real dictations, mixing held and hands-free triggers, quick successive takes,
+desktop and full-screen app switches, and one sleep/wake cycle. Continue an
+extended session to cover the reported repeated-use failure. Record failures
+with timestamps, application/Space, trigger type, and recovery logs. Acceptance
+requires a visible pill without stealing focus, one delivery per completed
+dictation, responsive triggers afterward, and bounded recovery with no native
+exceptions. The automated rehearsal exercises recovery from a controlled fault;
+it does not reproduce or explain the original system hang.
 
 ## Placement
 

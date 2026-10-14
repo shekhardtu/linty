@@ -1,10 +1,10 @@
 {
   "inputs": {
     "yarn.lock": "cee0b8524c3cc77e5fb82cb0a087d4d40882835ecbf64fe92e45de0237f5bfd7",
-    "src-tauri/Cargo.lock": "5a03fdac80ffa84286012afa1e07a732aa1d34c1dcd6f573ad235639bf827e45",
+    "src-tauri/Cargo.lock": "baa1891bfe339bad5d6bd15b9ca411bb3a8d872010444cab460ff26f41933fe1",
     "src-tauri/swift/Package.resolved": "4d381296f57860901d021bc5052024f0d3aa0013942498413e5e2fc9a5926598"
   },
-  "notices_sha256": "24b16b5cc4551d29318941f29a67bed70f91d339abe0cb7236d5cd6a0c9b10b5",
+  "notices_sha256": "aed00a6ed57cc34357ab6c6192b15163f41b0d26c215ed02c9e0663fdecd9516",
   "components": [
     {
       "ecosystem": "Cargo",
@@ -5737,20 +5737,20 @@
     {
       "ecosystem": "Cargo",
       "name": "rustls",
-      "version": "0.23.45",
+      "version": "0.23.46",
       "license": "Apache-2.0 OR ISC OR MIT",
       "repository": "https://github.com/rustls/rustls",
       "notices": [
         {
-          "source": "https://docs.rs/crate/rustls/0.23.45/source/LICENSE-APACHE",
+          "source": "https://docs.rs/crate/rustls/0.23.46/source/LICENSE-APACHE",
           "sha256": "143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4"
         },
         {
-          "source": "https://docs.rs/crate/rustls/0.23.45/source/LICENSE-ISC",
+          "source": "https://docs.rs/crate/rustls/0.23.46/source/LICENSE-ISC",
           "sha256": "7cfafc877eccc46c0e346ccbaa5c51bb6b894d2b818e617d970211e232785ad4"
         },
         {
-          "source": "https://docs.rs/crate/rustls/0.23.45/source/LICENSE-MIT",
+          "source": "https://docs.rs/crate/rustls/0.23.46/source/LICENSE-MIT",
           "sha256": "709e3175b4212f7b13aa93971c9f62ff8c69ec45ad8c6532a7e0c41d7a7d6f8c"
         }
       ]

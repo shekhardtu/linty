@@ -52,6 +52,7 @@ pub fn start(app: tauri::AppHandle) {
                 if tick_count % MONITOR_CHECK_EVERY_TICKS == 0 {
                     let app_clone = app.clone();
                     let _ = app.run_on_main_thread(move || {
+                        crate::capsule::rebuild_panel_if_needed(&app_clone);
                         crate::fnkey::reinit_monitor_if_needed(app_clone);
                     });
                 }
