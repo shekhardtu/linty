@@ -2327,13 +2327,13 @@ Declared license: Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT
   Source: https://docs.rs/crate/rustix/1.1.4/source/LICENSE-MIT
   License text: 23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3
 
-Cargo: rustls 0.23.45
+Cargo: rustls 0.23.46
 Declared license: Apache-2.0 OR ISC OR MIT
-  Source: https://docs.rs/crate/rustls/0.23.45/source/LICENSE-APACHE
+  Source: https://docs.rs/crate/rustls/0.23.46/source/LICENSE-APACHE
   License text: 143368af9701a24ebaf89fe5310ad8116ca71e8e99f17415c0dd893f6a256ae4
-  Source: https://docs.rs/crate/rustls/0.23.45/source/LICENSE-ISC
+  Source: https://docs.rs/crate/rustls/0.23.46/source/LICENSE-ISC
   License text: 7cfafc877eccc46c0e346ccbaa5c51bb6b894d2b818e617d970211e232785ad4
-  Source: https://docs.rs/crate/rustls/0.23.45/source/LICENSE-MIT
+  Source: https://docs.rs/crate/rustls/0.23.46/source/LICENSE-MIT
   License text: 709e3175b4212f7b13aa93971c9f62ff8c69ec45ad8c6532a7e0c41d7a7d6f8c
 
 Cargo: rustls-pki-types 1.14.0
