@@ -1,0 +1,25 @@
+{
+  "productName": "Linty Recovery Test",
+  "version": "0.0.1",
+  "identifier": "ai.linty.recovery-test",
+  "build": { "frontendDist": "../dist", "devUrl": null },
+  "app": {
+    "macOSPrivateApi": true,
+    "trayIcon": null,
+    "windows": [
+      {
+        "label": "main", "title": "Linty Recovery Test", "url": "about:blank",
+        "width": 380, "height": 52, "visible": false, "focus": false
+      },
+      {
+        "label": "capsule", "title": "Linty Recovery Test", "url": "/capsule.html",
+        "width": 380, "height": 52, "visible": false, "focus": false,
+        "transparent": true, "decorations": false, "resizable": false,
+        "shadow": false, "skipTaskbar": true, "backgroundThrottling": "disabled"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ipc: http://ipc.localhost"
+    }
+  }
+}

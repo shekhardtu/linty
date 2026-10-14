@@ -67,6 +67,7 @@ candle-core = { version = "=0.11.0", features = ["metal"] }
 candle-transformers = { version = "=0.11.0", features = ["metal"] }
 
 [features]
+capsule-recovery-test = [] # opt-in native rehearsal; never enabled by release builds
 custom-protocol = ["tauri/custom-protocol"]
 local-stt = ["whisper-rs", "hound"]
 # Parakeet TDT v3 on the Neural Engine via the Swift bridge in swift/ (see build.rs).
@@ -94,6 +95,10 @@ required-features = ["local-stt", "parakeet"]
 [[example]]
 name = "corpus_eval"
 required-features = ["local-stt", "parakeet"]
+
+[[example]]
+name = "capsule_recovery_smoke"
+required-features = ["capsule-recovery-test"]
 
 [dev-dependencies]
 libc = "0.2"

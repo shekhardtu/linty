@@ -22,6 +22,7 @@
     "test:dictation": "node tests/ui.dictation.mjs",
     "test:correction-feedback": "node tests/ui.correction-feedback.mjs",
     "test:recovery": "node tests/ui.recovery.mjs",
+    "test:capsule-native": "node scripts/test-capsule-recovery.mjs",
     "test:onboarding": "node tests/ui.onboarding-models.mjs",
     "test:cleanup": "node tests/ui.cleanup-warmup.mjs",
     "test:security": "node tests/ui.security.mjs",
