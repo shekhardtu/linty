@@ -9,9 +9,9 @@ the landing page instead of serving that directory's `index.html`.
 
 Static landing page for [linty.ai](https://linty.ai), hosted by Yofix. No runtime dependencies. Legal pages are generated from the same content bundled in the app: run `yarn legal:generate` after editing `src/content/legal.json`, then `yarn legal:check`.
 
-Run `yarn legal:check` before publishing to verify that the website and app notices match. This is a consistency check, not legal approval. See the [privacy implementation review](../docs/PRIVACY-RELEASE-REVIEW.md). Verify the live host as well as repository source: Yofix was observed injecting `/__yofix/analytics.js?v=2` on 20 September 2026. `privacy-guard.js` opts out of that observed implementation and the page CSP blocks analytics connections while allowing public GitHub release requests on the landing page. These measures do not disable server logs or prove anything about historical collection. Disable injection at the host and verify retention and processing locations. Browser automation is insufficient by itself: the observed script skips `navigator.webdriver` sessions.
+Run `yarn legal:check` before publishing to verify that the website and app notices match. This is a consistency check, not legal approval. See the [privacy implementation review](../docs/PRIVACY-RELEASE-REVIEW.md). YoFix injects `/__yofix/analytics.js?v=2` to collect website page views and performance measurements at the same-origin `/__yofix/beacon` endpoint. Website analytics is enabled: do not add `window.__yfxaOptOut` or block same-origin connections in the CSP. The landing page also permits public GitHub release requests. Host retention and processing locations have not been confirmed. Verify the live host as well as repository source; the observed tracker skips `navigator.webdriver` sessions, so an automated visit alone does not establish collection for visitors.
 
-The landing page and both legal pages load local assets, set a no-referrer policy, and expose privacy and responsible-use links. Keep the early privacy guard and CSP before all other scripts. There is no embedded third-party download badge on the prepared website.
+All website pages load local assets and set a no-referrer policy. Keep the CSP before all scripts. There is no embedded third-party download badge on the prepared website.
 
 ```bash
 python3 -m http.server 4173 --bind 127.0.0.1 --directory website
@@ -46,7 +46,7 @@ A separate request to GitHub's designated latest stable release refreshes the
 links to its actual versioned DMG asset. Normal clicks recheck the latest release
 before starting the download, so long-lived tabs also get new releases. Request buttons for unsupported platforms
 keep their GitHub issue links. Both requests omit credentials and referrers and
-are limited to GitHub by the landing page CSP. No token is sent by visitors.
+are allowed alongside same-origin analytics by the landing page CSP. No token is sent by visitors.
 GitHub receives connection metadata, as disclosed in the privacy notice.
 
 Before publishing, run `node scripts/update-download-count.mjs` from the repository

@@ -1,5 +1,7 @@
 # Privacy notice implementation — 20 September 2026
 
+**Update — 15 October 2026:** The original website opt-out described below has been removed at the project owner’s request. YoFix website analytics is enabled, all website pages permit same-origin beacons, and the shared privacy notice discloses page-view and performance collection. The earlier checks below document the September implementation.
+
 The current notices describe the local-only app on main. They use the Linty project name, with no newly published personal contact details or country-targeting claims. They describe technical behavior; they do not certify legal compliance or guarantee protection against claims. Where applicable law requires an operator identity or a private contact, omitting those details does not remove that obligation.
 
 ## Shared notices

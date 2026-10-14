@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'" />
   <meta name="referrer" content="no-referrer" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow, nosnippet, noimageindex" />
@@ -11,7 +11,6 @@
   <meta name="color-scheme" content="light" />
   <title>Linty · Organic launch field guide</title>
   <link rel="icon" type="image/svg+xml" href="../brand/icon.svg?v=b97b744a3624" />
-  <script src="../privacy-guard.js?v=2afc4702a0c1"></script>
   <link rel="stylesheet" href="guide.css?v=7e31556f1f14" />
   <script src="guide.js?v=aa8cead06b4a" defer></script>
 </head>
@@ -260,7 +259,7 @@
 </tr>
 </tbody>
 </table></div>
-<p>Linty currently has no app usage telemetry. Do not silently add tracking to solve marketing measurement. Begin with a consented panel and aggregate download counters. If a later opt-in diagnostics or usage report is proposed, keep it separate from dictation content and explain the exact data and purpose before collection. Existing website privacy controls block browser fetch/beacon collection; UTM links alone do not create an analytics system. Campaign paths could support coarse host-side counts after the host's handling is understood, but they still would not identify successful installations. See the <a href="https://github.com/shekhardtu/linty/blob/e5688ac41af303cb92d558a0dd65bffff848c59c/PRIVACY.md#website-and-github">current website disclosure</a>.</p>
+<p>Linty currently has no app usage telemetry. Do not silently add tracking to solve marketing measurement. Begin with a consented panel and aggregate download counters. If a later opt-in diagnostics or usage report is proposed, keep it separate from dictation content and explain the exact data and purpose before collection. The website uses YoFix analytics for page views and performance measurements. These website events and UTM links do not identify successful app installations. See the <a href="../privacy.html#website">current website disclosure</a>.</p>
 <p>Illustrative 30-day planning targets are 100–300 additional DMG downloads, 50–150 additional stars, and at least 8 of the first 20 participants showing first-week repeat use. These are targets, not forecasts; no reliable conversion baseline exists yet. Reforecast after week 2. Do not derive an install-to-star conversion rate from these unrelated counters. The more important milestone is finding a small group who can explain why they keep using Linty.</p>
 <p>If posts get attention but few compatible users try the app, change targeting and the promise. If people download but cannot start, fix onboarding. If they start but do not return, investigate quality, latency, social setting, or weak need. If users retain but stars lag, improve the repository presentation and make a modest optional star request after value has been delivered. If stars grow but usage does not, do not call the GTM successful.</p>
 <h3 id="strategy-create-a-small-set-of-proof-led-assets">Create a small set of proof-led assets.</h3>
