@@ -8,7 +8,7 @@ const check = process.argv.includes('--check');
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const version = async path => createHash('sha256').update(await read(path)).digest('hex').slice(0, 12);
 const asset = async path => `${path}?v=${await version(`website/${path}`)}`;
-export const websiteCsp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
+export const websiteCsp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'";
 const styles = await Promise.all(['brand/theme.css', 'styles.css', 'legal.css'].map(async path => `<link rel="stylesheet" href="${await asset(path)}" />`));
 
 for (const key of ['privacy', 'terms']) {
@@ -23,7 +23,6 @@ for (const key of ['privacy', 'terms']) {
   <meta name="color-scheme" content="light dark" />
   <title>${escape(doc.title)} — Linty</title>
   <meta name="description" content="${escape(doc.intro)}" />
-  <script src="${await asset('privacy-guard.js')}"></script>
   <script src="${await asset('theme.js')}"></script>
   ${styles.join('\n  ')}
 </head>

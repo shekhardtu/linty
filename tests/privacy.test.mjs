@@ -15,16 +15,18 @@ test('generated notices contain no proposed personal-contact fields or complianc
   }
 });
 
-test('website only permits GitHub release requests on the landing page and blocks analytics connections', () => {
-  for (const path of ['index.html', 'privacy.html', 'terms.html']) {
+test('website permits same-origin analytics and landing-page GitHub release requests', () => {
+  for (const path of ['index.html', 'privacy.html', 'terms.html', 'gtm/index.html', 'gtm/architecture.html']) {
     const html = readFileSync(`website/${path}`, 'utf8');
     const connectionPolicy = html.match(/connect-src ([^;]+);/)[1];
-    assert.equal(connectionPolicy, path === 'index.html' ? 'https://api.github.com' : "'none'");
+    assert.equal(connectionPolicy, path === 'index.html' ? "'self' https://api.github.com" : "'self'");
     assert.match(html, /name="referrer" content="no-referrer"/);
     assert.ok(html.indexOf('http-equiv="Content-Security-Policy"') < html.indexOf('<script'));
-    assert.ok(html.indexOf('privacy-guard.js') < html.indexOf('theme.js'));
+    assert.doesNotMatch(html, /privacy-guard\.js|__yfxaOptOut/);
     assert.doesNotMatch(html, /<(?:img|script)[^>]+src="https?:/);
-    assert.match(html, /href="privacy.html"/);
-    assert.match(html, /href="terms.html"/);
+    if (!path.startsWith('gtm/')) {
+      assert.match(html, /href="privacy.html"/);
+      assert.match(html, /href="terms.html"/);
+    }
   }
 });
