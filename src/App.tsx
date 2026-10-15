@@ -20,6 +20,7 @@ import { checkMicrophonePermission, checkAccessibility } from "@/services/permis
 import { Sidebar } from "@/components/layout/Sidebar.component";
 import { WindowToolbar } from "@/components/layout/WindowToolbar.component";
 import { StatusBar } from "@/components/layout/StatusBar.component";
+import { EditorEditPreview } from "@/components/shared/EditorEditPreview.dialogue";
 import { RecordingFocus } from "@/components/RecordingFocus.component";
 import { ConfirmResetDialogue } from "@/components/shared/ConfirmReset.dialogue";
 import { UpdateRequiredDialogue } from "@/components/shared/UpdateRequired.dialogue";
@@ -207,6 +208,7 @@ export default function App() {
         initialStep={onboardingComplete && permissionState !== "ready" ? permissionState : "welcome"} />
       <ToastContainer />
       <RecordingFocus />
+      <EditorEditPreview />
       <UpdateRequiredDialogue />
     </>;
   }
@@ -235,6 +237,7 @@ export default function App() {
 
       <ToastContainer />
       <RecordingFocus />
+      <EditorEditPreview />
       <ConfirmResetDialogue
         open={showResetConfirm}
         onConfirm={handleResetConfirm}

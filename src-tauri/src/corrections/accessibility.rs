@@ -40,6 +40,11 @@ extern "C" {
         -> i32;
     fn AXUIElementSetMessagingTimeout(e: *const c_void, timeout: f32) -> i32;
     fn AXUIElementGetPid(e: *const c_void, pid: *mut i32) -> i32;
+    fn AXUIElementSetAttributeValue(
+        e: *const c_void,
+        key: *const c_void,
+        value: *const c_void,
+    ) -> i32;
     fn AXValueCreate(kind: u32, value: *const c_void) -> *const c_void;
     fn AXValueGetValue(value: *const c_void, kind: u32, out: *mut c_void) -> bool;
     fn AXValueGetTypeID() -> usize;
@@ -153,6 +158,95 @@ pub struct Target {
     pub application: super::ObservedApplication,
 }
 impl Target {
+    /// UTF-16 AX offsets must never split a surrogate pair.
+    pub(crate) fn selected_text(&self) -> Option<String> {
+        let units: Vec<u16> = self.before.encode_utf16().collect();
+        String::from_utf16(units.get(self.selection.clone())?).ok()
+    }
+    pub(crate) fn unchanged(&self) -> bool {
+        !self.is_composing()
+            && self.read().as_deref() == Some(self.before.as_str())
+            && pool(|| unsafe { text_range(self.element.0, "AXSelectedTextRange") })
+                == Some(self.selection.clone())
+    }
+    /// Write only the retained selection; never send keystrokes to a new focus.
+    /// AX has no compare-and-swap: a concurrent edit can race the final check.
+    /// Exact post-write verification detects mismatches but cannot undo that race.
+    pub(crate) fn replace_selected_if_unchanged(&self, replacement: &str) -> Result<Self, String> {
+        // SAFETY: The retained AX proxy belongs to this worker; the NSString
+        // stays alive through the synchronous AX call and is released once.
+        // Ranges are bounded UTF-16 offsets and checked before Vec::splice.
+        pool(|| unsafe {
+            if !self.unchanged() {
+                return Err("The selected text changed. Select it again before editing.".into());
+            }
+            let mut expected: Vec<u16> = self.before.encode_utf16().collect();
+            if self.selection.start > self.selection.end || self.selection.end > expected.len() {
+                return Err("Invalid selected text range".into());
+            }
+            expected.splice(self.selection.clone(), replacement.encode_utf16());
+            if expected.len() > MAX_UTF16 as usize {
+                return Err("This edit exceeds the supported text-field limit".into());
+            }
+            let expected =
+                String::from_utf16(&expected).map_err(|_| "Invalid selected text range")?;
+            let value = NSString::alloc(nil).init_str(replacement);
+            let status = named("AXSelectedText", |key| {
+                AXUIElementSetAttributeValue(self.element.0, key, value as *const c_void)
+            });
+            let _: () = msg_send![value, release];
+            if status != 0 {
+                return Err("This app does not support replacing selected text. No keyboard paste was attempted.".into());
+            }
+            if self.read().as_deref() != Some(expected.as_str()) {
+                return Err("The app did not confirm the edit. Check the original app before editing again.".into());
+            }
+            let mut after = self.retained();
+            after.before = expected;
+            after.selection = text_range(self.element.0, "AXSelectedTextRange")
+                .filter(|range| range.end <= after.before.encode_utf16().count())
+                .ok_or("The app did not confirm the new selection")?;
+            Ok(after)
+        })
+    }
+    /// Undo only our exact insertion, with unchanged post-edit text and selection.
+    pub(crate) fn undo_replacement_if_unchanged(
+        &self,
+        range: Range<usize>,
+        original: &str,
+    ) -> Result<(), String> {
+        // SAFETY: The retained proxy remains alive throughout these calls. The
+        // CFRange pointer is valid during AXValueCreate; its owned CF object is
+        // checked for null and kept alive until AXSetAttributeValue returns.
+        pool(|| unsafe {
+            if !self.unchanged() {
+                return Err("The text or selection changed after the edit. Use the editor’s own Undo instead.".into());
+            }
+            if range.start > range.end || range.end > self.before.encode_utf16().count() {
+                return Err("The undo selection is no longer valid".into());
+            }
+            let range_value = CFRange {
+                location: range.start as isize,
+                length: range.len() as isize,
+            };
+            let value = Cf(AXValueCreate(4, &range_value as *const _ as *const c_void));
+            if value.0.is_null() {
+                return Err("Could not create the undo selection".into());
+            }
+            let status = named("AXSelectedTextRange", |key| {
+                AXUIElementSetAttributeValue(self.element.0, key, value.0)
+            });
+            if status != 0 {
+                return Err(
+                    "This editor does not support restoring the selection. Use its own Undo."
+                        .into(),
+                );
+            }
+            let mut selected = self.retained();
+            selected.selection = range;
+            selected.replace_selected_if_unchanged(original).map(|_| ())
+        })
+    }
     pub fn is_composing(&self) -> bool {
         pool(|| unsafe {
             let Some(value) = attr(self.element.0, "AXMarkedTextRange") else {
@@ -593,6 +687,91 @@ mod tests {
             notifications >= 2,
             "AX callbacks must wake the watcher for real edits"
         );
+    }
+    /// Writes only to an owned background fixture, never the user's active app.
+    #[test]
+    #[ignore = "set LINTY_CORRECTION_FIXTURE to the compiled Swift fixture"]
+    fn native_selected_edit_rejects_stale_targets_and_preserves_surroundings() {
+        struct Child(std::process::Child);
+        impl Drop for Child {
+            fn drop(&mut self) {
+                let _ = self.0.kill();
+                let _ = self.0.wait();
+            }
+        }
+        let child = Child(
+            std::process::Command::new(std::env::var("LINTY_CORRECTION_FIXTURE").unwrap())
+                .arg("--editor")
+                .spawn()
+                .unwrap(),
+        );
+        let pid = child.0.id() as i32;
+        let mut target = None;
+        for _ in 0..20 {
+            target = pool(|| unsafe {
+                let mut nodes = vec![Cf(AXUIElementCreateApplication(pid))];
+                let mut visited = 0;
+                while let Some(node) = nodes.pop() {
+                    visited += 1;
+                    if visited > 32 {
+                        break;
+                    }
+                    if text_attr(node.0, "AXRole").as_deref() == Some("AXTextArea") {
+                        return Some(Target {
+                            capability: capability(node.0).expect("text capability"),
+                            before: String::new(),
+                            selection: 0..0,
+                            element: node,
+                            pid,
+                            application: super::super::ObservedApplication {
+                                name: "Synthetic AppKit fixture".into(),
+                                bundle_id: None,
+                            },
+                        });
+                    }
+                    let attribute = if visited == 1 {
+                        "AXWindows"
+                    } else {
+                        "AXChildren"
+                    };
+                    if let Some(children) = attr(node.0, attribute) {
+                        for index in 0..CFArrayGetCount(children.0) {
+                            nodes.push(Cf(CFRetain(CFArrayGetValueAtIndex(children.0, index))));
+                        }
+                    }
+                }
+                None
+            });
+            if target.is_some() {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(50));
+        }
+        let mut target = target.expect("AppKit text view must be accessible");
+        target.before = target.read().unwrap();
+        target.selection = 10..19;
+        assert_eq!(target.selected_text().as_deref(), Some("mixedCase"));
+        // A changed document snapshot cannot reach the AX write.
+        let original = target.before.clone();
+        target.before.push('!');
+        assert!(target.replace_selected_if_unchanged("MIXEDCASE").is_err());
+        assert_eq!(target.read().as_deref(), Some(original.as_str()));
+        target.before = original;
+        // The same text with a different selected range is also stale.
+        target.selection = 0..6;
+        assert!(target.replace_selected_if_unchanged("WRONG").is_err());
+        target.selection = 10..19;
+        let after = target.replace_selected_if_unchanged("MIXEDCASE").unwrap();
+        assert_eq!(target.read().as_deref(), Some("Prefix 😀 MIXEDCASE suffix"));
+        // A second acceptance of the old snapshot cannot overwrite later edits.
+        assert!(target.replace_selected_if_unchanged("again").is_err());
+        after
+            .undo_replacement_if_unchanged(10..19, "mixedCase")
+            .unwrap();
+        assert_eq!(target.read().as_deref(), Some("Prefix 😀 mixedCase suffix"));
+        assert!(after
+            .undo_replacement_if_unchanged(10..19, "mixedCase")
+            .is_err());
     }
     /// Uses real focus departure as well as real AX edits. The fixture briefly
     /// activates its own synthetic window and restores the preceding application.

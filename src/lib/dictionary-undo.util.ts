@@ -1,8 +1,11 @@
 import type { DictionaryEntry, DictionarySuggestion } from "../types/correction.types";
+import { dictionaryTermKey } from "./dictionary-suppression.util.ts";
 
 export interface DictionaryState {
   entries: DictionaryEntry[];
   suggestions: DictionarySuggestion[];
+  /** Normalized destinations deliberately removed from automatic learning. */
+  suppressedTerms?: string[];
 }
 
 /** Restore only objects changed by this batch. A later edit to the same object
@@ -24,8 +27,17 @@ export function undoDictionaryChange(current: DictionaryState, before: Dictionar
     }
     return result;
   }
+  const entries = restore(current.entries, before.entries, after.entries, entry => entry.entryId);
+  const suggestions = restore(current.suggestions, before.suggestions, after.suggestions, suggestion => suggestion.suggestionId);
+  // Undoing a newly learned word is also a deliberate rejection. Preserve
+  // suppression added by later deletions, rather than restoring an old list.
+  const removedTerms = after.entries.filter(entry => !before.entries.some(old => old.entryId === entry.entryId)
+    && !entries.some(present => present.entryId === entry.entryId))
+    .map(entry => dictionaryTermKey(entry.right));
   return {
-    entries: restore(current.entries, before.entries, after.entries, entry => entry.entryId),
-    suggestions: restore(current.suggestions, before.suggestions, after.suggestions, suggestion => suggestion.suggestionId),
+    ...current,
+    entries,
+    suggestions,
+    suppressedTerms: [...new Set([...(current.suppressedTerms ?? []), ...removedTerms])],
   };
 }

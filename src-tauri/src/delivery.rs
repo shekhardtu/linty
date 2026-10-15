@@ -7,6 +7,8 @@ static DELIVERY: Mutex<()> = Mutex::new(());
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Delivery {
+    #[serde(skip)]
+    pub published_text: Option<String>,
     pub status: &'static str,
     pub command_posted: bool,
     pub command_posted_ms: Option<f64>,
@@ -39,10 +41,13 @@ pub fn deliver(
     text: &str,
     id: &str,
     observe: bool,
+    adapt_cursor: bool,
+    preserve_literal: bool,
     check: impl Fn() -> Result<(), String>,
 ) -> Delivery {
     let started = Instant::now();
     let mut result = Delivery {
+        published_text: None,
         status: "failed",
         command_posted: false,
         command_posted_ms: None,
@@ -57,6 +62,20 @@ pub fn deliver(
             use crate::corrections::accessibility::Target;
             let pid = crate::corrections::accessibility::frontmost_pid(app);
             let target = Target::focused(app);
+            let adapted = if adapt_cursor {
+                target.as_ref().map(|t| {
+                    crate::insertion::adapt(
+                        text,
+                        &t.before,
+                        t.selection.clone(),
+                        t.application.bundle_id.as_deref(),
+                        preserve_literal,
+                    )
+                })
+            } else {
+                None
+            };
+            let text = adapted.as_deref().unwrap_or(text);
             let capture = crate::corrections::prepare_target(
                 observe
                     .then(|| target.as_ref().map(Target::retained))
@@ -73,9 +92,9 @@ pub fn deliver(
                 check()?;
                 if pid.is_none()
                     || crate::corrections::accessibility::frontmost_pid(app) != pid
-                    || target
-                        .as_ref()
-                        .is_some_and(|t| t.is_focused() != Some(true))
+                    || target.as_ref().is_some_and(|t| {
+                        t.is_focused() != Some(true) || (adapt_cursor && !t.unchanged())
+                    })
                 {
                     return Err("The destination changed before pasting".into());
                 }
@@ -86,6 +105,7 @@ pub fn deliver(
                 crate::corrections::complete_paste(capture, None);
                 return Err(error);
             }
+            result.published_text = Some(text.to_owned());
             result.command_posted = true;
             result.command_posted_ms = Some(started.elapsed().as_secs_f64() * 1000.);
             result.status = "unverified";
@@ -126,7 +146,15 @@ pub fn deliver(
         }
         #[cfg(not(target_os = "macos"))]
         {
-            let _ = (app, text, id, observe, started);
+            let _ = (
+                app,
+                text,
+                id,
+                observe,
+                adapt_cursor,
+                preserve_literal,
+                started,
+            );
             Err("Native delivery requires macOS".into())
         }
     })();

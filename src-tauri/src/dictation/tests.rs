@@ -3,8 +3,10 @@ use crate::{delivery::Delivery, transcribe::Transcription};
 
 struct FakeBackend {
     raw: String,
+    preview_result: Result<bool, String>,
     candidate: String,
     delivery_status: &'static str,
+    published_text: Option<String>,
     record: Mutex<Option<Value>>,
     events: Mutex<Vec<&'static str>>,
     cancel: Option<Arc<Session>>,
@@ -18,8 +20,10 @@ impl FakeBackend {
     fn new(raw: &str, candidate: &str) -> Self {
         Self {
             raw: raw.into(),
+            preview_result: Ok(false),
             candidate: candidate.into(),
             delivery_status: "verified",
+            published_text: None,
             record: Mutex::new(None),
             events: Mutex::new(vec![]),
             cancel: None,
@@ -35,6 +39,10 @@ impl FakeBackend {
     }
 }
 impl Backend for FakeBackend {
+    fn preview_edit(&self, _: &Session, _: &str) -> Result<bool, String> {
+        self.note("preview");
+        self.preview_result.clone()
+    }
     fn stage(&self, s: &Session, _: &str) -> Result<(), String> {
         s.check()
     }
@@ -105,6 +113,7 @@ impl Backend for FakeBackend {
             assert_eq!(record["deliveryStatus"], "pending");
         }
         Ok(Delivery {
+            published_text: self.published_text.clone(),
             status: self.delivery_status,
             command_posted: self.delivery_status != "failed",
             command_posted_ms: Some(1.),
@@ -376,4 +385,104 @@ async fn failed_delivery_keeps_the_recovery_message_and_saved_text() {
     assert!(record.get("attemptedText").is_none());
     assert!(record.get("pastedText").is_none());
     assert_eq!(*b.record.lock().unwrap(), Some(record));
+}
+
+#[tokio::test]
+async fn voice_snippet_is_saved_before_delivery_and_bypasses_cleanup() {
+    let backend = FakeBackend::new("My signature.", "unwanted rewrite");
+    let mut s = session();
+    Arc::get_mut(&mut s).unwrap().options.voice_snippets = vec![personalization::VoiceSnippet {
+        id: "signature".into(),
+        phrase: "my signature".into(),
+        text: "Thanks,\nHari\n".into(),
+    }];
+    let result = run(&backend, &s).await.unwrap().record.unwrap();
+    assert_eq!(result["rawText"], "My signature.");
+    assert_eq!(result["finalText"], "Thanks,\nHari\n");
+    assert_eq!(result["pastedText"], "Thanks,\nHari\n");
+    assert_eq!(result["voiceSnippetId"], "signature");
+    assert!(!backend.events.lock().unwrap().contains(&"cleanup"));
+    assert_eq!(result["reformatting"]["reason"], "voice_snippet");
+}
+
+#[tokio::test]
+async fn app_style_overrides_global_only_with_capture_and_attribution() {
+    for tracking in [false, true] {
+        let backend = FakeBackend::new("Hello there.", "Hello there.");
+        let mut s = session();
+        let options = &mut Arc::get_mut(&mut s).unwrap().options;
+        options.track_application = tracking;
+        options.app_style_profiles = vec![personalization::AppStyleProfile {
+            bundle_id: "com.apple.mail".into(),
+            style: "formal".into(),
+        }];
+        let result = process(
+            &backend,
+            &s,
+            StopResult {
+                sample_count: 16000,
+                duration_secs: 1.,
+                recording_generation: 0,
+                application: Some(crate::application::ApplicationIdentity {
+                    name: "Mail".into(),
+                    bundle_id: Some("com.apple.mail".into()),
+                }),
+            },
+            Instant::now(),
+            0.,
+            None,
+        )
+        .await
+        .unwrap()
+        .record
+        .unwrap();
+        assert_eq!(
+            result["reformatting"]["options"]["styling"],
+            if tracking { "formal" } else { "semi-formal" }
+        );
+    }
+}
+
+#[tokio::test]
+async fn history_records_actual_adapted_insertion_separately_from_transcript() {
+    let mut backend = FakeBackend::new("hello there", "Hello there.");
+    backend.published_text = Some(" hello there. ".into());
+    let result = run(&backend, &session()).await.unwrap().record.unwrap();
+    assert_eq!(result["finalText"], "Hello there.");
+    assert_eq!(result["attemptedText"], " hello there. ");
+    assert_eq!(result["pastedText"], " hello there. ");
+    assert!(result["delivery"].get("publishedText").is_none());
+}
+
+#[tokio::test]
+async fn editing_commands_are_ordinary_text_until_explicitly_enabled() {
+    let mut b = FakeBackend::new("Linty uppercase", "Linty uppercase");
+    b.preview_result = Err("No selection".into());
+    let mut s = session();
+    Arc::get_mut(&mut s).unwrap().options.cleanup = false;
+    let result = run(&b, &s).await.unwrap().record.unwrap();
+    assert_eq!(result["pastedText"], "Linty uppercase");
+    assert!(!b.events.lock().unwrap().contains(&"preview"));
+}
+
+#[tokio::test]
+async fn explicit_editing_preview_and_unavailable_selection_never_paste_commands() {
+    for preview in [Ok(true), Err("No selection".into())] {
+        let mut b = FakeBackend::new("Linty uppercase", "Linty uppercase");
+        b.preview_result = preview.clone();
+        let mut s = session();
+        Arc::get_mut(&mut s).unwrap().options.selected_text_editing = true;
+        let result = run(&b, &s).await.unwrap().record.unwrap();
+        assert_eq!(result["rawText"], "Linty uppercase");
+        assert_eq!(
+            result["deliveryStatus"],
+            if preview.is_ok() {
+                "editing-preview"
+            } else {
+                "editing-unavailable"
+            }
+        );
+        assert!(!b.events.lock().unwrap().contains(&"deliver"));
+        assert!(result.get("pastedText").is_none());
+    }
 }

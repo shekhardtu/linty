@@ -1,3 +1,4 @@
+import { DictationPersonalization } from "@/components/settings/DictationPersonalization.component";
 import { Select } from "@/components/shared/Select.component";
 import { LegalNotice } from "@/components/shared/LegalNotice.component";
 import { useState, useEffect } from "react";
@@ -109,6 +110,7 @@ function DictationSection() {
   const loadedModel = useAppStore((state) => state.loadedModelFilename);
   return <div className="settings-section dictation-preferences">
     <DictationLanguages />
+    <DictationPersonalization />
     <details className="dictation-advanced">
       <summary>Advanced <ChevronDown size={14} aria-hidden="true" /></summary>
       <div className="dictation-advanced-content">

@@ -17,6 +17,8 @@ History, corrections, and your dictionary are saved locally. History stays until
 
 App attribution is on by default and saves the active app’s name and identifier with dictations. Automatic dictionary learning and observing corrections in other apps are off by default. Enabling observation reads supported text fields for up to two minutes after pasting and saves relevant corrections, not the full field.
 
+Voice snippets and app writing-style profiles are saved locally. Optional editor assistance reads a supported field of up to 20,000 UTF-16 units to capture and verify a selection of up to 4,096 units. Selected IDE identifiers become temporary speech hints. Optional selected-text editing reads the selection for a preview and changes it only after you accept. These selections are not added to your dictionary or diagnostic logs.
+
 Settings → Privacy & storage provides retention, export, and deletion controls. Optional history expiry runs at most once per 24 hours while Linty is running. Turning off a saving preference does not delete earlier records. Deleting a transcript removes its recording and corrections; dictionary entries remain separate.
 
 Reset removes Linty’s application data and downloaded models. It does not erase diagnostic logs, exports, backups, or copies in other apps. The project cannot remotely access or delete your local archive.
@@ -25,7 +27,7 @@ Reset removes Linty’s application data and downloaded models. It does not eras
 
 Setup downloads models from Hugging Face and its delivery services. Linty automatically checks GitHub for updates; required updates can download and install when dictation is idle. These hosts receive IP addresses and request metadata. On-device speech processing does not disable these connections.
 
-Technical diagnostic logs stay on your Mac unless you share them. They rotate by size, with four archives and an active file of roughly 5 MiB each. Review exported diagnostics before sharing.
+Technical diagnostic logs stay on your Mac unless you share them. They rotate by size, with four archives and an active file of roughly 5 MiB each. Review exported diagnostics before sharing. If the main thread stops responding, Linty may capture a local stack-symbol sample for diagnosis. It keeps at most three samples of up to 2 MiB each; samples do not capture audio or memory contents and are not uploaded.
 
 [GitHub privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement) · [Hugging Face privacy policy](https://huggingface.co/privacy)
 

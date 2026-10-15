@@ -2,7 +2,7 @@ import { pathToFileURL } from 'node:url';
 import { runCommand, runTasks } from './run-tasks.mjs';
 
 // Start the two longest suites first. CI and local releases use the same list.
-export const uiSuites = ['ui', 'onboarding', 'security', 'audio-history', 'correction-feedback', 'updates', 'privacy', 'microphone'];
+export const uiSuites = ['ui', 'onboarding', 'security', 'audio-history', 'correction-feedback', 'updates', 'privacy', 'microphone', 'personalization', 'editor-assistance'];
 
 export async function runUiChecks({ run = runCommand, cwd = process.cwd(), env = process.env, signal } = {}) {
   const started = performance.now();

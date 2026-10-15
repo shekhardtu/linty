@@ -5,6 +5,7 @@ import type {
   DictionarySuggestion,
 } from "../types/correction.types";
 import { isSpellingCorrection } from "./correction-classifier.ts";
+import { dictionaryTermKey } from "./dictionary-suppression.util.ts";
 import { isWordBoundaryCorrection, normalizeWord } from "./correction-diff.util.ts";
 
 /** Roughly 224 Whisper tokens; keeps the prompt within what the engines accept. */
@@ -70,15 +71,32 @@ export function isKnownToDictionary(entries: DictionaryEntry[], from: string, to
   );
 }
 
+/** Native observation already verified the edit and its pasted span. A single
+ * proper-name spelling fix can exceed the ratio limit in a one/two-word take.
+ * Keep the exception out of manual History edits and multi-word rewrites. */
+export function isVerifiedShortSpellingCorrection(record: CorrectionRecord): boolean {
+  if (record.source !== "observed" || !Number.isInteger(record.wordCount)
+    || record.wordCount < 1 || record.wordCount > 2 || record.pairs.length !== 1) return false;
+  const pair = record.pairs[0];
+  if (pair.kind !== "substitution") return false;
+  const from = bareWord(pair.from), to = bareWord(pair.to);
+  return !/\s/u.test(from) && !/\s/u.test(to)
+    && normalizeWord(from) !== normalizeWord(to)
+    && !isCommonWord(from) && !isCommonWord(to) && isProperNoun(to)
+    && isSpellingCorrection(from, to);
+}
+
 /** Fold a correction into the suggestion list; returns the new list (immutable). */
 export function suggestionsFromCorrection(
   record: CorrectionRecord,
   suggestions: DictionarySuggestion[],
   entries: DictionaryEntry[],
+  suppressedTerms: string[] = [],
 ): DictionarySuggestion[] {
-  if (record.rewrite) return suggestions;
+  if (record.rewrite && !isVerifiedShortSpellingCorrection(record)) return suggestions;
   let next = suggestions;
   for (const { from, to } of learnablePairs(record.pairs)) {
+    if (suppressedTerms.includes(dictionaryTermKey(to))) continue;
     if (record.source === "observed" && (!isSpellingCorrection(from, to) || isCommonWord(from))) continue;
     if (isKnownToDictionary(entries, from, to)) continue;
     if (record.source === "observed" && entries.some(e => e.right !== to

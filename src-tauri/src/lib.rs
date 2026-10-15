@@ -11,11 +11,13 @@ mod clipboard;
 mod corrections;
 mod delivery;
 mod dictation;
+mod editor_assistance;
 #[cfg(target_os = "macos")]
 mod fnkey;
 mod history;
 mod history_db;
 mod input_activity;
+mod insertion;
 mod legacy_settings;
 pub mod logging;
 mod model_store;
@@ -30,6 +32,7 @@ mod pcm_wav;
 #[cfg(target_os = "macos")]
 mod permissions;
 pub mod reformat;
+mod responsiveness;
 mod startup;
 mod state;
 pub mod text_validation;
@@ -1583,6 +1586,7 @@ pub fn run() {
             // Start resource watchdog (auto-recovery from CPU overload)
             history::initialize(app.handle().clone());
             watchdog::start(app.handle().clone());
+            responsiveness::start(app.handle().clone());
 
             Ok(())
         })
@@ -1600,6 +1604,9 @@ pub fn run() {
             startup::finish_startup_setup,
             startup::open_login_items_settings,
             updater::check_for_update,
+            editor_assistance::accept_editor_edit,
+            editor_assistance::undo_editor_edit,
+            editor_assistance::cancel_editor_edit,
             dictation::start_dictation,
             dictation::stop_dictation,
             dictation::dictation_result,

@@ -37,6 +37,9 @@ pub(super) trait Backend: Sync {
         text: String,
     ) -> impl Future<Output = Result<Delivery, String>> + Send;
     fn changed(&self);
+    fn preview_edit(&self, _session: &Session, _raw: &str) -> Result<bool, String> {
+        Ok(false)
+    }
 }
 pub(super) struct NativeBackend {
     pub app: tauri::AppHandle,
@@ -102,11 +105,23 @@ impl Backend for NativeBackend {
                 &text,
                 &id,
                 session.options.observe_corrections,
+                session.options.cursor_aware_insertion,
+                session
+                    .options
+                    .voice_snippets
+                    .iter()
+                    .any(|snippet| snippet.text == text),
                 || session.check(),
             )
         })
         .await
         .map_err(|e| e.to_string())
+    }
+    fn preview_edit(&self, session: &Session, raw: &str) -> Result<bool, String> {
+        if !session.options.selected_text_editing {
+            return Ok(false);
+        }
+        crate::editor_assistance::preview(&self.app, &session.editor_capture, raw)
     }
     fn changed(&self) {
         let _ = self.app.emit_to("main", "dictation-history-changed", ());

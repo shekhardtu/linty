@@ -4,6 +4,7 @@
 // Compile with swiftc and probe the resulting process ID from another process.
 import AppKit
 
+let editorMode = CommandLine.arguments.contains("--editor")
 let sessionMode = CommandLine.arguments.contains("--session")
 let previous = NSWorkspace.shared.frontmostApplication
 let app = NSApplication.shared
@@ -14,6 +15,7 @@ let window = NSWindow(
 )
 let text = NSTextView(frame: NSRect(x: 0, y: 0, width: 400, height: 100))
 text.string = "My name is Hari Shekhar. I go to YOLO."
+if editorMode { text.string = "Prefix 😀 mixedCase suffix"; text.setSelectedRange(NSRange(location: 10, length: 9)) }
 window.contentView = text
 window.makeFirstResponder(text)
 if sessionMode {
@@ -27,6 +29,7 @@ if sessionMode {
 var step = 0
 let timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
     step += 1
+    if editorMode { if step == 6 { timer.invalidate(); app.terminate(nil) }; return }
     if step == 1 { text.string = "My name is Harishekhar. I go to YOLO." }
     if step == 2 { text.string = "My name is Harishekhar. I go to YULU." }
     if step == 3 {

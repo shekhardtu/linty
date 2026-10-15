@@ -1,3 +1,4 @@
+import { normalizeSnippets, normalizeAppStyles } from "@/lib/dictation-personalization.util";
 import { useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "@/store/app.store";
@@ -63,6 +64,11 @@ export function useSettings() {
         const lists = await store.get<boolean>("reformatLists");
         const context = await store.get<ReformatContext>("reformatContext");
         useAppStore.setState({
+          cursorAwareInsertion: (await store.get("cursorAwareInsertion")) === true,
+          ideVocabularyHints: (await store.get("ideVocabularyHints")) === true,
+          selectedTextEditing: (await store.get("selectedTextEditing")) === true,
+          voiceSnippets: normalizeSnippets(await store.get("voiceSnippets")),
+          appStyleProfiles: normalizeAppStyles(await store.get("appStyleProfiles")),
           reformatEnabled: reformat === true,
           reformatStyle: style && ["casual", "semi-casual", "semi-formal", "formal"].includes(style) ? style : "semi-formal",
           reformatLists: lists !== false,

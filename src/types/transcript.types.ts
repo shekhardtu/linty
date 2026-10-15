@@ -21,7 +21,7 @@ export interface TranscriptRecord {
   /** Present only when this dictation has an opt-in, locally saved recording. */
   audio?: { format: "wav"; sampleRate: number; channels: number; bitsPerSample: number; bytes: number };
   /** Legacy pasted means command posted, not verified insertion. */
-  deliveryStatus?: "pasted" | "pending" | "verified" | "unverified" | "failed" | "skipped";
+  deliveryStatus?: "pasted" | "pending" | "verified" | "unverified" | "failed" | "skipped" | "editing-preview" | "editing-unavailable";
   attemptedText?: string;
   delivery?: { status: string; commandPosted: boolean; commandPostedMs: number | null; insertionObservedMs: number | null; reason: string | null };
   textValidation?: { status: "unchanged" | "accepted" | "fallback"; reasons: string[] };

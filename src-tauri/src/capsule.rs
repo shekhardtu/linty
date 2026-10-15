@@ -13,10 +13,12 @@ use tauri_plugin_store::StoreExt;
 
 #[path = "capsule_recovery.rs"]
 mod recovery;
-use recovery::SpaceRecovery;
+use recovery::{RendererAction, RendererRecovery, SpaceRecovery};
 
 // Panel level above menu bar (Status level = 25)
 const PANEL_LEVEL: i32 = NSMainMenuWindowLevel + 2;
+// AppKit NSWindow.h: NSWindowAnimationBehaviorNone = 2 (NSInteger, macOS 10.7+).
+pub(crate) const NS_WINDOW_ANIMATION_BEHAVIOR_NONE: isize = 2;
 
 // NSWindowStyleMask values as i32
 const NS_BORDERLESS_WINDOW_MASK: i32 = 0;
@@ -38,6 +40,14 @@ static SHOWING_FEEDBACK: AtomicBool = AtomicBool::new(false);
 static SIMULATED_OFF_SPACE_WINDOW: AtomicU64 = AtomicU64::new(0);
 #[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
 static REHEARSAL_RENDERED_GENERATION: AtomicU64 = AtomicU64::new(0);
+#[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
+static REHEARSAL_NAVIGATION_RETRIES: AtomicU64 = AtomicU64::new(0);
+
+#[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
+#[allow(dead_code)]
+pub fn rehearsal_navigation_retries() -> u64 {
+    REHEARSAL_NAVIGATION_RETRIES.load(Ordering::SeqCst)
+}
 
 #[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
 #[allow(dead_code)]
@@ -441,11 +451,17 @@ impl CapsulePresentation {
 }
 
 #[tauri::command]
-pub fn get_capsule_state(app: AppHandle) -> Option<CapsuleState> {
+pub fn get_capsule_state(app: AppHandle, window: tauri::WebviewWindow) -> Option<CapsuleState> {
+    let snapshot = app.state::<CapsulePresentation>().latest().clone();
+    // An idle page has no rendered-state ACK. Reading its snapshot proves the
+    // new page reached its listener setup; active presentations require render.
+    if snapshot.as_ref().is_none_or(|state| state.state == "idle") {
+        acknowledge_replacement_renderer(&app, &window);
+    }
     if SHOWING_FEEDBACK.load(Ordering::SeqCst) {
         return None;
     }
-    app.state::<CapsulePresentation>().latest().clone()
+    snapshot
 }
 
 // ── Lifetime guard (issue #147) ──
@@ -465,6 +481,7 @@ const RELOAD_SETTLE: Duration = Duration::from_secs(2);
 
 pub struct CapsuleHealth {
     space_recovery: Mutex<SpaceRecovery>,
+    renderer_recovery: Mutex<RendererRecovery>,
     takes: AtomicU64,
     last_counted_generation: AtomicU64,
     /// The over-threshold warning was logged; cleared by a relaunch or reload.
@@ -479,6 +496,7 @@ impl Default for CapsuleHealth {
     fn default() -> Self {
         Self {
             space_recovery: Mutex::new(SpaceRecovery::default()),
+            renderer_recovery: Mutex::new(RendererRecovery::default()),
             takes: AtomicU64::new(0),
             last_counted_generation: AtomicU64::new(0),
             over_threshold_logged: AtomicBool::new(false),
@@ -1001,6 +1019,11 @@ fn apply_panel_properties(panel: &tauri_nspanel::raw_nspanel::RawNSPanel) {
     panel.set_has_shadow(false);
     // The webview decides which regions can drag; buttons keep their actions.
     unsafe {
+        // The renderer owns the pill's fades, including reduced motion.
+        // Rapid native order-in/out accumulated 65 blocked NSAnimation workers
+        // in the stress trace, exhausting dispatch workers and starving WebKit.
+        // Suppress that duplicate animation; keep the renderer's own fades.
+        let _: () = msg_send![panel, setAnimationBehavior: NS_WINDOW_ANIMATION_BEHAVIOR_NONE];
         let _: () = msg_send![panel, setMovable: YES];
     }
 }
@@ -1052,12 +1075,21 @@ pub fn is_dictation_window_active(app: AppHandle) -> Result<bool, String> {
 }
 
 #[tauri::command]
-pub fn capsule_state_rendered(app: AppHandle, revision: u64, state: String) {
+pub fn capsule_state_rendered(
+    app: AppHandle,
+    window: tauri::WebviewWindow,
+    revision: u64,
+    state: String,
+) {
     let current = app.state::<CapsulePresentation>().latest().clone();
     if current
         .as_ref()
         .is_some_and(|current| current.revision == revision && current.state == state)
     {
+        if !current_capsule_window(&app, &window) {
+            return;
+        }
+        acknowledge_replacement_renderer(&app, &window);
         log::info!("[capsule] Rendered state={state} revision={revision}");
         #[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
         REHEARSAL_RENDERED_GENERATION.store(
@@ -1361,6 +1393,78 @@ pub fn rebuild_panel_if_needed(app: &AppHandle) {
     });
 }
 
+fn current_capsule_window(app: &AppHandle, caller: &tauri::WebviewWindow) -> bool {
+    caller.label() == "capsule"
+        && app
+            .get_webview_window("capsule")
+            .and_then(|current| current.ns_window().ok())
+            .zip(caller.ns_window().ok())
+            .is_some_and(|(current, caller)| current == caller)
+}
+
+fn acknowledge_replacement_renderer(app: &AppHandle, caller: &tauri::WebviewWindow) {
+    if !current_capsule_window(app, caller) {
+        return;
+    }
+    let Ok(native) = caller.ns_window() else {
+        return;
+    };
+    if app
+        .state::<CapsuleHealth>()
+        .renderer_recovery
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .acknowledge(native as usize)
+    {
+        log::info!("[capsule] Replacement renderer readiness confirmed");
+    }
+}
+
+fn monitor_replacement_renderer(app: AppHandle, epoch: u64, native: usize) {
+    tauri::async_runtime::spawn(async move {
+        for _ in 0..2 {
+            tokio::time::sleep(Duration::from_secs(3)).await;
+            let handle = app.clone();
+            let (done, completed) = tokio::sync::oneshot::channel();
+            if app.run_on_main_thread(move || {
+                let Some(window) = handle.get_webview_window("capsule") else { return; };
+                if window.ns_window().ok().map(|p| p as usize) != Some(native) { return; }
+                let action = handle.state::<CapsuleHealth>().renderer_recovery.lock().unwrap_or_else(|e| e.into_inner()).timeout(epoch, native);
+                match action {
+                    RendererAction::Ignore => {}
+                    RendererAction::Retry => {
+                        #[cfg(all(debug_assertions, feature = "capsule-recovery-test"))]
+                        REHEARSAL_NAVIGATION_RETRIES.fetch_add(1, Ordering::SeqCst);
+                        log::warn!("[capsule] Replacement renderer unconfirmed — retrying initial navigation once");
+                        // This bounded fresh-window retry is separate from idle
+                        // page recycling; it never changes that global throttle.
+                        // WKWebView.URL can be nil before the first commit;
+                        // Wry's URL getter unwraps it. Native reload is safe in
+                        // that state; an unconfirmed reload still follows the
+                        // bounded failure path and queues an idle replacement.
+                        if let Err(error) = window.reload() {
+                            log::error!("[capsule] Replacement navigation retry failed: {error}");
+                        }
+                    }
+                    RendererAction::Failed => {
+                        log::error!("[capsule] Replacement renderer still unconfirmed — rebuild queued until idle within existing limits");
+                        handle.state::<CapsuleHealth>().space_recovery().rebuilt(false);
+                        rebuild_panel_if_needed(&handle);
+                    }
+                }
+                let _ = done.send(action);
+            }).is_err() { return; }
+            // Do not queue a second timer behind a hung main thread and then
+            // fail immediately when both callbacks run during recovery. Await
+            // the one queued callback even through a hang: its retry must arm
+            // the second observation once the main thread recovers.
+            if !matches!(completed.await, Ok(RendererAction::Retry)) {
+                return;
+            }
+        }
+    });
+}
+
 fn app_dispatch_rebuild(
     app: &AppHandle,
     config: tauri::utils::config::WindowConfig,
@@ -1383,16 +1487,27 @@ fn app_dispatch_rebuild(
             .and_then(|window| {
                 let panel = owned_capsule_panel(&window)?;
                 apply_panel_properties(&panel);
-                Ok(())
+                Ok(window)
             });
         match rebuilt {
-            Ok(()) => {
+            Ok(window) => {
                 POSITIONED.store(false, Ordering::Relaxed);
                 *health
                     .reload_started
                     .lock()
                     .unwrap_or_else(|e| e.into_inner()) = Some(Instant::now());
+                // Release only the native replacement guard: frame/render IPC
+                // must run while renderer readiness is still unconfirmed.
                 health.space_recovery().rebuilt(true);
+                if let Ok(native) = window.ns_window() {
+                    let native = native as usize;
+                    let epoch = health
+                        .renderer_recovery
+                        .lock()
+                        .unwrap_or_else(|e| e.into_inner())
+                        .begin(native);
+                    monitor_replacement_renderer(handle.clone(), epoch, native);
+                }
                 log::info!(
                     "[capsule] Native panel rebuilt; active-Space visibility awaits the next show"
                 );

@@ -258,6 +258,7 @@ struct LocalFnKeyBlock {
 
 unsafe extern "C" fn block_invoke(block: *mut FnKeyBlock, event: *const c_void) {
     let state = &*(*block).state;
+    GLOBAL_EVENTS.fetch_add(1, Ordering::Relaxed);
 
     // Count events for diagnostics
     let count = state.event_count.fetch_add(1, Ordering::SeqCst) + 1;
@@ -311,6 +312,7 @@ unsafe extern "C" fn local_block_invoke(
     event: *const c_void,
 ) -> *const c_void {
     let state = &*(*block).state;
+    LOCAL_EVENTS.fetch_add(1, Ordering::Relaxed);
 
     let sel = sel_registerName(b"modifierFlags\0".as_ptr());
     let send: unsafe extern "C" fn(*const c_void, *const c_void) -> u64 =
@@ -420,12 +422,58 @@ pub fn setup_fn_key_monitor(app: AppHandle) {
 /// this fn every 30s, so log the state once per transition, not per poll.
 static NOT_TRUSTED_LOGGED: AtomicBool = AtomicBool::new(false);
 
+#[derive(Debug, PartialEq)]
+enum MonitorRetry {
+    Healthy,
+    WaitForRelease,
+    Reinitialize { reconcile_release: bool },
+}
+
+fn monitor_retry(
+    global: bool,
+    local: bool,
+    physical_held: bool,
+    logical_held: bool,
+) -> MonitorRetry {
+    if global && local {
+        MonitorRetry::Healthy
+    } else if physical_held {
+        MonitorRetry::WaitForRelease
+    } else {
+        MonitorRetry::Reinitialize {
+            reconcile_release: logical_held,
+        }
+    }
+}
+
+fn monitor_held(clear: bool) -> bool {
+    let mut held = false;
+    for pointer in [&GLOBAL_STATE_PTR, &LOCAL_STATE_PTR] {
+        if let Ok(guard) = pointer.lock() {
+            if let Some(SendStatePtr(pointer)) = guard.as_ref() {
+                if !pointer.is_null() {
+                    // SAFETY: the slot owns an Arc reference until teardown.
+                    // Holding its lock prevents teardown from releasing that
+                    // reference; both monitors share the same atomic held flag.
+                    let flag = unsafe { &(**pointer).fn_held };
+                    held |= if clear {
+                        flag.swap(false, Ordering::SeqCst)
+                    } else {
+                        flag.load(Ordering::SeqCst)
+                    };
+                }
+            }
+        }
+    }
+    held
+}
+
 /// Re-initialize the fn key monitor if it isn't running.
 /// Called from the frontend after onboarding completes and periodically by the
 /// watchdog as a self-healing net (must run on the main thread — NSEvent API).
 pub fn reinit_monitor_if_needed(app: AppHandle) {
     // Fast path — monitor healthy; stay silent (this is polled by the watchdog).
-    if MONITOR_ACTIVE.load(Ordering::SeqCst) {
+    if GLOBAL_ACTIVE.load(Ordering::SeqCst) && LOCAL_ACTIVE.load(Ordering::SeqCst) {
         return;
     }
 
@@ -442,13 +490,96 @@ pub fn reinit_monitor_if_needed(app: AppHandle) {
 
     NOT_TRUSTED_LOGGED.store(false, Ordering::SeqCst);
     log::info!("[fnkey] reinit: AXIsProcessTrusted = true");
+    match monitor_retry(
+        GLOBAL_ACTIVE.load(Ordering::SeqCst),
+        LOCAL_ACTIVE.load(Ordering::SeqCst),
+        trigger_key_physically_down(),
+        monitor_held(false),
+    ) {
+        MonitorRetry::Healthy | MonitorRetry::WaitForRelease => return,
+        MonitorRetry::Reinitialize {
+            reconcile_release: true,
+        } => {
+            // A physical release can precede its queued NSEvent callback, or
+            // happen outside the sole working monitor's focus scope. Resolve
+            // the native gesture once before discarding the old shared state.
+            // Clearing first also prevents a delayed callback duplicating it.
+            if monitor_held(true) {
+                let at = wall_ms();
+                crate::dictation::trigger_released(&app, at);
+                let _ = app.emit("fnkey-released", TriggerEvent { at });
+                log::info!("[fnkey] reconciled released trigger before partial monitor repair");
+            }
+        }
+        MonitorRetry::Reinitialize {
+            reconcile_release: false,
+        } => {}
+    }
+    // A partial installation must be removed before retrying; otherwise its
+    // callback/state would be leaked and each event could fire twice.
+    teardown_monitors();
     init_monitor(app);
+}
+
+#[cfg(test)]
+mod retry_tests {
+    use super::{monitor_retry, MonitorRetry};
+
+    #[test]
+    fn healthy_monitors_never_rebuild_for_held_or_idle_input() {
+        for physical in [false, true] {
+            for logical in [false, true] {
+                assert_eq!(
+                    monitor_retry(true, true, physical, logical),
+                    MonitorRetry::Healthy
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn partial_coverage_preserves_held_gestures_and_reconciles_missing_release() {
+        for (global, local) in [(true, false), (false, true), (false, false)] {
+            for logical in [false, true] {
+                assert_eq!(
+                    monitor_retry(global, local, true, logical),
+                    MonitorRetry::WaitForRelease
+                );
+            }
+            assert_eq!(
+                monitor_retry(global, local, false, false),
+                MonitorRetry::Reinitialize {
+                    reconcile_release: false
+                }
+            );
+            assert_eq!(
+                monitor_retry(global, local, false, true),
+                MonitorRetry::Reinitialize {
+                    reconcile_release: true
+                }
+            );
+        }
+    }
 }
 
 /// Shared app handle for deferred initialization.
 static APP_HANDLE: std::sync::Mutex<Option<AppHandle>> = std::sync::Mutex::new(None);
 /// Whether the monitor has been successfully started.
-static MONITOR_ACTIVE: AtomicBool = AtomicBool::new(false);
+static GLOBAL_ACTIVE: AtomicBool = AtomicBool::new(false);
+static LOCAL_ACTIVE: AtomicBool = AtomicBool::new(false);
+static GLOBAL_EVENTS: AtomicU64 = AtomicU64::new(0);
+static LOCAL_EVENTS: AtomicU64 = AtomicU64::new(0);
+
+/// Installation and delivery are separate facts: no recent events may simply
+/// mean the user has not pressed a modifier. Never rebuild based on inactivity.
+pub fn health() -> (bool, bool, u64, u64) {
+    (
+        GLOBAL_ACTIVE.load(Ordering::SeqCst),
+        LOCAL_ACTIVE.load(Ordering::SeqCst),
+        GLOBAL_EVENTS.load(Ordering::Relaxed),
+        LOCAL_EVENTS.load(Ordering::Relaxed),
+    )
+}
 
 // ── Pointer wrappers for Send safety (these are ObjC monitor IDs, accessed under lock) ──
 
@@ -510,7 +641,8 @@ fn teardown_monitors() {
         }
     }
 
-    MONITOR_ACTIVE.store(false, Ordering::SeqCst);
+    GLOBAL_ACTIVE.store(false, Ordering::SeqCst);
+    LOCAL_ACTIVE.store(false, Ordering::SeqCst);
 }
 
 /// Epoch millis of the last force reinit — debounces the redundant triggers a
@@ -577,6 +709,7 @@ fn init_monitor(app: AppHandle) {
         ) -> *const c_void = std::mem::transmute(objc_msgSend as *const c_void);
 
         let monitor = send(ns_event_class, sel, NS_EVENT_MASK_FLAGS_CHANGED, block_ptr);
+        drop(Box::from_raw(block_ptr));
 
         if monitor.is_null() {
             log::error!("[fnkey] NSEvent global monitor FAILED");
@@ -626,6 +759,7 @@ fn init_monitor(app: AppHandle) {
             NS_EVENT_MASK_FLAGS_CHANGED,
             local_block_ptr,
         );
+        drop(Box::from_raw(local_block_ptr));
 
         if local_monitor.is_null() {
             log::error!("[fnkey] NSEvent local monitor FAILED");
@@ -641,9 +775,16 @@ fn init_monitor(app: AppHandle) {
             *g = Some(SendStatePtr(state_ptr_local));
         }
 
-        if !monitor.is_null() || !local_monitor.is_null() {
-            MONITOR_ACTIVE.store(true, Ordering::SeqCst);
+        GLOBAL_ACTIVE.store(!monitor.is_null(), Ordering::SeqCst);
+        LOCAL_ACTIVE.store(!local_monitor.is_null(), Ordering::SeqCst);
+        if !monitor.is_null() && !local_monitor.is_null() {
             log::info!("[fnkey] fn key monitoring ready — press fn to record");
+        } else {
+            log::warn!(
+                "[fnkey] incomplete trigger coverage: global={} local={}; retry scheduled",
+                !monitor.is_null(),
+                !local_monitor.is_null()
+            );
         }
     }
 }
