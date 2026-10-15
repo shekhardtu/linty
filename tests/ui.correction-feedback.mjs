@@ -227,6 +227,7 @@ try {
     await pill.clock.runFor(2000);
     assert.equal(await pill.locator('.capsule-feedback').count(), 1, 'The brief acknowledgment gives time to read');
     await pill.clock.runFor(1300);
+    await pill.locator('.capsule-pill').waitFor({ state: 'detached' });
     assert.equal(await pill.locator('.capsule-pill').count(), 0, 'Feedback dismisses after three seconds plus its exit animation');
     await send({ state: 'transcribing' });
     await notify();
@@ -260,6 +261,7 @@ try {
     await pill.getByRole('button', { name: 'Undo learning' }).click();
     assert.equal(await pill.evaluate(() => window.__QA__.emittedEvents.at(-1).payload.id), 'batch-1');
     await pill.clock.runFor(200);
+    await pill.locator('.capsule-pill').waitFor({ state: 'detached' });
     assert.equal(await pill.locator('.capsule-pill').count(), 0);
     await pill.mouse.move(0, 0);
     await pill.evaluate(() => window.__QA__.emit('correction-feedback', {
@@ -272,6 +274,7 @@ try {
     await pill.clock.runFor(4000);
     await pill.mouse.move(0, 0);
     await pill.clock.runFor(1500);
+    await pill.locator('.capsule-pill').waitFor({ state: 'detached' });
     assert.equal(await pill.locator('.capsule-pill').count(), 0, 'Actionable feedback resumes only its remaining time, not a new full timer');
     await context.close();
   }
