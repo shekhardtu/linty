@@ -226,7 +226,9 @@ try {
     await pill.locator('.capsule-feedback').waitFor();
     await pill.clock.runFor(2000);
     assert.equal(await pill.locator('.capsule-feedback').count(), 1, 'The brief acknowledgment gives time to read');
+    const hidesBeforeAutomatic = await pill.evaluate(() => window.__QA__.calls.filter(call => call === 'hide_capsule').length);
     await pill.clock.runFor(1300);
+    assert.equal(await pill.evaluate(() => window.__QA__.calls.filter(call => call === 'hide_capsule').length), hidesBeforeAutomatic + 1, 'The automatic dismissal timer fires before waiting for React to remove the pill');
     await pill.locator('.capsule-pill').waitFor({ state: 'detached' });
     assert.equal(await pill.locator('.capsule-pill').count(), 0, 'Feedback dismisses after three seconds plus its exit animation');
     await send({ state: 'transcribing' });
@@ -258,9 +260,11 @@ try {
     await pill.mouse.move(0, 0);
     await pill.clock.runFor(5000);
     assert.equal(await pill.locator('.capsule-feedback').count(), 1, 'Keyboard focus also pauses dismissal after the pointer leaves');
+    const hidesBeforeUndo = await pill.evaluate(() => window.__QA__.calls.filter(call => call === 'hide_capsule').length);
     await pill.getByRole('button', { name: 'Undo learning' }).click();
     assert.equal(await pill.evaluate(() => window.__QA__.emittedEvents.at(-1).payload.id), 'batch-1');
     await pill.clock.runFor(200);
+    assert.equal(await pill.evaluate(() => window.__QA__.calls.filter(call => call === 'hide_capsule').length), hidesBeforeUndo + 1, 'Undo dismissal fires before waiting for the DOM commit');
     await pill.locator('.capsule-pill').waitFor({ state: 'detached' });
     assert.equal(await pill.locator('.capsule-pill').count(), 0);
     await pill.mouse.move(0, 0);
@@ -272,8 +276,10 @@ try {
     await pill.clock.runFor(1800);
     await pill.getByRole('button', { name: 'Undo learning' }).hover();
     await pill.clock.runFor(4000);
+    const hidesBeforeResume = await pill.evaluate(() => window.__QA__.calls.filter(call => call === 'hide_capsule').length);
     await pill.mouse.move(0, 0);
     await pill.clock.runFor(1500);
+    assert.equal(await pill.evaluate(() => window.__QA__.calls.filter(call => call === 'hide_capsule').length), hidesBeforeResume + 1, 'Resuming uses only the remaining timer before waiting for the DOM commit');
     await pill.locator('.capsule-pill').waitFor({ state: 'detached' });
     assert.equal(await pill.locator('.capsule-pill').count(), 0, 'Actionable feedback resumes only its remaining time, not a new full timer');
     await context.close();
