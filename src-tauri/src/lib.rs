@@ -1246,22 +1246,8 @@ pub(crate) fn show_main_window(app: &tauri::AppHandle) {
 // ── macOS: System sleep/wake observer ──
 
 #[cfg(target_os = "macos")]
-fn register_wake_observer(app: &tauri::AppHandle, app_state: &AppState) {
+fn register_wake_observer(app: &tauri::AppHandle) {
     use std::ffi::c_void;
-
-    // We need raw pointers to pass into the ObjC block
-    struct SendAppHandle(tauri::AppHandle);
-    unsafe impl Send for SendAppHandle {}
-    unsafe impl Sync for SendAppHandle {}
-
-    struct SendStatePtr(*const AppState);
-    unsafe impl Send for SendStatePtr {}
-    unsafe impl Sync for SendStatePtr {}
-
-    // Leak the app handle and state pointer — they live for the lifetime of the process
-    let app_handle = Box::leak(Box::new(SendAppHandle(app.clone())));
-    let state_ptr = SendStatePtr(app_state as *const AppState);
-    let state_ptr = Box::leak(Box::new(state_ptr));
 
     unsafe {
         let objc_get_class: unsafe extern "C" fn(*const u8) -> *const c_void =
@@ -1296,34 +1282,12 @@ fn register_wake_observer(app: &tauri::AppHandle, app_state: &AppState) {
             b"NSWorkspaceDidWakeNotification\0".as_ptr(),
         );
 
-        // Build the ObjC block for the observer callback
-        // Block signature: void (^)(NSNotification *)
-        #[repr(C)]
-        struct WakeBlockDescriptor {
-            reserved: u64,
-            size: u64,
-        }
-
-        #[repr(C)]
-        struct WakeBlock {
-            isa: *const c_void,
-            flags: i32,
-            reserved: i32,
-            invoke: unsafe extern "C" fn(*mut WakeBlock, *const c_void),
-            descriptor: *const WakeBlockDescriptor,
-            app_handle: *const SendAppHandle,
-            state_ptr: *const SendStatePtr,
-        }
-
-        extern "C" {
-            static _NSConcreteStackBlock: *const c_void;
-        }
-
-        unsafe extern "C" fn wake_invoke(block: *mut WakeBlock, _notification: *const c_void) {
+        // NotificationCenter copies this block and owns the captured handle.
+        let app = app.clone();
+        let block = block2::RcBlock::new(move |_notification: *const c_void| {
             log::info!("[wake] System/screen wake detected — reinitializing");
-
-            let app = &(*(*block).app_handle).0;
-            let state = &*(*(*block).state_ptr).0;
+            let app = &app;
+            let state = app.state::<AppState>();
 
             // 1. Force reinit fn key monitors
             fnkey::force_reinit_monitor(app.clone());
@@ -1352,23 +1316,7 @@ fn register_wake_observer(app: &tauri::AppHandle, app_state: &AppState) {
             // 6. Emit system-wake event to frontend
             history::on_wake(app.clone());
             let _ = app.emit("system-wake", ());
-        }
-
-        static WAKE_DESCRIPTOR: WakeBlockDescriptor = WakeBlockDescriptor {
-            reserved: 0,
-            size: std::mem::size_of::<WakeBlock>() as u64,
-        };
-
-        let block = Box::new(WakeBlock {
-            isa: _NSConcreteStackBlock,
-            flags: 0,
-            reserved: 0,
-            invoke: wake_invoke,
-            descriptor: &WAKE_DESCRIPTOR,
-            app_handle: app_handle as *const SendAppHandle,
-            state_ptr: state_ptr as *const SendStatePtr,
         });
-        let block_ptr = Box::into_raw(block);
 
         // [notificationCenter addObserverForName:object:queue:usingBlock:]
         let add_sel = sel_register(b"addObserverForName:object:queue:usingBlock:\0".as_ptr());
@@ -1378,7 +1326,7 @@ fn register_wake_observer(app: &tauri::AppHandle, app_state: &AppState) {
             *const c_void,
             *const c_void,
             *const c_void,
-            *const WakeBlock,
+            *const c_void,
         ) -> *const c_void = std::mem::transmute(fnkey_ffi::objc_msgSend as *const c_void);
 
         let _observer = send_add(
@@ -1387,7 +1335,7 @@ fn register_wake_observer(app: &tauri::AppHandle, app_state: &AppState) {
             wake_name,
             std::ptr::null(), // object: nil (any sender)
             std::ptr::null(), // queue: nil (posting thread)
-            block_ptr,
+            block2::RcBlock::as_ptr(&block).cast(),
         );
 
         log::debug!("[wake] Registered NSWorkspaceDidWakeNotification observer");
@@ -1400,26 +1348,13 @@ fn register_wake_observer(app: &tauri::AppHandle, app_state: &AppState) {
             b"NSWorkspaceScreensDidWakeNotification\0".as_ptr(),
         );
 
-        // Reuse the same block layout — screen wake needs the same recovery steps.
-        // We need a separate block instance since each observer owns its block.
-        let screen_block = Box::new(WakeBlock {
-            isa: _NSConcreteStackBlock,
-            flags: 0,
-            reserved: 0,
-            invoke: wake_invoke,
-            descriptor: &WAKE_DESCRIPTOR,
-            app_handle: app_handle as *const SendAppHandle,
-            state_ptr: state_ptr as *const SendStatePtr,
-        });
-        let screen_block_ptr = Box::into_raw(screen_block);
-
         let _screen_observer = send_add(
             notification_center,
             add_sel,
             screen_wake_name,
             std::ptr::null(),
             std::ptr::null(),
-            screen_block_ptr,
+            block2::RcBlock::as_ptr(&block).cast(),
         );
 
         log::debug!("[wake] Registered NSWorkspaceScreensDidWakeNotification observer");
@@ -1578,10 +1513,7 @@ pub fn run() {
 
             // Register sleep/wake observer (macOS only)
             #[cfg(target_os = "macos")]
-            {
-                let app_state = app.state::<AppState>();
-                register_wake_observer(app.handle(), app_state.inner());
-            }
+            register_wake_observer(app.handle());
 
             // Start resource watchdog (auto-recovery from CPU overload)
             history::initialize(app.handle().clone());

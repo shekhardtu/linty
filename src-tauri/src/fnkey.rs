@@ -3,6 +3,7 @@
 //! Uses NSEvent.addGlobalMonitorForEvents (standard AppKit API).
 //! Based on the approach used by the open-source VoiceInk (Beingpax/VoiceInk) — now Linty.
 
+use block2::RcBlock;
 use std::ffi::c_void;
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use std::sync::Arc;
@@ -93,10 +94,6 @@ extern "C" {
     fn objc_msgSend();
 }
 
-extern "C" {
-    static _NSConcreteStackBlock: *const c_void;
-}
-
 // NSEventModifierFlagFunction = 1 << 23
 const NS_EVENT_MODIFIER_FLAG_FUNCTION: u64 = 0x80_0000;
 // NSEventMaskFlagsChanged = 1 << 12
@@ -154,27 +151,6 @@ pub fn set_trigger_modifier(name: &str) -> Result<(), String> {
 fn trigger_key_physically_down() -> bool {
     let keycode = TRIGGER_KEYCODE.load(Ordering::Relaxed) as u16;
     unsafe { CGEventSourceKeyState(CG_EVENT_SOURCE_STATE_HID, keycode) }
-}
-
-// ── Block layout for Objective-C ──
-
-#[repr(C)]
-struct BlockDescriptor {
-    reserved: u64,
-    size: u64,
-    copy_helper: Option<unsafe extern "C" fn(*mut c_void, *const c_void)>,
-    dispose_helper: Option<unsafe extern "C" fn(*mut c_void)>,
-}
-
-#[repr(C)]
-struct FnKeyBlock {
-    isa: *const c_void,
-    flags: i32,
-    reserved: i32,
-    invoke: unsafe extern "C" fn(*mut FnKeyBlock, *const c_void),
-    descriptor: *const BlockDescriptor,
-    // Captured state
-    state: *const FnKeyState,
 }
 
 struct FnKeyState {
@@ -244,20 +220,9 @@ unsafe fn trigger_changed(state: &FnKeyState, event: *const c_void, pressed: boo
     }
 }
 
-// ── Local monitor block (returns NSEvent* to not consume the event) ──
-
-#[repr(C)]
-struct LocalFnKeyBlock {
-    isa: *const c_void,
-    flags: i32,
-    reserved: i32,
-    invoke: unsafe extern "C" fn(*mut LocalFnKeyBlock, *const c_void) -> *const c_void,
-    descriptor: *const BlockDescriptor,
-    state: *const FnKeyState,
-}
-
-unsafe extern "C" fn block_invoke(block: *mut FnKeyBlock, event: *const c_void) {
-    let state = &*(*block).state;
+// AppKit owns a copy of each RcBlock. Each copied closure owns its Arc, so a
+// queued callback keeps its state alive even while monitors are being removed.
+unsafe fn global_event(state: &FnKeyState, event: *const c_void) {
     GLOBAL_EVENTS.fetch_add(1, Ordering::Relaxed);
 
     // Count events for diagnostics
@@ -298,20 +263,7 @@ unsafe extern "C" fn block_invoke(block: *mut FnKeyBlock, event: *const c_void) 
     }
 }
 
-unsafe extern "C" fn block_copy_helper(dst: *mut c_void, src: *const c_void) {
-    // Copy the state pointer from src block to dst block
-    let src_block = src as *const FnKeyBlock;
-    let dst_block = dst as *mut FnKeyBlock;
-    (*dst_block).state = (*src_block).state;
-}
-
-unsafe extern "C" fn block_dispose_helper(_block: *mut c_void) {}
-
-unsafe extern "C" fn local_block_invoke(
-    block: *mut LocalFnKeyBlock,
-    event: *const c_void,
-) -> *const c_void {
-    let state = &*(*block).state;
+unsafe fn local_event(state: &FnKeyState, event: *const c_void) -> *const c_void {
     LOCAL_EVENTS.fetch_add(1, Ordering::Relaxed);
 
     let sel = sel_registerName(b"modifierFlags\0".as_ptr());
@@ -337,14 +289,6 @@ unsafe extern "C" fn local_block_invoke(
     // Return the event so it's not consumed
     event
 }
-
-unsafe extern "C" fn local_block_copy_helper(dst: *mut c_void, src: *const c_void) {
-    let src_block = src as *const LocalFnKeyBlock;
-    let dst_block = dst as *mut LocalFnKeyBlock;
-    (*dst_block).state = (*src_block).state;
-}
-
-unsafe extern "C" fn local_block_dispose_helper(_block: *mut c_void) {}
 
 /// Check if accessibility permission is granted via AXIsProcessTrusted.
 pub fn is_accessibility_granted() -> bool {
@@ -448,21 +392,13 @@ fn monitor_retry(
 
 fn monitor_held(clear: bool) -> bool {
     let mut held = false;
-    for pointer in [&GLOBAL_STATE_PTR, &LOCAL_STATE_PTR] {
-        if let Ok(guard) = pointer.lock() {
-            if let Some(SendStatePtr(pointer)) = guard.as_ref() {
-                if !pointer.is_null() {
-                    // SAFETY: the slot owns an Arc reference until teardown.
-                    // Holding its lock prevents teardown from releasing that
-                    // reference; both monitors share the same atomic held flag.
-                    let flag = unsafe { &(**pointer).fn_held };
-                    held |= if clear {
-                        flag.swap(false, Ordering::SeqCst)
-                    } else {
-                        flag.load(Ordering::SeqCst)
-                    };
-                }
-            }
+    if let Ok(guard) = MONITOR_STATE.lock() {
+        if let Some(state) = guard.as_ref() {
+            held = if clear {
+                state.fn_held.swap(false, Ordering::SeqCst)
+            } else {
+                state.fn_held.load(Ordering::SeqCst)
+            };
         }
     }
     held
@@ -586,15 +522,11 @@ pub fn health() -> (bool, bool, u64, u64) {
 struct SendPtr(*const c_void);
 unsafe impl Send for SendPtr {}
 
-struct SendStatePtr(*const FnKeyState);
-unsafe impl Send for SendStatePtr {}
-
-/// Stored monitor pointers for teardown.
+/// Stored monitor pointers for teardown (AppKit owns these until removal).
 static GLOBAL_MONITOR: std::sync::Mutex<Option<SendPtr>> = std::sync::Mutex::new(None);
 static LOCAL_MONITOR: std::sync::Mutex<Option<SendPtr>> = std::sync::Mutex::new(None);
-/// Stored Arc-into-raw pointers so we can reconstitute and drop them on teardown.
-static GLOBAL_STATE_PTR: std::sync::Mutex<Option<SendStatePtr>> = std::sync::Mutex::new(None);
-static LOCAL_STATE_PTR: std::sync::Mutex<Option<SendStatePtr>> = std::sync::Mutex::new(None);
+/// An independent reference for health checks; callbacks own their own Arcs.
+static MONITOR_STATE: std::sync::Mutex<Option<Arc<FnKeyState>>> = std::sync::Mutex::new(None);
 
 /// Remove existing NSEvent monitors and reclaim Arc memory. Safe to call even if no monitors exist.
 fn teardown_monitors() {
@@ -624,20 +556,8 @@ fn teardown_monitors() {
             }
         }
 
-        // Reclaim Arc<FnKeyState> to avoid leaks
-        if let Ok(mut guard) = GLOBAL_STATE_PTR.lock() {
-            if let Some(SendStatePtr(ptr)) = guard.take() {
-                if !ptr.is_null() {
-                    drop(Arc::from_raw(ptr));
-                }
-            }
-        }
-        if let Ok(mut guard) = LOCAL_STATE_PTR.lock() {
-            if let Some(SendStatePtr(ptr)) = guard.take() {
-                if !ptr.is_null() {
-                    drop(Arc::from_raw(ptr));
-                }
-            }
+        if let Ok(mut guard) = MONITOR_STATE.lock() {
+            guard.take();
         }
     }
 
@@ -674,42 +594,35 @@ fn init_monitor(app: AppHandle) {
         event_count: AtomicU64::new(0),
     });
 
-    // Two Arc references — one for global monitor, one for local monitor
-    let state_ptr_global = Arc::into_raw(Arc::clone(&state));
-    let state_ptr_local = Arc::into_raw(state);
+    if let Ok(mut guard) = MONITOR_STATE.lock() {
+        *guard = Some(Arc::clone(&state));
+    }
 
     unsafe {
         let ns_event_class = objc_getClass(b"NSEvent\0".as_ptr());
 
-        // ── Global monitor (events when app is NOT focused) ──
-
-        static DESCRIPTOR: BlockDescriptor = BlockDescriptor {
-            reserved: 0,
-            size: std::mem::size_of::<FnKeyBlock>() as u64,
-            copy_helper: Some(block_copy_helper),
-            dispose_helper: Some(block_dispose_helper),
-        };
-
-        let block = Box::new(FnKeyBlock {
-            isa: _NSConcreteStackBlock,
-            flags: (1 << 25), // BLOCK_HAS_COPY_DISPOSE
-            reserved: 0,
-            invoke: block_invoke,
-            descriptor: &DESCRIPTOR,
-            state: state_ptr_global,
+        // Do not hand-build blocks: an incorrect isa makes AppKit retain the
+        // original allocation rather than copy it, leaving a dangling callback
+        // when Rust frees it (GlobalObserverHandler SIGBUS in 0.0.18).
+        let global_state = Arc::clone(&state);
+        let block = RcBlock::new(move |event: *const c_void| {
+            global_event(&global_state, event);
         });
-        let block_ptr = Box::into_raw(block);
 
         let sel = sel_registerName(b"addGlobalMonitorForEventsMatchingMask:handler:\0".as_ptr());
         let send: unsafe extern "C" fn(
             *const c_void,
             *const c_void,
             u64,
-            *const FnKeyBlock,
+            *const c_void,
         ) -> *const c_void = std::mem::transmute(objc_msgSend as *const c_void);
 
-        let monitor = send(ns_event_class, sel, NS_EVENT_MASK_FLAGS_CHANGED, block_ptr);
-        drop(Box::from_raw(block_ptr));
+        let monitor = send(
+            ns_event_class,
+            sel,
+            NS_EVENT_MASK_FLAGS_CHANGED,
+            RcBlock::as_ptr(&block).cast(),
+        );
 
         if monitor.is_null() {
             log::error!("[fnkey] NSEvent global monitor FAILED");
@@ -720,29 +633,7 @@ fn init_monitor(app: AppHandle) {
             }
         }
 
-        // Store state pointer for teardown
-        if let Ok(mut g) = GLOBAL_STATE_PTR.lock() {
-            *g = Some(SendStatePtr(state_ptr_global));
-        }
-
-        // ── Local monitor (events when app IS focused) ──
-
-        static LOCAL_DESCRIPTOR: BlockDescriptor = BlockDescriptor {
-            reserved: 0,
-            size: std::mem::size_of::<LocalFnKeyBlock>() as u64,
-            copy_helper: Some(local_block_copy_helper),
-            dispose_helper: Some(local_block_dispose_helper),
-        };
-
-        let local_block = Box::new(LocalFnKeyBlock {
-            isa: _NSConcreteStackBlock,
-            flags: (1 << 25),
-            reserved: 0,
-            invoke: local_block_invoke,
-            descriptor: &LOCAL_DESCRIPTOR,
-            state: state_ptr_local,
-        });
-        let local_block_ptr = Box::into_raw(local_block);
+        let local_block = RcBlock::new(move |event: *const c_void| local_event(&state, event));
 
         let local_sel =
             sel_registerName(b"addLocalMonitorForEventsMatchingMask:handler:\0".as_ptr());
@@ -750,16 +641,15 @@ fn init_monitor(app: AppHandle) {
             *const c_void,
             *const c_void,
             u64,
-            *const LocalFnKeyBlock,
+            *const c_void,
         ) -> *const c_void = std::mem::transmute(objc_msgSend as *const c_void);
 
         let local_monitor = local_send(
             ns_event_class,
             local_sel,
             NS_EVENT_MASK_FLAGS_CHANGED,
-            local_block_ptr,
+            RcBlock::as_ptr(&local_block).cast(),
         );
-        drop(Box::from_raw(local_block_ptr));
 
         if local_monitor.is_null() {
             log::error!("[fnkey] NSEvent local monitor FAILED");
@@ -768,11 +658,6 @@ fn init_monitor(app: AppHandle) {
             if let Ok(mut g) = LOCAL_MONITOR.lock() {
                 *g = Some(SendPtr(local_monitor));
             }
-        }
-
-        // Store state pointer for teardown
-        if let Ok(mut g) = LOCAL_STATE_PTR.lock() {
-            *g = Some(SendStatePtr(state_ptr_local));
         }
 
         GLOBAL_ACTIVE.store(!monitor.is_null(), Ordering::SeqCst);

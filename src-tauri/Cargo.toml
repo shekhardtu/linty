@@ -107,3 +107,8 @@ tauri = { version = "2", features = ["test"] }
 
 [lints.rust]
 unexpected_cfgs = "allow"
+
+# AppKit must run on the process main thread, not a libtest worker.
+[[test]]
+name = "native_block_lifetime"
+harness = false
