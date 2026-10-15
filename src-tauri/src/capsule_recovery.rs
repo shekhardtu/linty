@@ -110,3 +110,78 @@ mod tests {
         assert!(state.begin_probe().is_some());
     }
 }
+
+/// Native construction does not prove that the replacement's WebKit page can
+/// execute JavaScript. Each native instance gets one initial-navigation retry.
+#[derive(Default)]
+pub(super) struct RendererRecovery {
+    epoch: u64,
+    window: usize,
+    waiting: bool,
+    retried: bool,
+}
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(super) enum RendererAction {
+    Ignore,
+    Retry,
+    Failed,
+}
+impl RendererRecovery {
+    pub(super) fn begin(&mut self, window: usize) -> u64 {
+        self.epoch += 1;
+        self.window = window;
+        self.waiting = true;
+        self.retried = false;
+        self.epoch
+    }
+    pub(super) fn acknowledge(&mut self, window: usize) -> bool {
+        if window == 0 || self.window != window || !self.waiting {
+            return false;
+        }
+        self.waiting = false;
+        true
+    }
+    pub(super) fn timeout(&mut self, epoch: u64, window: usize) -> RendererAction {
+        if !self.waiting || self.epoch != epoch || self.window != window {
+            RendererAction::Ignore
+        } else if !self.retried {
+            self.retried = true;
+            RendererAction::Retry
+        } else {
+            self.waiting = false;
+            RendererAction::Failed
+        }
+    }
+}
+
+#[cfg(test)]
+mod renderer_tests {
+    use super::*;
+    #[test]
+    fn replacement_requires_its_own_acknowledgment_and_invalidates_old_timeouts() {
+        let mut state = RendererRecovery::default();
+        let old = state.begin(10);
+        let current = state.begin(20);
+        assert!(!state.acknowledge(10));
+        assert_eq!(state.timeout(old, 10), RendererAction::Ignore);
+        assert!(state.acknowledge(20));
+        assert_eq!(state.timeout(current, 20), RendererAction::Ignore);
+    }
+    #[test]
+    fn a_replacement_has_only_one_navigation_retry_then_fails_unconfirmed() {
+        let mut state = RendererRecovery::default();
+        let epoch = state.begin(10);
+        assert_eq!(state.timeout(epoch, 10), RendererAction::Retry);
+        assert_eq!(state.timeout(epoch, 10), RendererAction::Failed);
+        assert_eq!(state.timeout(epoch, 10), RendererAction::Ignore);
+        assert!(!state.acknowledge(10));
+    }
+    #[test]
+    fn an_ack_after_the_retry_cancels_the_failure_timer() {
+        let mut state = RendererRecovery::default();
+        let epoch = state.begin(10);
+        assert_eq!(state.timeout(epoch, 10), RendererAction::Retry);
+        assert!(state.acknowledge(10));
+        assert_eq!(state.timeout(epoch, 10), RendererAction::Ignore);
+    }
+}

@@ -1,6 +1,7 @@
 import { load } from "@tauri-apps/plugin-store";
 import { useAppStore } from "@/store/app.store";
 import { undoDictionaryChange, type DictionaryState } from "@/lib/dictionary-undo.util";
+import { dictionaryTermKey, normalizeSuppressedTerms, removeAndSuppressDictionaryEntry, unsuppressDictionaryTerm } from "@/lib/dictionary-suppression.util";
 import {
   addToDictionary,
   isSuggestionReady,
@@ -29,7 +30,7 @@ let writes: Promise<void> = Promise.resolve();
 
 const getStore = () =>
   (storePromise ??= load("linty-dictionary.json", {
-    defaults: { entries: [], suggestions: [] },
+    defaults: { entries: [], suggestions: [], suppressedTerms: [] },
     autoSave: false,
   }).catch((error) => {
     storePromise = undefined;
@@ -41,7 +42,8 @@ export function initializeDictionary() {
     const store = await getStore();
     const entries = (await store.get<DictionaryEntry[]>("entries")) ?? [];
     const suggestions = (await store.get<DictionarySuggestion[]>("suggestions")) ?? [];
-    useAppStore.getState().setDictionary(entries, suggestions);
+    const suppressedTerms = normalizeSuppressedTerms(await store.get<unknown>("suppressedTerms"));
+    useAppStore.getState().setDictionary(entries, suggestions, suppressedTerms);
   })().catch((error) => {
     hydration = undefined;
     throw error;
@@ -54,29 +56,33 @@ export function updateDictionary(update: (state: DictionaryState) => DictionaryS
     .catch(() => {})
     .then(async () => {
       await initializeDictionary();
-      const { dictionaryEntries, dictionarySuggestions } = useAppStore.getState();
-      const result = update({ entries: dictionaryEntries, suggestions: dictionarySuggestions });
+      const { dictionaryEntries, dictionarySuggestions, suppressedDictionaryTerms } = useAppStore.getState();
+      const updated = update({ entries: dictionaryEntries, suggestions: dictionarySuggestions, suppressedTerms: suppressedDictionaryTerms });
+      const result = { ...updated, suppressedTerms: updated.suppressedTerms ?? suppressedDictionaryTerms };
       const store = await getStore();
       try {
         await store.set("entries", result.entries);
         await store.set("suggestions", result.suggestions);
+        await store.set("suppressedTerms", result.suppressedTerms);
         await store.save();
       } catch (error) {
         // The plugin also saves its cache on app exit. Restore that cache after
         // failure so an unacknowledged mutation cannot be saved later on quit.
         await store.set("entries", dictionaryEntries);
         await store.set("suggestions", dictionarySuggestions);
+        await store.set("suppressedTerms", suppressedDictionaryTerms);
         throw error;
       }
-      useAppStore.getState().setDictionary(result.entries, result.suggestions);
+      useAppStore.getState().setDictionary(result.entries, result.suggestions, result.suppressedTerms);
     });
   writes = next;
   return next;
 }
 
 export const addDictionaryEntry = (right: string, wrong: string[], origin: DictionaryOrigin = "manual") =>
-  updateDictionary(({ entries, suggestions }) => ({
+  updateDictionary(({ entries, suggestions, suppressedTerms }) => ({
     entries: addToDictionary(entries, right, wrong, origin),
+    suppressedTerms: unsuppressDictionaryTerm(suppressedTerms, right),
     // A confirmed entry retires any suggestion it covers.
     suggestions: suggestions.filter((s) => !(s.right === right.trim() && wrong.map((w) => w.toLowerCase()).includes(s.wrong.toLowerCase()))),
   }));
@@ -88,17 +94,15 @@ export const setDictionaryEntryEnabled = (entryId: string, enabled: boolean) =>
   }));
 
 export const removeDictionaryEntry = (entryId: string) =>
-  updateDictionary(({ entries, suggestions }) => ({
-    entries: entries.filter((e) => e.entryId !== entryId),
-    suggestions,
-  }));
+  updateDictionary(state => removeAndSuppressDictionaryEntry(state, entryId));
 
 export const acceptSuggestion = (suggestionId: string) =>
-  updateDictionary(({ entries, suggestions }) => {
+  updateDictionary(({ entries, suggestions, suppressedTerms }) => {
     const s = suggestions.find((x) => x.suggestionId === suggestionId);
     if (!s) return { entries, suggestions };
     return {
       entries: addToDictionary(entries, s.right, [s.wrong], "learned"),
+      suppressedTerms: unsuppressDictionaryTerm(suppressedTerms, s.right),
       suggestions: suggestions.filter((x) => x.suggestionId !== suggestionId),
     };
   });
@@ -152,11 +156,11 @@ export async function ingestCorrectionBatch(records: CorrectionRecord[], autoLea
   let suggested = 0, learned = 0, pending = 0;
   let batch: { before: DictionaryState; after: DictionaryState } | undefined;
   const ids = new Set(records.map(r => r.correctionId));
-  await updateDictionary(({ entries, suggestions }) => {
+  await updateDictionary(({ entries, suggestions, suppressedTerms = [] }) => {
     const before = new Set(suggestions.map(s => s.suggestionId));
     const readyBefore = new Set(suggestions.filter(isSuggestionReady).map(s => s.suggestionId));
-    let nextSuggestions = suggestions;
-    for (const record of records) nextSuggestions = suggestionsFromCorrection(record, nextSuggestions, entries);
+    let nextSuggestions = suggestions.filter(s => !suppressedTerms.includes(dictionaryTermKey(s.right)));
+    for (const record of records) nextSuggestions = suggestionsFromCorrection(record, nextSuggestions, entries, suppressedTerms);
     const belongs = (s: DictionarySuggestion) => s.correctionIds.some(id => ids.has(id));
     // Conflicting destinations in the same draft are not a reusable rule.
     const destinations = new Map<string, Set<string>>();
@@ -176,8 +180,8 @@ export async function ingestCorrectionBatch(records: CorrectionRecord[], autoLea
     }
     suggested = nextSuggestions.filter(s => belongs(s) && isSuggestionReady(s) && !readyBefore.has(s.suggestionId)).length;
     pending = nextSuggestions.filter(s => !before.has(s.suggestionId) && !isSuggestionReady(s)).length;
-    const after = { entries: nextEntries, suggestions: nextSuggestions };
-    batch = { before: { entries, suggestions }, after };
+    const after = { entries: nextEntries, suggestions: nextSuggestions, suppressedTerms };
+    batch = { before: { entries, suggestions, suppressedTerms }, after };
     return after;
   });
   if (batch && (suggested || learned || pending)) {

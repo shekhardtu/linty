@@ -1,4 +1,7 @@
 use std::sync::atomic::Ordering;
+#[cfg(target_os = "macos")]
+static MAINTENANCE_PENDING: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
 use tauri::{Emitter, Manager};
 
 use crate::state::{AppState, AudioCommand};
@@ -49,12 +52,20 @@ pub fn start(app: tauri::AppHandle) {
             // No-ops instantly while the monitor is active.
             #[cfg(target_os = "macos")]
             {
-                if tick_count % MONITOR_CHECK_EVERY_TICKS == 0 {
+                if tick_count % MONITOR_CHECK_EVERY_TICKS == 0
+                    && !MAINTENANCE_PENDING.swap(true, Ordering::SeqCst)
+                {
                     let app_clone = app.clone();
-                    let _ = app.run_on_main_thread(move || {
-                        crate::capsule::rebuild_panel_if_needed(&app_clone);
-                        crate::fnkey::reinit_monitor_if_needed(app_clone);
-                    });
+                    if app
+                        .run_on_main_thread(move || {
+                            MAINTENANCE_PENDING.store(false, Ordering::SeqCst);
+                            crate::capsule::rebuild_panel_if_needed(&app_clone);
+                            crate::fnkey::reinit_monitor_if_needed(app_clone);
+                        })
+                        .is_err()
+                    {
+                        MAINTENANCE_PENDING.store(false, Ordering::SeqCst);
+                    }
                 }
                 // The capsule page is reloaded while idle once it grows past
                 // its threshold or its web content process has terminated.

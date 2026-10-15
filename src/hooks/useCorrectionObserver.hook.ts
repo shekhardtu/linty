@@ -7,6 +7,7 @@ import { judgeCorrection } from "@/lib/correction-diff.util";
 import { ingestCorrectionBatch, undoCorrectionLearning } from "@/services/dictionary.service";
 import { recordCorrection } from "@/services/user-corrections.service";
 import { correctionFeedback, type CorrectionFeedbackAction } from "@/lib/correction-feedback";
+import { isVerifiedShortSpellingCorrection } from "@/lib/dictionary.util";
 import type { ApplicationIdentity } from "@/types/transcript.types";
 import type { CorrectionPair, CorrectionRecord } from "@/types/correction.types";
 
@@ -49,7 +50,7 @@ export function useCorrectionObserver() {
           ...judgeCorrection(correction.pairs, correction.wordCount),
           pairs: correction.pairs,
         };
-        return record;
+        return isVerifiedShortSpellingCorrection(record) ? { ...record, rewrite: false } : record;
       });
       try {
         for (const record of records) await recordCorrection(record);

@@ -13,6 +13,11 @@ export async function getSettingsStore() {
   if (!storeInstance) {
     storeInstance = await load(STORE_PATH, {
       defaults: {
+        cursorAwareInsertion: false,
+        ideVocabularyHints: false,
+        selectedTextEditing: false,
+        voiceSnippets: [],
+        appStyleProfiles: [],
         reformatEnabled: false,
         reformatStyle: "semi-formal",
         reformatLists: true,

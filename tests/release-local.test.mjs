@@ -89,7 +89,7 @@ test('local releases include every browser suite required by the PR workflow', (
   assert.deepEqual([...uiJob.matchAll(/run: yarn test:([a-z-]+)/g)].map(match => match[1]), ['browsers']);
   const scripts = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).scripts;
   assert.equal(scripts['test:browsers'], 'node scripts/run-ui-checks.mjs');
-  assert.deepEqual([...uiSuites].sort(), ['audio-history', 'correction-feedback', 'microphone', 'onboarding', 'privacy', 'security', 'ui', 'updates']);
+  assert.deepEqual([...uiSuites].sort(), ['audio-history', 'correction-feedback', 'editor-assistance', 'microphone', 'onboarding', 'personalization', 'privacy', 'security', 'ui', 'updates']);
   assert.ok(uiSuites.every(suite => scripts[`test:${suite}`]));
 });
 

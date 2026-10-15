@@ -15,6 +15,7 @@ use tokio::sync::Notify;
 mod backend;
 use backend::{Backend, NativeBackend};
 mod dictionary;
+mod personalization;
 use dictionary::{apply, Entry};
 
 #[derive(Clone, Deserialize)]
@@ -28,6 +29,16 @@ pub struct Options {
     pub prompt: String,
     pub vocabulary: Vec<crate::vocabulary::VocabTerm>,
     pub dictionary: Vec<Entry>,
+    #[serde(default)]
+    pub voice_snippets: Vec<personalization::VoiceSnippet>,
+    #[serde(default)]
+    pub app_style_profiles: Vec<personalization::AppStyleProfile>,
+    #[serde(default)]
+    pub ide_vocabulary_hints: bool,
+    #[serde(default)]
+    pub cursor_aware_insertion: bool,
+    #[serde(default)]
+    pub selected_text_editing: bool,
     pub cleanup: bool,
     pub cleanup_options: reformat::Options,
     pub cleanup_context_auto: bool,
@@ -79,6 +90,7 @@ struct Session {
     id: u64,
     generation: AtomicU64,
     options: Options,
+    editor_capture: Mutex<crate::editor_assistance::Capture>,
     phase: Mutex<Phase>,
     cancelled: AtomicBool,
     changed: Notify,
@@ -118,6 +130,7 @@ impl Session {
         }
     }
     fn finish(&self, result: Result<Outcome, String>) {
+        *lock(&self.editor_capture) = crate::editor_assistance::Capture::default();
         self.release_processing();
         *self.result.lock().unwrap() = Some(result);
         *self.phase.lock().unwrap() = Phase::Finished;
@@ -261,6 +274,7 @@ impl Coordinator {
             id: self.next.fetch_add(1, Ordering::SeqCst) + 1,
             generation: AtomicU64::new(0),
             options,
+            editor_capture: Mutex::new(crate::editor_assistance::Capture::default()),
             phase: Mutex::new(Phase::Starting),
             cancelled: AtomicBool::new(false),
             changed: Notify::new(),
@@ -382,6 +396,33 @@ pub async fn start_dictation(app: tauri::AppHandle, options: Options) -> Result<
     let session = app.state::<Coordinator>().reserve(options)?;
     if session.options.stop_on_trigger_release {
         app.state::<Coordinator>().bind_trigger(&session);
+    }
+    if session.options.ide_vocabulary_hints || session.options.selected_text_editing {
+        let app = app.clone();
+        let ide = session.options.ide_vocabulary_hints;
+        let editing = session.options.selected_text_editing;
+        // Optional AX context must not keep startup waiting indefinitely. A
+        // timed-out blocking read owns its result and drops it when it ends;
+        // it cannot publish a late capture into a cancelled/new session.
+        if let Ok(capture) = session
+            .guard(2., async move {
+                tokio::task::spawn_blocking(move || {
+                    crate::editor_assistance::capture(&app, ide, editing)
+                })
+                .await
+                .map_err(|_| "Editor context unavailable".to_owned())
+            })
+            .await
+        {
+            let mut current = lock(&session.editor_capture);
+            if session.check().is_ok() {
+                *current = capture;
+            }
+        }
+    }
+    if let Err(error) = session.check() {
+        session.finish(Err(error.clone()));
+        return Err(error);
     }
     let result = crate::start_recording(
         app.clone(),
@@ -590,12 +631,16 @@ fn delivery_feedback(outcome: &Outcome) -> (&'static str, Option<String>) {
         .as_ref()
         .and_then(|r| r["deliveryStatus"].as_str())
     {
-        None | Some("skipped") => ("idle", None),
+        None | Some("skipped" | "editing-preview") => ("idle", None),
         Some("verified") => ("done", None),
         // Some apps accept paste without exposing readable Accessibility text.
         // Dismiss quietly; History retains the verification details.
         Some("unverified" | "pasted") => ("idle", None),
         Some("failed") => ("error", Some("Paste failed · copy from History".into())),
+        Some("editing-unavailable") => (
+            "error",
+            Some("Selected-text edit unavailable · open Linty".into()),
+        ),
         _ => ("error", Some("Text ready · copy from History".into())),
     }
 }
@@ -677,10 +722,12 @@ async fn process_text<B: Backend>(
     let preparation_ms = millis(tick);
     backend.stage(s, "transcribing")?;
     let tick = Instant::now();
+    let mut speech_options = o.clone();
+    crate::editor_assistance::add_terms(&mut speech_options, &lock(&s.editor_capture).terms);
     let output = s
         .guard(
             (audio.duration_secs * 2. + 30.).max(60.),
-            backend.transcribe(o),
+            backend.transcribe(&speech_options),
         )
         .await?;
     let stt_ms = millis(tick);
@@ -714,9 +761,40 @@ async fn process_text<B: Backend>(
     }
     backend.changed();
     s.check()?;
+    let edit_preview = match if o.selected_text_editing {
+        backend.preview_edit(s, &raw)
+    } else {
+        Ok(false)
+    } {
+        Ok(preview) => preview,
+        Err(error) => {
+            record["deliveryStatus"] = json!("editing-unavailable");
+            record["reformatting"]["status"] = json!("skipped");
+            record["reformatting"]["reason"] = json!("selected_text_unavailable");
+            outcome.warnings.push(error);
+            persist(backend.update(id.clone(), record.clone())).await?;
+            backend.changed();
+            outcome.record = Some(record);
+            return Ok(outcome);
+        }
+    };
+    if edit_preview {
+        record["deliveryStatus"] = json!("editing-preview");
+        record["reformatting"]["status"] = json!("skipped");
+        record["reformatting"]["reason"] = json!("selected_text_edit");
+        persist(backend.update(id.clone(), record.clone())).await?;
+        backend.changed();
+        outcome.record = Some(record);
+        return Ok(outcome);
+    }
+    let snippet = personalization::snippet(&raw, &o.voice_snippets);
     let mut candidate = raw.clone();
     let mut reformat_ms = 0.;
-    if o.cleanup && !reformat::supports_language(&o.language) {
+    if snippet.is_some() {
+        record["reformatting"]["status"] = json!("skipped");
+        record["reformatting"]["reason"] = json!("voice_snippet");
+        record["reformatting"]["totalMs"] = json!(0.);
+    } else if o.cleanup && !reformat::supports_language(&o.language) {
         record["reformatting"]["status"] = json!("skipped");
         record["reformatting"]["reason"] = json!("unsupported_language");
         record["reformatting"]["totalMs"] = json!(0.);
@@ -724,6 +802,17 @@ async fn process_text<B: Backend>(
         backend.stage(s, "correcting")?;
         let tick = Instant::now();
         let mut options = o.cleanup_options.clone();
+        if o.track_application {
+            if let Some(style) = personalization::style(
+                audio
+                    .application
+                    .as_ref()
+                    .and_then(|a| a.bundle_id.as_deref()),
+                &o.app_style_profiles,
+            ) {
+                options.styling = style.into();
+            }
+        }
         if o.cleanup_context_auto
             && audio
                 .application
@@ -821,6 +910,10 @@ async fn process_text<B: Backend>(
     pairs.extend(applied.pairs);
     record["dictionaryApplied"] = json!(pairs);
     record["dictionaryValidation"] = json!(applied.rejected);
+    if let Some(snippet) = snippet {
+        candidate = snippet.text.clone();
+        record["voiceSnippetId"] = json!(snippet.id);
+    }
     record["finalText"] = json!(candidate);
     record["wordCount"] = json!(candidate.split_whitespace().count());
     record["corrected"] = json!(candidate != raw);
@@ -854,10 +947,10 @@ async fn process_text<B: Backend>(
     record["deliveryStatus"] = json!(delivery.status);
     record["delivery"] = serde_json::to_value(&delivery).unwrap();
     if delivery.command_posted {
-        record["attemptedText"] = json!(candidate);
+        record["attemptedText"] = json!(delivery.published_text.as_deref().unwrap_or(&candidate));
     }
     if delivery.status == "verified" {
-        record["pastedText"] = json!(candidate);
+        record["pastedText"] = json!(delivery.published_text.as_deref().unwrap_or(&candidate));
     }
     record["pasteTimeMs"] = json!(millis(tick));
     record["processingTimeMs"] = json!(millis(stopped));

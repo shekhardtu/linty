@@ -1,0 +1,14 @@
+.personalization-settings, .personalization-form { display: flex; flex-direction: column; gap: 16px; }
+.personalization-settings h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.personalization-list { list-style: none; padding: 0; margin: 12px 0; }
+.personalization-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--color-border-subtle); animation: personalization-enter 160ms ease-out; }
+.personalization-list li > div:first-child { min-width: 0; }
+.personalization-list li > span { min-width: 0; overflow-wrap: anywhere; }
+.personalization-list p { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 100px; overflow: auto; font-size: 12px; color: var(--color-text-muted); }
+.personalization-form label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.personalization-form input, .personalization-form textarea { background: var(--color-bg-elevated); color: var(--color-text-primary); border: 1px solid var(--color-border-subtle); border-radius: 8px; padding: 10px; font: inherit; }
+.personalization-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.personalization-form > button { align-self: flex-start; }
+@keyframes personalization-enter { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .personalization-list li { animation: none; } }
+@media (max-width: 600px) { .personalization-list li { flex-direction: column; align-items: flex-start; } }

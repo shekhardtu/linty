@@ -10,18 +10,20 @@ export type ParakeetVocabularyStatus = "idle" | "preparing" | "ready" | "error";
 export interface DictionarySlice {
   dictionaryEntries: DictionaryEntry[];
   dictionarySuggestions: DictionarySuggestion[];
+  suppressedDictionaryTerms: string[];
   dictionaryLoaded: boolean;
   parakeetVocabularyStatus: ParakeetVocabularyStatus;
   setParakeetVocabularyStatus: (status: ParakeetVocabularyStatus) => void;
-  setDictionary: (entries: DictionaryEntry[], suggestions: DictionarySuggestion[]) => void;
+  setDictionary: (entries: DictionaryEntry[], suggestions: DictionarySuggestion[], suppressedTerms?: string[]) => void;
 }
 
 export const createDictionarySlice: StateCreator<DictionarySlice> = (set) => ({
   dictionaryEntries: [],
   dictionarySuggestions: [],
+  suppressedDictionaryTerms: [],
   dictionaryLoaded: false,
   parakeetVocabularyStatus: "idle",
   setParakeetVocabularyStatus: (parakeetVocabularyStatus) => set({ parakeetVocabularyStatus }),
-  setDictionary: (dictionaryEntries, dictionarySuggestions) =>
-    set({ dictionaryEntries, dictionarySuggestions, dictionaryLoaded: true }),
+  setDictionary: (dictionaryEntries, dictionarySuggestions, suppressedDictionaryTerms = []) =>
+    set({ dictionaryEntries, dictionarySuggestions, suppressedDictionaryTerms, dictionaryLoaded: true }),
 });

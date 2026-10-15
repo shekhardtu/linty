@@ -3,6 +3,8 @@ import { DEFAULT_TYPING_SPEED } from "@/lib/payoff.util";
 import { DEFAULT_TRANSCRIPTION_LANGUAGE } from "@/lib/languages.util";
 import type { ReformatContext, ReformatStyle } from "@/types/reformat.types";
 
+import type { VoiceSnippet, AppStyleProfile } from "@/types/dictation-personalization.types";
+
 export type ThemePreference = "light" | "dark" | "system";
 
 /** Sentinel value for the fn-key trigger. */
@@ -46,6 +48,11 @@ export const TRIGGER_KEY_OPTIONS: TriggerKeyOption[] = [
 ];
 
 export interface SettingsSlice {
+  cursorAwareInsertion: boolean;
+  ideVocabularyHints: boolean;
+  selectedTextEditing: boolean;
+  voiceSnippets: VoiceSnippet[];
+  appStyleProfiles: AppStyleProfile[];
   reformatEnabled: boolean;
   reformatStyle: ReformatStyle;
   reformatLists: boolean;
@@ -97,6 +104,11 @@ export interface SettingsSlice {
 export const DEFAULT_MODEL_IDLE_UNLOAD_MINUTES = 15;
 
 export const createSettingsSlice: StateCreator<SettingsSlice> = (set) => ({
+  cursorAwareInsertion: false,
+  ideVocabularyHints: false,
+  selectedTextEditing: false,
+  voiceSnippets: [],
+  appStyleProfiles: [],
   reformatEnabled: false,
   reformatStyle: "semi-formal",
   reformatLists: true,

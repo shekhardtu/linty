@@ -69,7 +69,7 @@ try {
   await page.evaluate(() => { window.__QA__.failures['plugin:store|save'] = 'Synthetic save failure'; });
   const writesBeforeFailure = await page.evaluate(() => window.__QA__.calls.filter(c => c === 'plugin:store|set').length);
   await observe('Unsaved', 'Notes', 'Unsavd');
-  await page.waitForFunction(n => window.__QA__.calls.filter(c => c === 'plugin:store|set').length >= n + 4, writesBeforeFailure);
+  await page.waitForFunction(n => window.__QA__.calls.filter(c => c === 'plugin:store|set').length >= n + 6, writesBeforeFailure);
   assert.equal(await page.evaluate(() => window.__QA__.stores[4].entries.some(e => e.right === 'Unsaved')), false, 'A failed save restores the plugin cache before shutdown can persist it');
   assert.equal(await feedbackCount(), 4, 'A failed dictionary save never claims the word was learned');
   await store.evaluate(s => s.getState().setObserveCorrections(false));
@@ -132,6 +132,58 @@ try {
   const recorded = await page.evaluate(() => window.__QA__.stores[3].corrections.filter(c => c.pairs.some(p => p.to === 'canto')));
   assert.equal(recorded.length, 1);
   assert.deepEqual(recorded[0].pairs, [{ kind: 'substitution', from: 'Kanto', to: 'canto' }]);
+
+  await observe('Notion', 'Notes', 'Notiom', 1);
+  await waitForCount(10);
+  assert.equal(await page.evaluate(() => window.__QA__.stores[3].corrections.find(c => c.pairs.some(p => p.to === 'Notion')).rewrite), false,
+    'A verified one-word name spelling fix is saved as a correction, not a semantic rewrite');
+  await page.evaluate(async () => {
+    const dictionary = await import('/src/services/dictionary.service.ts');
+    const entry = window.__QA__.stores[4].entries.find(e => e.right === 'Notion');
+    await dictionary.removeDictionaryEntry(entry.entryId);
+  });
+  assert.equal(await page.evaluate(() => window.__QA__.stores[4].suppressedTerms.includes('notion')), true);
+  await store.evaluate(s => s.getState().setDictionary([], []));
+  await page.evaluate(async () => {
+    // A fresh module instance rehydrates the persisted store, as on relaunch.
+    const dictionary = await import('/src/services/dictionary.service.ts?rehydration-check');
+    await dictionary.initializeDictionary();
+  });
+  assert.equal(await store.evaluate(s => s.getState().suppressedDictionaryTerms.includes('notion')), true);
+  await observe('NOTION', 'Notes', 'Notiom', 1);
+  await page.waitForTimeout(200);
+  assert.equal(await feedbackCount(), 10, 'A deleted learned destination is not relearned after rehydration');
+  assert.equal(await page.evaluate(() => window.__QA__.stores[4].entries.some(e => e.right.toLowerCase() === 'notion')), false);
+  await page.evaluate(async () => {
+    await (await import('/src/services/dictionary.service.ts')).addDictionaryEntry('Notion', ['Notiom']);
+  });
+  assert.equal(await page.evaluate(() => window.__QA__.stores[4].suppressedTerms.includes('notion')), false,
+    'Explicit manual re-add clears deletion suppression');
+  await page.evaluate(async () => {
+    const dictionary = await import('/src/services/dictionary.service.ts');
+    const entry = window.__QA__.stores[4].entries.find(e => e.right === 'Notion');
+    window.__QA__.failures['plugin:store|save'] = 'Synthetic deletion save failure';
+    try {
+      await dictionary.removeDictionaryEntry(entry.entryId);
+      throw new Error('Deletion unexpectedly succeeded');
+    } catch (error) {
+      if (!String(error).includes('Synthetic deletion save failure')) throw error;
+    } finally { delete window.__QA__.failures['plugin:store|save']; }
+  });
+  assert.equal(await page.evaluate(() => window.__QA__.stores[4].entries.some(e => e.right === 'Notion')), true);
+  assert.equal(await page.evaluate(() => window.__QA__.stores[4].suppressedTerms.includes('notion')), false,
+    'Failed deletion restores suppression together with dictionary entries');
+  await page.evaluate(async () => {
+    const dictionary = await import('/src/services/dictionary.service.ts');
+    const entry = window.__QA__.stores[4].entries.find(e => e.right === 'Notion');
+    const record = window.__QA__.stores[3].corrections.find(c => c.pairs.some(p => p.to === 'Notion'));
+    await Promise.all([
+      dictionary.removeDictionaryEntry(entry.entryId),
+      dictionary.ingestCorrectionBatch([{ ...record, correctionId: 'queued-after-deletion' }], true, 'queued-after-deletion'),
+    ]);
+  });
+  assert.equal(await page.evaluate(() => window.__QA__.stores[4].entries.some(e => e.right === 'Notion')), false,
+    'Learning queued behind a deletion cannot overwrite its suppression');
 
   await mkdir('artifacts/correction-feedback', { recursive: true });
   for (const theme of ['light', 'dark']) for (const reducedMotion of ['no-preference', 'reduce']) {

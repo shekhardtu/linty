@@ -11,9 +11,73 @@ import {
   promptWithDictionary,
   engineTerms,
   suggestionsFromCorrection,
+  isVerifiedShortSpellingCorrection,
 } from "../src/lib/dictionary.util.ts";
+import { dictionaryTermKey, normalizeSuppressedTerms, removeAndSuppressDictionaryEntry, unsuppressDictionaryTerm } from "../src/lib/dictionary-suppression.util.ts";
 
 const now = 1_757_900_000_000;
+
+const observedShort = (from, to, wordCount = 1) => ({
+  correctionId: "verified-short", transcriptId: "t", timestamp: now,
+  source: "observed", engine: "local", modelName: "m", language: "en",
+  ...diffCorrection(from, to), wordCount,
+});
+
+test("verified short name spelling fixes learn without widening the rewrite policy", () => {
+  for (const record of [observedShort("Figna", "Figma"), observedShort("YOLO", "YULU", 2)]) {
+    assert.equal(record.rewrite, true, "The global ratio policy is unchanged");
+    assert.equal(isVerifiedShortSpellingCorrection(record), true);
+    const suggestions = suggestionsFromCorrection(record, [], []);
+    assert.equal(suggestions.length, 1);
+    assert.equal(isSuggestionReady(suggestions[0]), true);
+    assert.deepEqual(suggestionsFromCorrection({ ...record, source: "edit" }, [], []), [], "Manual History rewrites retain the old policy");
+  }
+  for (const record of [
+    observedShort("Figma", "Slack"), observedShort("ship", "shop"),
+    observedShort("not", "Now"), observedShort("four", "Five"),
+    observedShort("figma", "Figma"), observedShort("Tari", "Tauri", 0),
+    observedShort("Figna and Zustan", "Figma and Zustand", 2),
+    observedShort("Hari Shekhar", "Harishekhar", 2),
+  ]) {
+    assert.equal(isVerifiedShortSpellingCorrection(record), false, JSON.stringify(record.pairs));
+    assert.deepEqual(suggestionsFromCorrection({ ...record, rewrite: true }, [], []), []);
+  }
+});
+
+test("deleting a dictionary term suppresses future observed and History learning after reload", () => {
+  const entries = addToDictionary([], "Figma", ["Figna"], "learned", now);
+  const pending = suggestionsFromCorrection(observedShort("Figna", "Figma"), [], []);
+  const removed = removeAndSuppressDictionaryEntry({ entries, suggestions: pending }, entries[0].entryId);
+  const reloaded = JSON.parse(JSON.stringify(removed));
+  assert.deepEqual(reloaded.suppressedTerms, ["figma"]);
+  assert.deepEqual(reloaded.entries, []);
+  assert.deepEqual(reloaded.suggestions, [], "Deletion also retires an old pending suggestion");
+  const record = observedShort("Figna", "FIGMA");
+  assert.deepEqual(suggestionsFromCorrection(record, [], [], reloaded.suppressedTerms), []);
+  assert.deepEqual(suggestionsFromCorrection({ ...record, source: "edit", rewrite: false }, [], [], reloaded.suppressedTerms), []);
+  assert.deepEqual(unsuppressDictionaryTerm(reloaded.suppressedTerms, " Figma. "), []);
+  assert.equal(dictionaryTermKey(" E\u0301lodie "), dictionaryTermKey("ÉLODIE"));
+  assert.equal(suggestionsFromCorrection(record, [], [], unsuppressDictionaryTerm(reloaded.suppressedTerms, "Figma")).length, 1,
+    "An explicit re-add opts back into learning");
+});
+
+test("undo learning suppresses its new terms and preserves later deletions", async () => {
+  const { undoDictionaryChange } = await import("../src/lib/dictionary-undo.util.ts");
+  const before = { entries: [], suggestions: [], suppressedTerms: [] };
+  const after = { ...before, entries: addToDictionary([], "Figma", ["Figna"], "learned", now) };
+  const current = { ...after, suppressedTerms: ["tauri"] };
+  const undone = undoDictionaryChange(current, before, after);
+  assert.deepEqual(undone.entries, []);
+  assert.deepEqual(undone.suppressedTerms, ["tauri", "figma"]);
+  assert.deepEqual(suggestionsFromCorrection(observedShort("Figna", "Figma"), [], [], undone.suppressedTerms), []);
+});
+
+test("suppression hydration tolerates missing or malformed local data", () => {
+  for (const invalid of [undefined, null, true, "figma", { term: "figma" }]) {
+    assert.deepEqual(normalizeSuppressedTerms(invalid), []);
+  }
+  assert.deepEqual(normalizeSuppressedTerms([" Figma. ", "FIGMA", null, 3, "", "...", "E\u0301lodie"]), ["figma", "élodie"]);
+});
 
 test("feedback promises future use only for saved, enabled dictionary learning", () => {
   assert.equal(correctionFeedback({ learned: 1, suggested: 0 }, true).message, "I’ll remember it next time.");
@@ -149,7 +213,9 @@ test("undo restores only the correction batch and refuses to overwrite newer edi
   const undone = undoDictionaryChange(current, before, after);
   assert.deepEqual(undone.entries.map(e => e.right), ["Figma", "YULU"]);
   const edited = { entries: addToDictionary(after.entries, "Harishekhar", ["Another spelling"], "manual", now), suggestions: [] };
+  const unchanged = structuredClone(edited);
   assert.throws(() => undoDictionaryChange(edited, before, after), /changed since learning/);
+  assert.deepEqual(edited, unchanged, "Rejected Undo neither removes the later manual edit nor adds suppression");
   assert.equal(edited.entries.at(-1).wrong.length, 2);
 });
 
