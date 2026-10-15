@@ -39,6 +39,9 @@ dictation. With editing enabled but no supported selection, the command is kept
 in History and no paste is attempted. The selected document text is not saved
 in History. Unsupported AX writes fail visibly; the user should inspect the
 destination if the host accepts a write but does not confirm its result.
+With a captured selection, unsupported phrases beginning with the whole word
+"Linty" are rejected instead of being pasted over that selection. Ordinary
+dictation outside that command prefix is unchanged.
 
 ## Diagnostics and privacy
 
@@ -83,7 +86,7 @@ and everyday use are still required for confidence beyond synthetic tests.
 ### Current build evidence
 
 The frontend production build and 222 Node regressions pass. The final native
-library suite passes 165 tests with five ignored. All ten browser suites passed
+library suite passes 166 tests with five ignored. All ten browser suites passed
 individually in WebKit, with the microphone timing suite requiring an isolated
 retry after its combined-run failure. The two new feature suites also pass in
 Chromium. Static review found no additional material correctness or privacy issue

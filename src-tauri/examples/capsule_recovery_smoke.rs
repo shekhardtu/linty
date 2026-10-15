@@ -126,7 +126,9 @@ async fn wait_rendered(app: &AppHandle, generation: u64) -> Result<(), String> {
         let windows: Vec<_> = app.webview_windows().keys().cloned().collect();
         eprintln!("Timeout webview-window registry: {windows:?}");
         if let Some(window) = app.get_webview_window("capsule") {
-            eprintln!("Timeout capsule URL: {:?}", window.url());
+            // The native URL may still be nil before the first commit. Report
+            // configuration without invoking Wry's nullable-URL getter.
+            eprintln!("Timeout capsule configured URL: {:?}", app.config().app.windows.iter().find(|config| config.label == "capsule").map(|config| &config.url));
             let native = window.with_webview(|webview| unsafe {
                 let view = webview.inner() as tauri_nspanel::cocoa::base::id;
                 let responds: bool = msg_send![view, respondsToSelector: sel!(_webProcessIdentifier)];

@@ -1438,12 +1438,11 @@ fn monitor_replacement_renderer(app: AppHandle, epoch: u64, native: usize) {
                         log::warn!("[capsule] Replacement renderer unconfirmed — retrying initial navigation once");
                         // This bounded fresh-window retry is separate from idle
                         // page recycling; it never changes that global throttle.
-                        let destination = window.url();
-                        let stopped = window.with_webview(|webview| unsafe {
-                            let view = webview.inner() as tauri_nspanel::cocoa::base::id;
-                            let _: () = msg_send![view, stopLoading];
-                        });
-                        if let Err(error) = stopped.and(destination).and_then(|url| window.navigate(url)) {
+                        // WKWebView.URL can be nil before the first commit;
+                        // Wry's URL getter unwraps it. Native reload is safe in
+                        // that state; an unconfirmed reload still follows the
+                        // bounded failure path and queues an idle replacement.
+                        if let Err(error) = window.reload() {
                             log::error!("[capsule] Replacement navigation retry failed: {error}");
                         }
                     }

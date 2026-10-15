@@ -118,6 +118,26 @@ fn transform(command: &str, original: &str) -> Option<String> {
         _ => return None,
     })
 }
+/// With a captured selection, a leading whole-word command namespace must
+/// never become an ordinary paste just because speech recognition changed its
+/// punctuation or spelling. Without a selection, ordinary dictation is intact.
+fn recognize_editing_command(command: &str, has_selection: bool) -> Result<bool, &'static str> {
+    if transform(command, "").is_some() {
+        return Ok(true);
+    }
+    let normalized = command.trim().to_ascii_lowercase();
+    let namespace = normalized.strip_prefix("linty").is_some_and(|rest| {
+        rest.chars()
+            .next()
+            .is_none_or(|c| !c.is_alphanumeric() && c != '_')
+    });
+    if has_selection && namespace {
+        Err("That Linty editing command is not supported. No edit was applied; your command was saved in History. Use uppercase, lowercase, sentence case, trim, or bullet list after Linty.")
+    } else {
+        Ok(false)
+    }
+}
+
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct Preview {
@@ -150,7 +170,7 @@ pub(crate) fn preview(
         let mut capture = capture
             .lock()
             .map_err(|_| "Selection capture unavailable")?;
-        if transform(raw, "").is_none() {
+        if !recognize_editing_command(raw, capture.target.is_some()).map_err(str::to_owned)? {
             return Ok(false);
         }
         let Some(target) = capture.target.as_ref() else {
@@ -333,6 +353,59 @@ mod tests {
             Some("Hello. World!".into())
         );
     }
+    #[test]
+    fn selected_command_near_misses_cannot_fall_through_to_paste() {
+        for command in [
+            "Linty upper case",
+            "Linty uppercase please",
+            "Linty, uppercase",
+            "Linty: uppercase",
+            " LINTY: lower case ",
+            "Linty",
+        ] {
+            assert!(
+                recognize_editing_command(command, true).is_err(),
+                "{command}"
+            );
+            assert_eq!(
+                recognize_editing_command(command, false),
+                Ok(false),
+                "{command}"
+            );
+        }
+        for command in [
+            "Lintyish words",
+            "Linty2 uppercase",
+            "Linty_uppercase",
+            "Ask Linty uppercase",
+            "ordinary dictated text",
+        ] {
+            assert_eq!(
+                recognize_editing_command(command, true),
+                Ok(false),
+                "{command}"
+            );
+        }
+        for command in [
+            "Linty uppercase.",
+            "Linty lowercase",
+            "Linty sentence case",
+            "Linty trim",
+            "Linty bullet list",
+        ] {
+            assert_eq!(
+                recognize_editing_command(command, true),
+                Ok(true),
+                "{command}"
+            );
+            assert_eq!(
+                recognize_editing_command(command, false),
+                Ok(true),
+                "{command}"
+            );
+        }
+    }
+
     #[test]
     fn identifiers_are_bounded_unique_and_code_specific() {
         assert_eq!(
