@@ -119,9 +119,10 @@ This diagnoses the reproduced stress-test failure. It does not prove that the
 earlier customer force-quit had the same cause; no stack sample from that event
 was available.
 
-Native selected-text editing is a separate permission-dependent test. See
+The separate native selected-text editing rehearsal passes its one exact test
+with Accessibility permission. It verifies stale-document/selection rejection,
+UTF-16 emoji boundaries, preservation of surrounding text, one-shot acceptance,
+and guarded Undo in the owned synthetic AppKit field. See
 [the isolated test runbook](runbooks/editor-native-rehearsal.md). Browser mocks,
-pure helpers, and granting permission alone do not count as a native pass.
-The isolated test launch timed out without Accessibility permission; its native
-test did not run and is not counted as passing.
-This branch has not been published.
+pure helpers, and granting permission alone do not count as a native pass;
+support across individual customer apps still depends on each host's AX behavior.
